@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { AuthController } from "../controllers/auth.controller";
-import { authenticate } from "../middlewares/auth.middleware";
+import { AuthController} from "../controllers/auth.controller";
+import { authenticate, authorize } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
   registerSchema,
@@ -27,5 +27,16 @@ router.get(
   authenticate,
   authController.profile
 );
+
+router.post(
+    "/refresh",
+    authController.refreshToken
+);
+
+router.post(
+    "/logout",
+    authController.logout
+);
+
 
 export default router;

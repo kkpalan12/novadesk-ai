@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { UnauthorizedError } from "../common/errors/UnauthorizedError";
 import { verifyAccessToken } from "../utils/jwt";
+import { UserRole } from "../constants/roles";
 
 export const authenticate = (
   req: Request,
@@ -19,4 +20,36 @@ export const authenticate = (
   req.user = verifyAccessToken(token);
 
   next();
+};
+export const authorize =
+(...roles: UserRole[]) => {
+
+    return (
+
+        req: Request,
+
+        res: Response,
+
+        next: NextFunction
+
+    ) => {
+
+        if (!req.user) {
+            throw new UnauthorizedError(
+                "Authentication required"
+            );
+        }
+
+        if (!roles.includes(req.user.role as UserRole)) {
+
+            throw new UnauthorizedError(
+                "Access denied"
+            );
+
+        }
+
+        next();
+
+    };
+
 };

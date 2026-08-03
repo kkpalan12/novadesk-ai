@@ -10,6 +10,7 @@ import { UnauthorizedError } from "../common/errors/UnauthorizedError";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
 } from "../utils/jwt";
 
 import { sanitizeUser } from "../utils/sanitizeUser";
@@ -95,4 +96,46 @@ export class AuthService {
       refreshToken,
     };
   }
+
+  async refreshToken(refreshToken: string) {
+
+    if (!refreshToken) {
+        throw new UnauthorizedError("Refresh token missing");
+    }
+
+    const payload = verifyRefreshToken(refreshToken);
+
+    const user =
+        await this.userRepository.findByRefreshToken(refreshToken);
+
+    if (!user) {
+        throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    const accessToken = generateAccessToken({
+        userId: String(user._id),
+        email: user.email,
+        role: user.role
+    });
+
+    return {
+        accessToken
+    };
+}
+async logout(refreshToken: string) {
+
+    if (!refreshToken) {
+        throw new UnauthorizedError("Refresh token missing");
+    }
+
+    const payload = verifyRefreshToken(refreshToken);
+
+    await this.userRepository.clearRefreshToken(
+        payload.userId
+    );
+
+    return {
+        message: "Logged out successfully"
+    };
+}
 }

@@ -43,4 +43,45 @@ export class AuthController {
 
   }
 );
+refreshToken = asyncHandler(async (req: Request, res: Response) => {
+
+    const { refreshToken } = req.body;
+
+    const result =
+        await this.authService.refreshToken(refreshToken);
+
+    res.status(200).json(
+
+        new ApiResponse(
+
+            true,
+
+            "Access token refreshed",
+
+            result
+
+        )
+
+    );
+
+});
+logout = asyncHandler(async (req: Request, res: Response) => {
+
+    const { refreshToken } = req.body;
+
+    await this.authService.logout(refreshToken);
+
+    res.status(200).json(
+
+        new ApiResponse(
+
+            true,
+
+            "Logout successful"
+
+        )
+
+    );
+
+});
 }
