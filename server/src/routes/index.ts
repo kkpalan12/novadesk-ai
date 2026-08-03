@@ -6,7 +6,7 @@ import adminRoutes from "./admin.routes";
 import taskRoutes from "./task.routes";
 import taskHistoryRoutes from "./task-history.routes";
 import dashboardRoutes from "./dashboard.routes";
-
+import workspaceRoutes from "./workspace.routes";
 const router = Router();
 
 router.use("/health", healthRoutes);
@@ -15,5 +15,6 @@ router.use("/admin", adminRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/tasks", taskHistoryRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/workspaces", workspaceRoutes);
 
 export default router;
