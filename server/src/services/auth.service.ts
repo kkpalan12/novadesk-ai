@@ -1,43 +1,98 @@
 import bcrypt from "bcrypt";
+
 import { UserRepository } from "../repositories/user.repository";
-import { IUser } from "../interfaces/user.interface";
+import { RegisterDto } from "../dto/auth/register.dto";
+import { LoginDto } from "../dto/auth/login.dto";
+
+import { ConflictError } from "../common/errors/ConflictError";
+import { UnauthorizedError } from "../common/errors/UnauthorizedError";
+
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../utils/jwt";
+
+import { sanitizeUser } from "../utils/sanitizeUser";
 
 export class AuthService {
+  private readonly userRepository: UserRepository;
 
-    private userRepository: UserRepository;
+  constructor() {
+    this.userRepository = new UserRepository();
+  }
 
-    constructor() {
-        this.userRepository = new UserRepository();
-    }
-
-    async register(userData: Partial<IUser>) {
-
-    const existingUser =
-        await this.userRepository.findByEmail(userData.email!);
+  /**
+   * Register a new user
+   */
+  async register(userData: RegisterDto) {
+    const existingUser = await this.userRepository.findByEmail(
+      userData.email
+    );
 
     if (existingUser) {
-        throw new Error("Email already exists");
+      throw new ConflictError("Email already exists");
     }
 
-    const hashedPassword =
-        await bcrypt.hash(userData.password!,10);
+    const hashedPassword = await bcrypt.hash(
+      userData.password,
+      10
+    );
 
-    const user =
-        await this.userRepository.create({
+    const user = await this.userRepository.create({
+      ...userData,
+      email: userData.email.toLowerCase(),
+      password: hashedPassword,
+    });
 
-            ...userData,
+    return sanitizeUser(user);
+  }
 
-            password: hashedPassword
+  /**
+   * Login user
+   */
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
 
-        });
+    const user = await this.userRepository.findByEmail(
+      email.toLowerCase()
+    );
 
-    const userObject = user.toObject();
+    if (!user) {
+      throw new UnauthorizedError(
+        "Invalid email or password"
+      );
+    }
 
-    delete userObject.password;
-    delete userObject.refreshToken;
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.password
+    );
 
-    return userObject;
+    if (!isPasswordValid) {
+      throw new UnauthorizedError(
+        "Invalid email or password"
+      );
+    }
 
-}
+    const payload = {
+      userId: String(user._id),
+      email: user.email,
+      role: user.role,
+    };
 
+    const accessToken = generateAccessToken(payload);
+
+    const refreshToken = generateRefreshToken(payload);
+
+    await this.userRepository.updateRefreshToken(
+      String(user._id),
+      refreshToken
+    );
+
+    return {
+      user: sanitizeUser(user),
+      accessToken,
+      refreshToken,
+    };
+  }
 }

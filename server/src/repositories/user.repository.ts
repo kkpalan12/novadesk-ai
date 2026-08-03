@@ -14,11 +14,11 @@ export class UserRepository {
   /**
    * Find user by email
    */
-  async findByEmail(email: string) {
-    return await User.findOne({
-      email: email.toLowerCase(),
-    });
-  }
+async findByEmail(email: string) {
+  return User.findOne({
+    email: email.toLowerCase(),
+  }).select("+password +refreshToken");
+}
 
   /**
    * Find user by ID

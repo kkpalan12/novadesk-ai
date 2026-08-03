@@ -25,9 +25,15 @@ const userSchema = new Schema<IUser>(
     },
 
     password: {
-      type: String,
-      required: true,
-      minlength: 8,
+    type: String,
+    required: true,
+    minlength: 8,
+    select: false
+    },
+
+    refreshToken: {
+        type: String,
+        select: false
     },
 
     role: {
@@ -45,9 +51,7 @@ const userSchema = new Schema<IUser>(
       default: false,
     },
 
-    refreshToken: {
-      type: String,
-    },
+
   },
   {
     timestamps: true,

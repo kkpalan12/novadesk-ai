@@ -1,26 +1,46 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
+import { asyncHandler } from "../utils/asyncHandler";
+import { ApiResponse } from "../common/responses/ApiResponse";
 
 export class AuthController {
   private authService = new AuthService();
 
-  async register(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const user = await this.authService.register(req.body);
-              console.log("Request Body:", req.body);
+  register = asyncHandler(async (req: Request, res: Response) => {
+    const user = await this.authService.register(req.body);
 
+    res.status(201).json(
+      new ApiResponse(
+        true,
+        "User registered successfully",
+        user
+      )
+    );
+  });
 
-      res.status(201).json({
-        success: true,
-        message: "User registered successfully",
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
+  login = asyncHandler(async (req: Request, res: Response) => {
+
+    const result = await this.authService.login(req.body);
+
+    res.status(200).json(
+      new ApiResponse(
+        true,
+        "Login successful",
+        result
+      )
+    );
+  });
+  profile = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    res.status(200).json(
+      new ApiResponse(
+        true,
+        "Profile fetched successfully",
+        req.user
+      )
+    );
+
   }
+);
 }
