@@ -9,79 +9,47 @@ export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
     const user = await this.authService.register(req.body);
 
-    res.status(201).json(
-      new ApiResponse(
-        true,
-        "User registered successfully",
-        user
-      )
-    );
+    res
+      .status(201)
+      .json(new ApiResponse(true, "User registered successfully", user));
   });
 
   login = asyncHandler(async (req: Request, res: Response) => {
-
     const result = await this.authService.login(req.body);
 
-    res.status(200).json(
-      new ApiResponse(
-        true,
-        "Login successful",
-        result
-      )
-    );
+    res.status(200).json(new ApiResponse(true, "Login successful", result));
   });
-  profile = asyncHandler(
-  async (req: Request, res: Response) => {
-
-    res.status(200).json(
-      new ApiResponse(
-        true,
-        "Profile fetched successfully",
-        req.user
-      )
-    );
-
-  }
-);
-refreshToken = asyncHandler(async (req: Request, res: Response) => {
-
+  profile = asyncHandler(async (req: Request, res: Response) => {
+    res
+      .status(200)
+      .json(new ApiResponse(true, "Profile fetched successfully", req.user));
+  });
+  refreshToken = asyncHandler(async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
 
-    const result =
-        await this.authService.refreshToken(refreshToken);
+    const result = await this.authService.refreshToken(refreshToken);
 
     res.status(200).json(
+      new ApiResponse(
+        true,
 
-        new ApiResponse(
+        "Access token refreshed",
 
-            true,
-
-            "Access token refreshed",
-
-            result
-
-        )
-
+        result,
+      ),
     );
-
-});
-logout = asyncHandler(async (req: Request, res: Response) => {
-
+  });
+  logout = asyncHandler(async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
 
     await this.authService.logout(refreshToken);
 
     res.status(200).json(
+      new ApiResponse(
+        true,
 
-        new ApiResponse(
-
-            true,
-
-            "Logout successful"
-
-        )
-
+        "Logout successful",
+      ),
     );
-
-});
+  });
 }

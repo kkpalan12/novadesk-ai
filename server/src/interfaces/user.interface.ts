@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
-import { UserRole } from "../constants/roles";
+import { UserRole } from "../common/constants/roles";
 
 export interface IUser extends Document {
   firstName: string;

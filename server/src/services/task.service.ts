@@ -1,24 +1,143 @@
-import { CreateTaskDto } from "../dto/task/create-task.dto";
 import { TaskRepository } from "../repositories/task.repository";
+import { TaskMapper } from "../mappers/task.mapper";
+
+import { CreateTaskDto } from "../dto/task/create-task.dto";
+import { UpdateTaskDto } from "../dto/task/update-task.dto";
+
+import { NotFoundError } from "../common/errors/NotFoundError";
+import { TaskHistoryService } from "./task-history.service";
 
 export class TaskService {
-  private taskRepository = new TaskRepository();
+  private readonly taskRepository = new TaskRepository();
+  private readonly taskHistoryService = new TaskHistoryService();
 
-  async createTask(
-    taskData: CreateTaskDto,
-    createdBy: string
-  ) {
-    return this.taskRepository.create({
-      ...taskData,
-      createdBy,
+  /**
+   * Create Task
+   */
+  async createTask(dto: CreateTaskDto, createdBy: string) {
+    const entity = TaskMapper.toEntity(dto, createdBy);
+
+    const task = await this.taskRepository.create(entity);
+
+    await this.taskHistoryService.createHistory({
+      task: task._id.toString(),
+
+      action: "CREATED",
+
+      performedBy: createdBy,
+    });
+
+    return task;
+  }
+
+  /**
+   * Get All Tasks
+   */
+  async getAllTasks(query: any) {
+    return this.taskRepository.findAll({
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 10,
+      search: query.search,
+      status: query.status,
+      priority: query.priority,
+      sort: query.sort,
     });
   }
 
-  async getAllTasks() {
-    return this.taskRepository.findAll();
+  /**
+   * Get Task By Id
+   */
+  async getTaskById(id: string) {
+    const task = await this.taskRepository.findById(id);
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
+    return task;
   }
 
-  async getTaskById(id: string) {
-    return this.taskRepository.findById(id);
+  /**
+   * Update Task
+   */
+  async updateTask(id: string, dto: UpdateTaskDto, userId: string) {
+    const task = await this.taskRepository.update(id, dto);
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
+    await this.taskHistoryService.createHistory({
+      task: task._id.toString(),
+
+      action: "UPDATED",
+
+      performedBy: userId,
+    });
+
+    return task;
+  }
+
+  /**
+   * Soft Delete Task
+   */
+  async deleteTask(id: string, userId: string) {
+    const task = await this.taskRepository.softDelete(id);
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
+    await this.taskHistoryService.createHistory({
+      task: id,
+      action: "DELETED",
+      performedBy: userId,
+    });
+
+    return task;
+  }
+
+  /**
+   * Change Status
+   */
+  async updateStatus(
+    id: string,
+    status: UpdateTaskDto["status"],
+    userId: string,
+  ) {
+    const task = await this.taskRepository.updateStatus(id, status!);
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
+    await this.taskHistoryService.createHistory({
+      task: id,
+      action: "STATUS_CHANGED",
+      newValue: status,
+      performedBy: userId,
+    });
+
+    return task;
+  }
+
+  /**
+   * Assign User
+   */
+  async assignTask(id: string, assignedTo: string, userId: string) {
+    const task = await this.taskRepository.assignTask(id, assignedTo);
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
+    await this.taskHistoryService.createHistory({
+      task: id,
+      action: "ASSIGNED",
+      newValue: assignedTo,
+      performedBy: userId,
+    });
+
+    return task;
   }
 }

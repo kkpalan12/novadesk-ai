@@ -16,23 +16,13 @@ const taskSchema = new Schema<ITask>(
 
     status: {
       type: String,
-      enum: [
-        "TODO",
-        "IN_PROGRESS",
-        "REVIEW",
-        "DONE",
-      ],
+      enum: ["TODO", "IN_PROGRESS", "REVIEW", "DONE"],
       default: "TODO",
     },
 
     priority: {
       type: String,
-      enum: [
-        "LOW",
-        "MEDIUM",
-        "HIGH",
-        "CRITICAL",
-      ],
+      enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
       default: "MEDIUM",
     },
 
@@ -48,13 +38,23 @@ const taskSchema = new Schema<ITask>(
       ref: "User",
       required: true,
     },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export const Task = mongoose.model<ITask>(
-  "Task",
-  taskSchema
-);
+/**
+ * Production Indexes
+ */
+taskSchema.index({ title: "text" });
+taskSchema.index({ status: 1 });
+taskSchema.index({ priority: 1 });
+taskSchema.index({ createdBy: 1 });
+
+export const Task = mongoose.model<ITask>("Task", taskSchema);

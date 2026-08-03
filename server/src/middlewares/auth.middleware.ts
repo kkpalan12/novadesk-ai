@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { UnauthorizedError } from "../common/errors/UnauthorizedError";
 import { verifyAccessToken } from "../utils/jwt";
-import { UserRole } from "../constants/roles";
+import { UserRole } from "../common/constants/roles";
 
 export const authenticate = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
@@ -21,35 +20,22 @@ export const authenticate = (
 
   next();
 };
-export const authorize =
-(...roles: UserRole[]) => {
+export const authorize = (...roles: UserRole[]) => {
+  return (
+    req: Request,
 
-    return (
+    res: Response,
 
-        req: Request,
+    next: NextFunction,
+  ) => {
+    if (!req.user) {
+      throw new UnauthorizedError("Authentication required");
+    }
 
-        res: Response,
+    if (!roles.includes(req.user.role as UserRole)) {
+      throw new UnauthorizedError("Access denied");
+    }
 
-        next: NextFunction
-
-    ) => {
-
-        if (!req.user) {
-            throw new UnauthorizedError(
-                "Authentication required"
-            );
-        }
-
-        if (!roles.includes(req.user.role as UserRole)) {
-
-            throw new UnauthorizedError(
-                "Access denied"
-            );
-
-        }
-
-        next();
-
-    };
-
+    next();
+  };
 };

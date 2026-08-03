@@ -26,18 +26,13 @@ export class AuthService {
    * Register a new user
    */
   async register(userData: RegisterDto) {
-    const existingUser = await this.userRepository.findByEmail(
-      userData.email
-    );
+    const existingUser = await this.userRepository.findByEmail(userData.email);
 
     if (existingUser) {
       throw new ConflictError("Email already exists");
     }
 
-    const hashedPassword = await bcrypt.hash(
-      userData.password,
-      10
-    );
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const user = await this.userRepository.create({
       ...userData,
@@ -54,25 +49,16 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await this.userRepository.findByEmail(
-      email.toLowerCase()
-    );
+    const user = await this.userRepository.findByEmail(email.toLowerCase());
 
     if (!user) {
-      throw new UnauthorizedError(
-        "Invalid email or password"
-      );
+      throw new UnauthorizedError("Invalid email or password");
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedError(
-        "Invalid email or password"
-      );
+      throw new UnauthorizedError("Invalid email or password");
     }
 
     const payload = {
@@ -87,7 +73,7 @@ export class AuthService {
 
     await this.userRepository.updateRefreshToken(
       String(user._id),
-      refreshToken
+      refreshToken,
     );
 
     return {
@@ -98,44 +84,39 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string) {
-
     if (!refreshToken) {
-        throw new UnauthorizedError("Refresh token missing");
+      throw new UnauthorizedError("Refresh token missing");
     }
 
     const payload = verifyRefreshToken(refreshToken);
 
-    const user =
-        await this.userRepository.findByRefreshToken(refreshToken);
+    const user = await this.userRepository.findByRefreshToken(refreshToken);
 
     if (!user) {
-        throw new UnauthorizedError("Invalid refresh token");
+      throw new UnauthorizedError("Invalid refresh token");
     }
 
     const accessToken = generateAccessToken({
-        userId: String(user._id),
-        email: user.email,
-        role: user.role
+      userId: String(user._id),
+      email: user.email,
+      role: user.role,
     });
 
     return {
-        accessToken
+      accessToken,
     };
-}
-async logout(refreshToken: string) {
-
+  }
+  async logout(refreshToken: string) {
     if (!refreshToken) {
-        throw new UnauthorizedError("Refresh token missing");
+      throw new UnauthorizedError("Refresh token missing");
     }
 
     const payload = verifyRefreshToken(refreshToken);
 
-    await this.userRepository.clearRefreshToken(
-        payload.userId
-    );
+    await this.userRepository.clearRefreshToken(payload.userId);
 
     return {
-        message: "Logged out successfully"
+      message: "Logged out successfully",
     };
-}
+  }
 }

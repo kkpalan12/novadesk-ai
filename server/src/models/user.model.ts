@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
-import { UserRole } from "../constants/roles";
+import { UserRole } from "../common/constants/roles";
 
 const userSchema = new Schema<IUser>(
   {
@@ -25,15 +25,15 @@ const userSchema = new Schema<IUser>(
     },
 
     password: {
-    type: String,
-    required: true,
-    minlength: 8,
-    select: false
+      type: String,
+      required: true,
+      minlength: 8,
+      select: false,
     },
 
     refreshToken: {
-        type: String,
-        select: false
+      type: String,
+      select: false,
     },
 
     role: {
@@ -50,11 +50,9 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
-
-
   },
   {
     timestamps: true,
-  }
+  },
 );
 export const User = mongoose.model<IUser>("User", userSchema);
