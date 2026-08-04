@@ -1,23 +1,21 @@
 import { Document, Types } from "mongoose";
 
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-
-export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-
 export interface ITask extends Document {
+  project: Types.ObjectId;
+
   title: string;
 
-  description: string;
+  description?: string;
 
-  status: TaskStatus;
+  status: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
 
-  priority: TaskPriority;
-
-  dueDate?: Date;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
   assignedTo?: Types.ObjectId;
 
   createdBy: Types.ObjectId;
+
+  dueDate?: Date;
 
   isDeleted: boolean;
 

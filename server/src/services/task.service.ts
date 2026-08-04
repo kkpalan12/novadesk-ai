@@ -6,26 +6,26 @@ import { UpdateTaskDto } from "../dto/task/update-task.dto";
 
 import { NotFoundError } from "../common/errors/NotFoundError";
 import { TaskHistoryService } from "./task-history.service";
+import { ProjectRepository } from "../repositories/project.repository";
 
 export class TaskService {
   private readonly taskRepository = new TaskRepository();
   private readonly taskHistoryService = new TaskHistoryService();
+  private readonly projectRepository = new ProjectRepository();
 
   /**
    * Create Task
    */
   async createTask(dto: CreateTaskDto, createdBy: string) {
+    const project = await this.projectRepository.findById(dto.project);
+
+    if (!project) {
+      throw new NotFoundError("Project not found");
+    }
+
     const entity = TaskMapper.toEntity(dto, createdBy);
 
     const task = await this.taskRepository.create(entity);
-
-    await this.taskHistoryService.createHistory({
-      task: task._id.toString(),
-
-      action: "CREATED",
-
-      performedBy: createdBy,
-    });
 
     return task;
   }
@@ -37,6 +37,7 @@ export class TaskService {
     return this.taskRepository.findAll({
       page: Number(query.page) || 1,
       limit: Number(query.limit) || 10,
+      project: query.project,
       search: query.search,
       status: query.status,
       priority: query.priority,

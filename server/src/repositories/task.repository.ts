@@ -16,8 +16,9 @@ export class TaskRepository {
   async findById(id: string) {
     return Task.findOne({
       _id: id,
-      isDeleted: false,
+      isDeleted: { $ne: true },
     })
+      .populate("project", "name")
       .populate("assignedTo", "firstName lastName email")
       .populate("createdBy", "firstName lastName email");
   }
@@ -28,6 +29,7 @@ export class TaskRepository {
   async findAll(filters: {
     page: number;
     limit: number;
+    project?: string;
     search?: string;
     status?: string;
     priority?: string;
@@ -35,9 +37,12 @@ export class TaskRepository {
   }) {
     const { page, limit, search, status, priority, sort } = filters;
 
-    const query: Record<string, unknown> = {
-      isDeleted: false,
+    const query: Record<string, any> = {
+      isDeleted: { $ne: true },
     };
+    if (filters.project) {
+      query.project = filters.project;
+    }
 
     if (search) {
       query.title = {
@@ -57,6 +62,7 @@ export class TaskRepository {
     const skip = (page - 1) * limit;
 
     const tasks = await Task.find(query)
+      .populate("project", "name")
       .populate("assignedTo", "firstName lastName email")
       .populate("createdBy", "firstName lastName email")
       .sort(sort ? { [sort]: 1 } : { createdAt: -1 })

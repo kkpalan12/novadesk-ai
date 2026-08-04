@@ -1,15 +1,17 @@
 import { z } from "zod";
 
 export const createTaskSchema = z.object({
-  title: z.string().min(3).max(150),
+  project: z.string().min(1),
+
+  title: z.string().min(3).max(100),
 
   description: z.string().optional(),
 
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
 
-  dueDate: z.string().optional(),
-
   assignedTo: z.string().optional(),
+
+  dueDate: z.coerce.date().optional(),
 });
 
 export const updateTaskSchema = createTaskSchema.partial();
