@@ -8,8 +8,11 @@ export class SocketService {
     getIO().to(userId).emit(SOCKET_EVENTS.NOTIFICATION, notification);
   }
 
-  sendTaskUpdate(userId: string, task: unknown) {
-    getIO().to(userId).emit(SOCKET_EVENTS.TASK_UPDATED, task);
+  /**
+   * Broadcast task update to everyone viewing a project
+   */
+  sendTaskUpdate(projectId: string, task: unknown) {
+    getIO().to(`project:${projectId}`).emit(SOCKET_EVENTS.TASK_UPDATED, task);
   }
 
   sendTaskAssignment(userId: string, task: unknown) {
@@ -22,5 +25,24 @@ export class SocketService {
 
   broadcast(event: string, data: unknown) {
     getIO().emit(event, data);
+  }
+  sendTaskStatusUpdate(projectId: string, task: unknown) {
+    getIO().to(`project:${projectId}`).emit(SOCKET_EVENTS.TASK_UPDATED, task);
+  }
+  /**
+   * Update notification badge
+   */
+  sendUnreadCount(userId: string, count: number) {
+    getIO().to(userId).emit("notification-count", {
+      count,
+    });
+  }
+  /**
+   * Broadcast task deletion
+   */
+  sendTaskDeleted(projectId: string, taskId: string) {
+    getIO().to(`project:${projectId}`).emit(SOCKET_EVENTS.TASK_DELETED, {
+      taskId,
+    });
   }
 }

@@ -12,6 +12,7 @@ import projectRoutes from "./project.routes";
 import attachmentRoutes from "./attachment.routes";
 import commentRoutes from "./comment.routes";
 import notificationRoutes from "./notification.routes";
+import activityRoutes from "./activity.routes";
 
 const router = Router();
 router.use("/health", healthRoutes);
@@ -26,5 +27,6 @@ router.use("/projects", projectRoutes);
 router.use("/", attachmentRoutes);
 router.use("/", commentRoutes);
 router.use("/", notificationRoutes);
+router.use("/", activityRoutes);
 
 export default router;

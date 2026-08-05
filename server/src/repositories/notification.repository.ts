@@ -43,6 +43,7 @@ export class NotificationRepository {
       {
         recipient,
         isDeleted: false,
+        isRead: false,
       },
       {
         isRead: true,
@@ -66,6 +67,16 @@ export class NotificationRepository {
     );
   }
   async getUnreadCount(recipient: string) {
+    return Notification.countDocuments({
+      recipient,
+      isRead: false,
+      isDeleted: false,
+    });
+  }
+  /**
+   * Count unread notifications
+   */
+  async countUnread(recipient: string) {
     return Notification.countDocuments({
       recipient,
       isRead: false,

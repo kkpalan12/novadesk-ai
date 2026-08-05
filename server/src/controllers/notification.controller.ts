@@ -45,11 +45,13 @@ export class NotificationController {
    * Mark all notifications as read
    */
   markAllAsRead = asyncHandler(async (req: Request, res: Response) => {
-    await this.notificationService.markAllAsRead(req.user!.userId);
+    const result = await this.notificationService.markAllAsRead(
+      req.user!.userId,
+    );
 
     res
       .status(200)
-      .json(new ApiResponse(true, "All notifications marked as read"));
+      .json(new ApiResponse(true, "All notifications marked as read", result));
   });
 
   /**
@@ -65,15 +67,22 @@ export class NotificationController {
       .status(200)
       .json(new ApiResponse(true, "Notification deleted successfully"));
   });
-  getUnreadCount = asyncHandler(async (req, res) => {
-    const count = await this.notificationService.getUnreadCount(
+  /**
+   * Get unread notification count
+   */
+  getUnreadCount = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.notificationService.getUnreadCount(
       req.user!.userId,
     );
 
     res
       .status(200)
       .json(
-        new ApiResponse(true, "Unread notification count fetched", { count }),
+        new ApiResponse(
+          true,
+          "Unread notification count fetched successfully",
+          result,
+        ),
       );
   });
 }

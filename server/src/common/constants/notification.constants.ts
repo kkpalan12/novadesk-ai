@@ -5,6 +5,7 @@ export const NOTIFICATION_TYPES = [
   "COMMENT_ADDED",
   "PROJECT_CREATED",
   "WORKSPACE_INVITATION",
+  "TASK_STATUS_CHANGED",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

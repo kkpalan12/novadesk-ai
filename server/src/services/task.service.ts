@@ -1,21 +1,36 @@
 import { TaskRepository } from "../repositories/task.repository";
+import { ProjectRepository } from "../repositories/project.repository";
+
 import { TaskMapper } from "../mappers/task.mapper";
 
 import { CreateTaskDto } from "../dto/task/create-task.dto";
 import { UpdateTaskDto } from "../dto/task/update-task.dto";
 
 import { NotFoundError } from "../common/errors/NotFoundError";
-import { TaskHistoryService } from "./task-history.service";
-import { ProjectRepository } from "../repositories/project.repository";
-import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
-import { NotificationService } from "./notification.service";
+
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from "../common/constants/constants";
+
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
+import { ACTIVITY_ACTIONS } from "../common/constants/activity.constants";
+
+import { TaskHistoryService } from "./task-history.service";
+import { NotificationService } from "./notification.service";
+import { ActivityService } from "./activity.service";
+
+import { SocketService } from "../socket/socket.service";
 
 export class TaskService {
   private readonly taskRepository = new TaskRepository();
-  private readonly taskHistoryService = new TaskHistoryService();
+
   private readonly projectRepository = new ProjectRepository();
+
+  private readonly taskHistoryService = new TaskHistoryService();
+
   private readonly notificationService = new NotificationService();
+
+  private readonly activityService = new ActivityService();
+
+  private readonly socketService = new SocketService();
 
   /**
    * Create Task
@@ -30,6 +45,21 @@ export class TaskService {
     const entity = TaskMapper.toEntity(dto, createdBy);
 
     const task = await this.taskRepository.create(entity);
+
+    await this.activityService.createActivity({
+      project: dto.project,
+      user: createdBy,
+      action: ACTIVITY_ACTIONS.TASK_CREATED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Created task "${task.title}"`,
+      metadata: {
+        priority: task.priority,
+        status: task.status,
+      },
+    });
+
+    this.socketService.sendTaskUpdate(dto.project, task);
 
     return task;
   }
@@ -74,17 +104,24 @@ export class TaskService {
 
     await this.taskHistoryService.createHistory({
       task: task._id.toString(),
-
       action: "UPDATED",
-
       performedBy: userId,
     });
 
-    return task;
-  }
+    await this.activityService.createActivity({
+      project: this.getProjectId(task),
+      user: userId,
+      action: ACTIVITY_ACTIONS.TASK_UPDATED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Updated task "${task.title}"`,
+    });
 
-  /**
-   * Soft Delete Task
+    this.socketService.sendTaskUpdate(this.getProjectId(task), task);
+
+    return task;
+  } /**
+   * Delete Task
    */
   async deleteTask(id: string, userId: string) {
     const task = await this.taskRepository.softDelete(id);
@@ -99,11 +136,25 @@ export class TaskService {
       performedBy: userId,
     });
 
+    await this.activityService.createActivity({
+      project: this.getProjectId(task),
+      user: userId,
+      action: ACTIVITY_ACTIONS.TASK_DELETED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Deleted task "${task.title}"`,
+    });
+
+    this.socketService.sendTaskDeleted(
+      this.getProjectId(task),
+      task._id.toString(),
+    );
+
     return task;
   }
 
   /**
-   * Change Status
+   * Update Task Status
    */
   async updateStatus(
     id: string,
@@ -123,11 +174,35 @@ export class TaskService {
       performedBy: userId,
     });
 
+    if (task.assignedTo && task.assignedTo.toString() !== userId) {
+      await this.notificationService.notifyTaskStatusChanged({
+        recipient: task.assignedTo.toString(),
+        sender: userId,
+        taskId: task._id.toString(),
+        taskTitle: task.title,
+        status: status!,
+      });
+    }
+
+    await this.activityService.createActivity({
+      project: this.getProjectId(task),
+      user: userId,
+      action: ACTIVITY_ACTIONS.TASK_STATUS_CHANGED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Changed "${task.title}" status to ${status}`,
+      metadata: {
+        status,
+      },
+    });
+
+    this.socketService.sendTaskUpdate(this.getProjectId(task), task);
+
     return task;
   }
 
   /**
-   * Assign User
+   * Assign Task
    */
   async assignTask(id: string, assignedTo: string, userId: string) {
     const task = await this.taskRepository.assignTask(id, assignedTo);
@@ -142,22 +217,46 @@ export class TaskService {
       newValue: assignedTo,
       performedBy: userId,
     });
-    console.log("Assigned To:", assignedTo);
-    console.log("Logged In User:", userId);
 
-    // Don't notify if the user assigns the task to themselves
     if (assignedTo !== userId) {
-      await this.notificationService.create({
+      await this.notificationService.notifyTaskAssigned({
         recipient: assignedTo,
         sender: userId,
-        type: "TASK_ASSIGNED",
-        title: "Task Assigned",
-        message: `You have been assigned the task "${task.title}".`,
-        entityType: ENTITY_TYPES.TASK,
-        entityId: task._id.toString(),
+        taskId: task._id.toString(),
+        taskTitle: task.title,
       });
     }
 
+    await this.activityService.createActivity({
+      project: this.getProjectId(task),
+      user: userId,
+      action: ACTIVITY_ACTIONS.TASK_ASSIGNED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Assigned "${task.title}"`,
+      metadata: {
+        assignedTo,
+      },
+    });
+
+    this.socketService.sendTaskUpdate(this.getProjectId(task), task);
+
     return task;
+  }
+
+  /**
+   * Helper
+   * Returns project id whether populated or not
+   */
+  private getProjectId(task: any): string {
+    if (typeof task.project === "string") {
+      return task.project;
+    }
+
+    if (task.project?._id) {
+      return task.project._id.toString();
+    }
+
+    return task.project.toString();
   }
 }
