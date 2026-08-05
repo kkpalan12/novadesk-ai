@@ -4,14 +4,85 @@ import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import { registerSchema, loginSchema } from "../validators/auth.validator";
 
-console.log("Login Schema:", loginSchema.shape);
-
+/**
+ * @swagger
+ * tags:
+ *   - name: Authentication
+ *     description: User Authentication APIs
+ */
 const router = Router();
 const authController = new AuthController();
-
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - password
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ */
 router.post("/register", validate(registerSchema), authController.register);
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
 router.post("/login", validate(loginSchema), authController.login);
+/**
+ * @swagger
+ * /auth/profile:
+ *   get:
+ *     summary: Get logged in user
+ *     tags: [Authentication]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile fetched successfully
+ */
 
 router.get("/profile", authenticate, authController.profile);
 

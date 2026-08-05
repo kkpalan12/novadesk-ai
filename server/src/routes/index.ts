@@ -11,6 +11,7 @@ import membershipRoutes from "./membership.routes";
 import projectRoutes from "./project.routes";
 import attachmentRoutes from "./attachment.routes";
 import commentRoutes from "./comment.routes";
+import notificationRoutes from "./notification.routes";
 
 const router = Router();
 router.use("/health", healthRoutes);
@@ -24,5 +25,6 @@ router.use("/memberships", membershipRoutes);
 router.use("/projects", projectRoutes);
 router.use("/", attachmentRoutes);
 router.use("/", commentRoutes);
+router.use("/", notificationRoutes);
 
 export default router;
