@@ -1,12 +1,22 @@
 import { NotFoundError } from "../common/errors/NotFoundError";
 import { CreateNotificationDto } from "../dto/notification/create-notification.dto";
 import { NotificationRepository } from "../repositories/notification.repository";
+import { SocketService } from "../socket/socket.service";
 
 export class NotificationService {
   private readonly repository = new NotificationRepository();
+  private readonly socketService = new SocketService();
 
   async create(dto: CreateNotificationDto) {
-    return this.repository.create(dto);
+    console.log("📤 Creating notification:", dto);
+
+    const notification = await this.repository.create(dto);
+
+    console.log("✅ Notification saved:", notification._id);
+
+    this.socketService.sendNotification(dto.recipient, notification);
+
+    return notification;
   }
 
   async getMyNotifications(userId: string) {

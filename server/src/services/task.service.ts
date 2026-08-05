@@ -142,6 +142,8 @@ export class TaskService {
       newValue: assignedTo,
       performedBy: userId,
     });
+    console.log("Assigned To:", assignedTo);
+    console.log("Logged In User:", userId);
 
     // Don't notify if the user assigns the task to themselves
     if (assignedTo !== userId) {
