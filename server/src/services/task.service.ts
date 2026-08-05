@@ -8,11 +8,14 @@ import { NotFoundError } from "../common/errors/NotFoundError";
 import { TaskHistoryService } from "./task-history.service";
 import { ProjectRepository } from "../repositories/project.repository";
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
+import { NotificationService } from "./notification.service";
+import { ENTITY_TYPES } from "../common/constants/entity.constants";
 
 export class TaskService {
   private readonly taskRepository = new TaskRepository();
   private readonly taskHistoryService = new TaskHistoryService();
   private readonly projectRepository = new ProjectRepository();
+  private readonly notificationService = new NotificationService();
 
   /**
    * Create Task
@@ -139,6 +142,19 @@ export class TaskService {
       newValue: assignedTo,
       performedBy: userId,
     });
+
+    // Don't notify if the user assigns the task to themselves
+    if (assignedTo !== userId) {
+      await this.notificationService.create({
+        recipient: assignedTo,
+        sender: userId,
+        type: "TASK_ASSIGNED",
+        title: "Task Assigned",
+        message: `You have been assigned the task "${task.title}".`,
+        entityType: ENTITY_TYPES.TASK,
+        entityId: task._id.toString(),
+      });
+    }
 
     return task;
   }

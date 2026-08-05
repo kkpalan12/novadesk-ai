@@ -75,4 +75,15 @@ export class TaskController {
 
     res.status(200).json(new ApiResponse(true, "Task deleted successfully"));
   });
+  assignTask = asyncHandler(async (req: Request, res: Response) => {
+    const task = await this.taskService.assignTask(
+      req.params.id as string,
+      req.body.assignedTo,
+      req.user!.userId,
+    );
+
+    res
+      .status(200)
+      .json(new ApiResponse(true, "Task assigned successfully", task));
+  });
 }

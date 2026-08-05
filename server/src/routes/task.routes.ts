@@ -6,6 +6,7 @@ import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
 
 import {
+  assignTaskSchema,
   createTaskSchema,
   updateTaskSchema,
 } from "../validators/task.validator";
@@ -50,4 +51,10 @@ router.delete(
   taskController.deleteTask,
 );
 
+router.patch(
+  "/projects/:projectId/tasks/:id/assign",
+  authenticate,
+  validate(assignTaskSchema),
+  taskController.assignTask,
+);
 export default router;

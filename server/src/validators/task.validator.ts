@@ -52,10 +52,11 @@ export const updateStatusSchema = z.object({
 
 export const assignTaskSchema = z.object({
   params: z.object({
-    id: z.string().min(1),
+    projectId: objectIdSchema,
+    id: objectIdSchema,
   }),
 
   body: z.object({
-    assignedTo: z.string().min(1),
+    assignedTo: objectIdSchema,
   }),
 });
