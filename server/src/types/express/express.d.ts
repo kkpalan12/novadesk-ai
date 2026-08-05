@@ -1,10 +1,16 @@
-import { JwtPayload } from "../utils/jwt";
+import "express-serve-static-core";
+import { UserRole } from "../common/constants/roles";
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JwtPayload;
-    }
+declare module "express-serve-static-core" {
+  interface Request {
+    user?: {
+      userId: string;
+      role: UserRole;
+    };
+
+    file?: Express.Multer.File;
+
+    files?: Express.Multer.File[];
   }
 }
 

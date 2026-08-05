@@ -1,6 +1,7 @@
 import { Task } from "../models/task.model";
 import { TaskEntity } from "../entities/task.entity";
 import { UpdateTaskDto } from "../dto/task/update-task.dto";
+import { FilterQuery } from "mongoose";
 
 export class TaskRepository {
   /**

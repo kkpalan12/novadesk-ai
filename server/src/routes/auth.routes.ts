@@ -1,42 +1,22 @@
 import { Router } from "express";
-import { AuthController} from "../controllers/auth.controller";
-import { authenticate, authorize } from "../middlewares/auth.middleware";
+import { AuthController } from "../controllers/auth.controller";
+import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
-import {
-  registerSchema,
-  loginSchema,
-} from "../validators/auth.validator";
+import { registerSchema, loginSchema } from "../validators/auth.validator";
+
+console.log("Login Schema:", loginSchema.shape);
 
 const router = Router();
 const authController = new AuthController();
 
-router.post(
-  "/register",
-  validate(registerSchema),
-  authController.register
-);
+router.post("/register", validate(registerSchema), authController.register);
 
-router.post(
-  "/login",
-  validate(loginSchema),
-  authController.login
-);
+router.post("/login", validate(loginSchema), authController.login);
 
-router.get(
-  "/profile",
-  authenticate,
-  authController.profile
-);
+router.get("/profile", authenticate, authController.profile);
 
-router.post(
-    "/refresh",
-    authController.refreshToken
-);
+router.post("/refresh", authController.refreshToken);
 
-router.post(
-    "/logout",
-    authController.logout
-);
-
+router.post("/logout", authController.logout);
 
 export default router;

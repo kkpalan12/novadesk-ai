@@ -5,6 +5,7 @@ import { CreateProjectDto } from "../dto/project/create-project.dto";
 import { UpdateProjectDto } from "../dto/project/update-project.dto";
 
 import { NotFoundError } from "../common/errors/NotFoundError";
+import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
 
 export class ProjectService {
   private readonly projectRepository = new ProjectRepository();
@@ -17,8 +18,8 @@ export class ProjectService {
 
   async getAllProjects(query: any) {
     return this.projectRepository.findAll({
-      page: Number(query.page) || 1,
-      limit: Number(query.limit) || 10,
+      page: Number(query.page) || DEFAULT_PAGE,
+      limit: Number(query.limit) || DEFAULT_LIMIT,
       search: query.search,
       workspace: query.workspace,
       status: query.status,

@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import { UnauthorizedError } from "../common/errors/UnauthorizedError";
 import { UserRole } from "../common/constants/roles";
+import { ForbiddenError } from "../common/errors/ForbiddenError";
 
 export const authorize =
-  (...allowedRoles: UserRole[]) =>
-  (req: Request, res: Response, next: NextFunction) => {
+  (...roles: UserRole[]) =>
+  (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
-      throw new UnauthorizedError("Authentication required");
+      return next(new ForbiddenError("Unauthorized"));
     }
 
-    if (!allowedRoles.includes(req.user.role as UserRole)) {
-      throw new UnauthorizedError("Access denied");
+    if (!roles.includes(req.user.role)) {
+      return next(new ForbiddenError("Access denied"));
     }
 
     next();

@@ -4,8 +4,7 @@ import { AdminController } from "../controllers/admin.controller";
 
 import { authenticate } from "../middlewares/auth.middleware";
 
-import { authorize } from "../middlewares/auth.middleware";
-
+import { authorize } from "../middlewares/authorize.middleware";
 import { UserRole } from "../common/constants/roles";
 
 const router = Router();

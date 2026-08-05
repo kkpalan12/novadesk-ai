@@ -1,25 +1,28 @@
 import { z } from "zod";
+import { PROJECT_STATUS } from "../common/constants/project.constants";
 
 export const createProjectSchema = z.object({
-  workspace: z.string().min(1),
+  body: z.object({
+    workspace: z.string().min(1),
 
-  name: z.string().min(3).max(100),
+    name: z.string().min(3).max(100),
 
-  description: z.string().optional(),
+    description: z.string().optional(),
 
-  startDate: z.coerce.date().optional(),
-
-  endDate: z.coerce.date().optional(),
+    status: z.enum(PROJECT_STATUS).optional(),
+  }),
 });
 
 export const updateProjectSchema = z.object({
-  name: z.string().min(3).max(100).optional(),
+  params: z.object({
+    id: z.string().min(1),
+  }),
 
-  description: z.string().optional(),
+  body: z.object({
+    name: z.string().min(3).max(100).optional(),
 
-  status: z.enum(["ACTIVE", "ARCHIVED"]).optional(),
+    description: z.string().optional(),
 
-  startDate: z.coerce.date().optional(),
-
-  endDate: z.coerce.date().optional(),
+    status: z.enum(PROJECT_STATUS).optional(),
+  }),
 });

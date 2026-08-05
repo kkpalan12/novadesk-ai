@@ -5,6 +5,7 @@ import { CreateWorkspaceDto } from "../dto/workspace/create-workspace.dto";
 import { UpdateWorkspaceDto } from "../dto/workspace/update-workspace.dto";
 
 import { NotFoundError } from "../common/errors/NotFoundError";
+import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
 
 export class WorkspaceService {
   private readonly workspaceRepository = new WorkspaceRepository();
@@ -17,8 +18,8 @@ export class WorkspaceService {
 
   async getAllWorkspaces(query: any) {
     return this.workspaceRepository.findAll({
-      page: Number(query.page) || 1,
-      limit: Number(query.limit) || 10,
+      page: Number(query.page) || DEFAULT_PAGE,
+      limit: Number(query.limit) || DEFAULT_LIMIT,
       search: query.search,
     });
   }

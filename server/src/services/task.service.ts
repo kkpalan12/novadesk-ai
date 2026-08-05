@@ -7,6 +7,7 @@ import { UpdateTaskDto } from "../dto/task/update-task.dto";
 import { NotFoundError } from "../common/errors/NotFoundError";
 import { TaskHistoryService } from "./task-history.service";
 import { ProjectRepository } from "../repositories/project.repository";
+import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
 
 export class TaskService {
   private readonly taskRepository = new TaskRepository();
@@ -35,8 +36,8 @@ export class TaskService {
    */
   async getAllTasks(query: any) {
     return this.taskRepository.findAll({
-      page: Number(query.page) || 1,
-      limit: Number(query.limit) || 10,
+      page: Number(query.page) || DEFAULT_PAGE,
+      limit: Number(query.limit) || DEFAULT_LIMIT,
       project: query.project,
       search: query.search,
       status: query.status,

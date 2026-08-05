@@ -1,41 +1,38 @@
 import { Request, Response, NextFunction } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+
+import { env } from "../config/env";
 import { UnauthorizedError } from "../common/errors/UnauthorizedError";
-import { verifyAccessToken } from "../utils/jwt";
 import { UserRole } from "../common/constants/roles";
+
+interface TokenPayload extends JwtPayload {
+  userId: string;
+  role: UserRole;
+}
 
 export const authenticate = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
-) => {
+): void => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    throw new UnauthorizedError("Access token missing");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next(new UnauthorizedError("Access token is required"));
   }
 
   const token = authHeader.split(" ")[1];
 
-  req.user = verifyAccessToken(token);
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET) as TokenPayload;
 
-  next();
-};
-export const authorize = (...roles: UserRole[]) => {
-  return (
-    req: Request,
-
-    res: Response,
-
-    next: NextFunction,
-  ) => {
-    if (!req.user) {
-      throw new UnauthorizedError("Authentication required");
-    }
-
-    if (!roles.includes(req.user.role as UserRole)) {
-      throw new UnauthorizedError("Access denied");
-    }
+    req.user = {
+      userId: payload.userId,
+      role: payload.role,
+    };
 
     next();
-  };
+  } catch (error) {
+    next(new UnauthorizedError("Invalid or expired access token"));
+  }
 };

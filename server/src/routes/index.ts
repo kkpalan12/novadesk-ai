@@ -9,17 +9,20 @@ import dashboardRoutes from "./dashboard.routes";
 import workspaceRoutes from "./workspace.routes";
 import membershipRoutes from "./membership.routes";
 import projectRoutes from "./project.routes";
-console.log("✅ Project routes loaded");
+import attachmentRoutes from "./attachment.routes";
+import commentRoutes from "./comment.routes";
 
 const router = Router();
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
-router.use("/tasks", taskRoutes);
+router.use("/", taskRoutes);
 router.use("/tasks", taskHistoryRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/workspaces", workspaceRoutes);
 router.use("/memberships", membershipRoutes);
 router.use("/projects", projectRoutes);
+router.use("/", attachmentRoutes);
+router.use("/", commentRoutes);
 
 export default router;
