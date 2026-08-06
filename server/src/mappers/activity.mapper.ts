@@ -1,4 +1,4 @@
-import { CreateActivityDto } from "../create-activity.dto.ts/activity/create-activity.dto";
+import { CreateActivityDto } from "../dto/activity/create-activity.dto";
 import { ActivityEntity } from "../entities/activity.entity";
 
 export class ActivityMapper {

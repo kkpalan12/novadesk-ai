@@ -1,5 +1,3 @@
-// Shared database test helpers
-export {};
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
@@ -8,16 +6,14 @@ let mongoServer: MongoMemoryServer;
 export async function connectTestDatabase() {
   mongoServer = await MongoMemoryServer.create();
 
-  const uri = mongoServer.getUri();
-
-  await mongoose.connect(uri);
+  await mongoose.connect(mongoServer.getUri());
 }
 
-export async function clearDatabase() {
+export async function clearTestDatabase() {
   const collections = mongoose.connection.collections;
 
-  for (const key of Object.keys(collections)) {
-    await collections[key].deleteMany({});
+  for (const collection of Object.values(collections)) {
+    await collection.deleteMany({});
   }
 }
 

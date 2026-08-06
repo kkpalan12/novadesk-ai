@@ -1,9 +1,9 @@
-import { connectTestDatabase, clearDatabase } from "./helpers/database";
+import { connectTestDatabase, clearTestDatabase } from "./helpers/database";
 
 beforeAll(async () => {
   await connectTestDatabase();
 });
 
 beforeEach(async () => {
-  await clearDatabase();
+  await clearTestDatabase();
 });
