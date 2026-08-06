@@ -1,27 +1,29 @@
+import { FilterQuery, ClientSession } from "mongoose";
+
+import { BaseRepository } from "../common/repositories/base.repository";
 import { Task } from "../models/task.model";
+import { ITask } from "../interfaces/task.interface";
 import { TaskEntity } from "../entities/task.entity";
 import { UpdateTaskDto } from "../dto/task/update-task.dto";
-import { FilterQuery } from "mongoose";
 
-export class TaskRepository {
-  /**
-   * Create Task
-   */
-  async create(entity: TaskEntity) {
-    return Task.create(entity);
+export class TaskRepository extends BaseRepository<ITask> {
+  constructor() {
+    super(Task);
   }
 
   /**
    * Get Task By Id
    */
   async findById(id: string) {
-    return Task.findOne({
-      _id: id,
-      isDeleted: { $ne: true },
-    })
+    return this.model
+      .findOne({
+        _id: id,
+        isDeleted: { $ne: true },
+      })
       .populate("project", "name")
       .populate("assignedTo", "firstName lastName email")
-      .populate("createdBy", "firstName lastName email");
+      .populate("createdBy", "firstName lastName email")
+      .exec();
   }
 
   /**
@@ -36,13 +38,14 @@ export class TaskRepository {
     priority?: string;
     sort?: string;
   }) {
-    const { page, limit, search, status, priority, sort } = filters;
+    const { page, limit, project, search, status, priority, sort } = filters;
 
-    const query: Record<string, any> = {
+    const query: FilterQuery<ITask> = {
       isDeleted: { $ne: true },
     };
-    if (filters.project) {
-      query.project = filters.project;
+
+    if (project) {
+      query.project = project;
     }
 
     if (search) {
@@ -62,15 +65,19 @@ export class TaskRepository {
 
     const skip = (page - 1) * limit;
 
-    const tasks = await Task.find(query)
-      .populate("project", "name")
-      .populate("assignedTo", "firstName lastName email")
-      .populate("createdBy", "firstName lastName email")
-      .sort(sort ? { [sort]: 1 } : { createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const [tasks, total] = await Promise.all([
+      this.model
+        .find(query)
+        .populate("project", "name")
+        .populate("assignedTo", "firstName lastName email")
+        .populate("createdBy", "firstName lastName email")
+        .sort(sort ? { [sort]: 1 } : { createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
 
-    const total = await Task.countDocuments(query);
+      this.model.countDocuments(query),
+    ]);
 
     return {
       tasks,
@@ -84,8 +91,8 @@ export class TaskRepository {
   /**
    * Update Task
    */
-  async update(id: string, updateData: UpdateTaskDto) {
-    return Task.findOneAndUpdate(
+  async update(id: string, updateData: UpdateTaskDto, session?: ClientSession) {
+    return this.model.findOneAndUpdate(
       {
         _id: id,
         isDeleted: false,
@@ -94,6 +101,7 @@ export class TaskRepository {
       {
         new: true,
         runValidators: true,
+        session,
       },
     );
   }
@@ -101,8 +109,8 @@ export class TaskRepository {
   /**
    * Soft Delete Task
    */
-  async softDelete(id: string) {
-    return Task.findOneAndUpdate(
+  async softDelete(id: string, session?: ClientSession) {
+    return this.model.findOneAndUpdate(
       {
         _id: id,
         isDeleted: false,
@@ -112,15 +120,16 @@ export class TaskRepository {
       },
       {
         new: true,
+        session,
       },
     );
   }
 
   /**
-   * Change Task Status
+   * Update Task Status
    */
-  async updateStatus(id: string, status: string) {
-    return Task.findOneAndUpdate(
+  async updateStatus(id: string, status: string, session?: ClientSession) {
+    return this.model.findOneAndUpdate(
       {
         _id: id,
         isDeleted: false,
@@ -130,6 +139,7 @@ export class TaskRepository {
       },
       {
         new: true,
+        session,
       },
     );
   }
@@ -137,8 +147,8 @@ export class TaskRepository {
   /**
    * Assign Task
    */
-  async assignTask(id: string, assignedTo: string) {
-    return Task.findOneAndUpdate(
+  async assignTask(id: string, assignedTo: string, session?: ClientSession) {
+    return this.model.findOneAndUpdate(
       {
         _id: id,
         isDeleted: false,
@@ -148,6 +158,7 @@ export class TaskRepository {
       },
       {
         new: true,
+        session,
       },
     );
   }

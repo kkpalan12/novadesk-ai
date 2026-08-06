@@ -8,6 +8,7 @@ import routes from "./routes";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
+import { loggerMiddleware } from "./common/logger";
 const app = express();
 
 app.use(helmet());
@@ -15,6 +16,8 @@ app.use(helmet());
 app.use(cors());
 
 app.use(express.json());
+
+app.use(loggerMiddleware);
 
 app.use(morgan("dev"));
 

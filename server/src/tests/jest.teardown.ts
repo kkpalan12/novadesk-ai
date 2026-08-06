@@ -1,0 +1,2 @@
+// Jest global teardown
+export {};
