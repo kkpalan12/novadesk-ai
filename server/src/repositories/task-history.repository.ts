@@ -2,6 +2,9 @@ import { TaskHistory } from "../models/task-history.model";
 import { TaskAction } from "../interfaces/task-history.interface";
 
 export class TaskHistoryRepository {
+  /**
+   * Create History
+   */
   async create(data: {
     task: string;
     action: TaskAction;
@@ -12,6 +15,9 @@ export class TaskHistoryRepository {
     return TaskHistory.create(data);
   }
 
+  /**
+   * Get Task History
+   */
   async getTaskHistory(taskId: string) {
     return TaskHistory.find({
       task: taskId,

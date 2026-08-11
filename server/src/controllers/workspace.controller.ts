@@ -25,7 +25,10 @@ export class WorkspaceController {
    * Get All Workspaces
    */
   getAllWorkspaces = asyncHandler(async (req: Request, res: Response) => {
-    const workspaces = await this.workspaceService.getAllWorkspaces(req.query);
+    const workspaces = await this.workspaceService.getAllWorkspaces(
+      req.query,
+      req.user!.userId,
+    );
 
     res
       .status(200)
@@ -40,6 +43,7 @@ export class WorkspaceController {
   getWorkspaceById = asyncHandler(async (req: Request, res: Response) => {
     const workspace = await this.workspaceService.getWorkspaceById(
       req.params.id as string,
+      req.user!.userId,
     );
 
     res
@@ -54,8 +58,8 @@ export class WorkspaceController {
     const workspace = await this.workspaceService.updateWorkspace(
       req.params.id as string,
       req.body,
+      req.user!.userId,
     );
-
     res
       .status(200)
       .json(new ApiResponse(true, "Workspace updated successfully", workspace));
@@ -65,8 +69,10 @@ export class WorkspaceController {
    * Delete Workspace
    */
   deleteWorkspace = asyncHandler(async (req: Request, res: Response) => {
-    await this.workspaceService.deleteWorkspace(req.params.id as string);
-
+    await this.workspaceService.deleteWorkspace(
+      req.params.id as string,
+      req.user!.userId,
+    );
     res
       .status(200)
       .json(new ApiResponse(true, "Workspace deleted successfully"));

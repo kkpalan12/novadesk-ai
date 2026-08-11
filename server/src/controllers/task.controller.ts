@@ -28,10 +28,13 @@ export class TaskController {
    * Get All Tasks
    */
   getAllTasks = asyncHandler(async (req: Request, res: Response) => {
-    const result = await this.taskService.getAllTasks({
-      ...req.query,
-      project: req.params.projectId,
-    });
+    const result = await this.taskService.getAllTasks(
+      {
+        ...req.query,
+        project: req.params.projectId,
+      },
+      req.user!.userId,
+    );
 
     res
       .status(200)
@@ -42,7 +45,11 @@ export class TaskController {
    * Get Task By Id
    */
   getTaskById = asyncHandler(async (req: Request, res: Response) => {
-    const task = await this.taskService.getTaskById(req.params.id as string);
+    const task = await this.taskService.getTaskById(
+      req.params.id as string,
+      req.params.projectId as string,
+      req.user!.userId,
+    );
 
     res
       .status(200)
@@ -75,6 +82,10 @@ export class TaskController {
 
     res.status(200).json(new ApiResponse(true, "Task deleted successfully"));
   });
+
+  /**
+   * Assign Task
+   */
   assignTask = asyncHandler(async (req: Request, res: Response) => {
     const task = await this.taskService.assignTask(
       req.params.id as string,

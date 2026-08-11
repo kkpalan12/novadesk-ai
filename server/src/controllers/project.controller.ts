@@ -25,26 +25,28 @@ export class ProjectController {
    * Get All Projects
    */
   getAllProjects = asyncHandler(async (req: Request, res: Response) => {
-    const result = await this.projectService.getAllProjects(req.query);
+    const result = await this.projectService.getAllProjects(
+      req.query,
+      req.user!.userId,
+    );
 
     res
       .status(200)
       .json(new ApiResponse(true, "Projects fetched successfully", result));
   });
-
   /**
    * Get Project By Id
    */
   getProjectById = asyncHandler(async (req: Request, res: Response) => {
     const project = await this.projectService.getProjectById(
       req.params.id as string,
+      req.user!.userId,
     );
 
     res
       .status(200)
       .json(new ApiResponse(true, "Project fetched successfully", project));
   });
-
   /**
    * Update Project
    */
@@ -52,6 +54,7 @@ export class ProjectController {
     const project = await this.projectService.updateProject(
       req.params.id as string,
       req.body,
+      req.user!.userId,
     );
 
     res
@@ -63,7 +66,10 @@ export class ProjectController {
    * Delete Project
    */
   deleteProject = asyncHandler(async (req: Request, res: Response) => {
-    await this.projectService.deleteProject(req.params.id as string);
+    await this.projectService.deleteProject(
+      req.params.id as string,
+      req.user!.userId,
+    );
 
     res.status(200).json(new ApiResponse(true, "Project deleted successfully"));
   });

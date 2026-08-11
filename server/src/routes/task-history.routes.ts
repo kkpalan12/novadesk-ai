@@ -8,8 +8,12 @@ const router = Router();
 const taskHistoryController = new TaskHistoryController();
 
 /**
- * GET /api/v1/tasks/:id/history
+ * Get Task History
  */
-router.get("/:id/history", authenticate, taskHistoryController.getTaskHistory);
+router.get(
+  "/tasks/:taskId/history",
+  authenticate,
+  taskHistoryController.getTaskHistory,
+);
 
 export default router;

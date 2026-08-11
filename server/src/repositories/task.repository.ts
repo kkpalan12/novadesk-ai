@@ -14,18 +14,23 @@ export class TaskRepository extends BaseRepository<ITask> {
   /**
    * Get Task By Id
    */
-  async findById(id: string) {
+  async findById(id: string, projectId?: string) {
+    const query: FilterQuery<ITask> = {
+      _id: id,
+      isDeleted: { $ne: true },
+    };
+
+    if (projectId) {
+      query.project = projectId;
+    }
+
     return this.model
-      .findOne({
-        _id: id,
-        isDeleted: { $ne: true },
-      })
+      .findOne(query)
       .populate("project", "name")
       .populate("assignedTo", "firstName lastName email")
       .populate("createdBy", "firstName lastName email")
       .exec();
   }
-
   /**
    * Get All Tasks
    */

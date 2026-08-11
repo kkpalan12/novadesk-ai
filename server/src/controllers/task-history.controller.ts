@@ -8,11 +8,12 @@ export class TaskHistoryController {
   private readonly taskHistoryService = new TaskHistoryService();
 
   /**
-   * Get History
+   * Get Task History
    */
   getTaskHistory = asyncHandler(async (req: Request, res: Response) => {
     const history = await this.taskHistoryService.getTaskHistory(
-      String(req.params.id),
+      req.params.taskId as string,
+      req.user!.userId,
     );
 
     res

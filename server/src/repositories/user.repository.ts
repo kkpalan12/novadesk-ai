@@ -60,7 +60,7 @@ export class UserRepository {
   async findByRefreshToken(refreshToken: string) {
     return User.findOne({ refreshToken });
   }
-  
+
   async clearRefreshToken(userId: string) {
     return User.findByIdAndUpdate(
       userId,
@@ -69,5 +69,8 @@ export class UserRepository {
       },
       { new: true },
     );
+  }
+  async findActiveById(id: string) {
+    return User.findById(id).select("-password");
   }
 }

@@ -20,7 +20,7 @@ export class AuthController {
 
     res.status(200).json(new ApiResponse(true, "Login successful", result));
   });
-  profile = asyncHandler(async (req: Request, res: Response) => {
+  profile = asyncHandler(async (req, res) => {
     res
       .status(200)
       .json(new ApiResponse(true, "Profile fetched successfully", req.user));

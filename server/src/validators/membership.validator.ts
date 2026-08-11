@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { UserRole } from "../common/constants/roles";
+
+import { MembershipRole } from "../interfaces/membership.interface";
 import { objectIdSchema } from "./common.validator";
 
 export const createMembershipSchema = z.object({
@@ -8,7 +9,7 @@ export const createMembershipSchema = z.object({
 
     user: objectIdSchema,
 
-    role: z.nativeEnum(UserRole),
+    role: z.nativeEnum(MembershipRole).optional(),
   }),
 });
 
@@ -18,6 +19,6 @@ export const updateMembershipSchema = z.object({
   }),
 
   body: z.object({
-    role: z.nativeEnum(UserRole),
+    role: z.nativeEnum(MembershipRole),
   }),
 });

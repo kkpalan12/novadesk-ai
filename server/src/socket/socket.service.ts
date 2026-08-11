@@ -1,48 +1,47 @@
 import { getIO } from "./index";
-import { SOCKET_EVENTS } from "./socket.events";
 
 export class SocketService {
-  sendNotification(userId: string, notification: unknown) {
-    console.log("📡 Emitting to room:", userId);
+  sendTaskUpdate(projectId: string, task: any) {
+    try {
+      const io = getIO();
 
-    getIO().to(userId).emit(SOCKET_EVENTS.NOTIFICATION, notification);
-  }
-
-  /**
-   * Broadcast task update to everyone viewing a project
-   */
-  sendTaskUpdate(projectId: string, task: unknown) {
-    getIO().to(`project:${projectId}`).emit(SOCKET_EVENTS.TASK_UPDATED, task);
+      io.to(`project:${projectId}`).emit("task:updated", task);
+    } catch {
+      console.warn("Socket.IO unavailable. Skipping task update.");
+    }
   }
 
-  sendTaskAssignment(userId: string, task: unknown) {
-    getIO().to(userId).emit(SOCKET_EVENTS.TASK_ASSIGNED, task);
-  }
-
-  sendComment(userId: string, comment: unknown) {
-    getIO().to(userId).emit(SOCKET_EVENTS.COMMENT_ADDED, comment);
-  }
-
-  broadcast(event: string, data: unknown) {
-    getIO().emit(event, data);
-  }
-  sendTaskStatusUpdate(projectId: string, task: unknown) {
-    getIO().to(`project:${projectId}`).emit(SOCKET_EVENTS.TASK_UPDATED, task);
-  }
-  /**
-   * Update notification badge
-   */
-  sendUnreadCount(userId: string, count: number) {
-    getIO().to(userId).emit("notification-count", {
-      count,
-    });
-  }
-  /**
-   * Broadcast task deletion
-   */
   sendTaskDeleted(projectId: string, taskId: string) {
-    getIO().to(`project:${projectId}`).emit(SOCKET_EVENTS.TASK_DELETED, {
-      taskId,
-    });
+    try {
+      const io = getIO();
+
+      io.to(`project:${projectId}`).emit("task:deleted", {
+        taskId,
+      });
+    } catch {
+      console.warn("Socket.IO unavailable. Skipping task deletion.");
+    }
+  }
+
+  sendNotification(userId: string, notification: any) {
+    try {
+      const io = getIO();
+
+      io.to(`user:${userId}`).emit("notification:new", notification);
+    } catch {
+      console.warn("Socket.IO unavailable. Skipping notification.");
+    }
+  }
+
+  sendUnreadCount(userId: string, count: number) {
+    try {
+      const io = getIO();
+
+      io.to(`user:${userId}`).emit("notification:unread-count", {
+        count,
+      });
+    } catch {
+      console.warn("Socket.IO unavailable. Skipping unread count.");
+    }
   }
 }

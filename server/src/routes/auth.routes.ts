@@ -73,7 +73,7 @@ router.post("/register", validate(registerSchema), authController.register);
 router.post("/login", validate(loginSchema), authController.login);
 /**
  * @swagger
- * /auth/profile:
+ * /auth/me:
  *   get:
  *     summary: Get logged in user
  *     tags: [Authentication]
@@ -84,7 +84,7 @@ router.post("/login", validate(loginSchema), authController.login);
  *         description: Profile fetched successfully
  */
 
-router.get("/profile", authenticate, authController.profile);
+router.get("/me", authenticate, authController.profile);
 
 router.post("/refresh", authController.refreshToken);
 

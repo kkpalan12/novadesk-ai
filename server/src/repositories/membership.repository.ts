@@ -1,6 +1,7 @@
 import { Membership } from "../models/membership.model";
 import { MembershipEntity } from "../entities/membership.entity";
 import { UpdateMembershipDto } from "../dto/membership/update-membership.dto";
+import { Workspace } from "../models/workspace.model";
 
 export class MembershipRepository {
   /**
@@ -21,6 +22,17 @@ export class MembershipRepository {
   }
 
   /**
+   * Check whether a user is a workspace member
+   */
+  async isMember(workspaceId: string, userId: string) {
+    return Membership.exists({
+      workspace: workspaceId,
+      user: userId,
+      status: "ACTIVE",
+    });
+  }
+
+  /**
    * Get Workspace Members
    */
   async findByWorkspace(workspaceId: string) {
@@ -32,6 +44,13 @@ export class MembershipRepository {
       .sort({
         createdAt: 1,
       });
+  }
+
+  /**
+   * Find membership by ID
+   */
+  async findById(id: string) {
+    return Membership.findById(id);
   }
 
   /**
@@ -57,5 +76,12 @@ export class MembershipRepository {
         new: true,
       },
     );
+  }
+  async findActiveMembership(workspaceId: string, userId: string) {
+    return Membership.findOne({
+      workspace: workspaceId,
+      user: userId,
+      status: "ACTIVE",
+    });
   }
 }

@@ -11,7 +11,10 @@ export class MembershipController {
    * Add Member
    */
   createMembership = asyncHandler(async (req: Request, res: Response) => {
-    const membership = await this.membershipService.createMembership(req.body);
+    const membership = await this.membershipService.createMembership(
+      req.body,
+      req.user!.userId,
+    );
 
     res
       .status(201)
@@ -24,6 +27,7 @@ export class MembershipController {
   getWorkspaceMembers = asyncHandler(async (req: Request, res: Response) => {
     const members = await this.membershipService.getWorkspaceMembers(
       req.params.workspaceId as string,
+      req.user!.userId,
     );
 
     res
@@ -44,6 +48,7 @@ export class MembershipController {
     const membership = await this.membershipService.updateMembership(
       req.params.id as string,
       req.body,
+      req.user!.userId,
     );
 
     res
@@ -57,7 +62,10 @@ export class MembershipController {
    * Remove Member
    */
   removeMembership = asyncHandler(async (req: Request, res: Response) => {
-    await this.membershipService.removeMembership(req.params.id as string);
+    await this.membershipService.removeMembership(
+      req.params.id as string,
+      req.user!.userId,
+    );
 
     res.status(200).json(new ApiResponse(true, "Member removed successfully"));
   });
