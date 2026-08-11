@@ -1,8 +1,9 @@
 import { AttachmentRepository } from "../repositories/attachment.repository";
-import { AttachmentMapper } from "../mappers/attachment.mapper";
+import { AttachmentEntity } from "../entities/attachment.entity";
 import { CreateAttachmentDto } from "../dto/attachment/create-attachment.dto";
 
 import { NotFoundError } from "../common/errors/NotFoundError";
+
 import { TaskRepository } from "../repositories/task.repository";
 
 export class AttachmentService {
@@ -20,7 +21,7 @@ export class AttachmentService {
       throw new NotFoundError("Task not found");
     }
 
-    const entity = AttachmentMapper.toEntity(dto);
+    const entity = new AttachmentEntity(dto);
 
     return this.attachmentRepository.create(entity);
   }
@@ -29,19 +30,38 @@ export class AttachmentService {
    * Get Task Attachments
    */
   async getAttachments(taskId: string) {
+    const task = await this.taskRepository.findById(taskId);
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
     return this.attachmentRepository.findByTask(taskId);
   }
 
   /**
-   * Delete Attachment
+   * Get Attachment By Id
    */
-  async deleteAttachment(id: string) {
+  async getAttachment(id: string) {
     const attachment = await this.attachmentRepository.findById(id);
 
     if (!attachment) {
       throw new NotFoundError("Attachment not found");
     }
 
-    return this.attachmentRepository.delete(id);
+    return attachment;
+  }
+
+  /**
+   * Delete Attachment
+   */
+  async deleteAttachment(id: string) {
+    const attachment = await this.attachmentRepository.delete(id);
+
+    if (!attachment) {
+      throw new NotFoundError("Attachment not found");
+    }
+
+    return attachment;
   }
 }

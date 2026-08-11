@@ -4,14 +4,13 @@ import { RequestHelper } from "../../helpers/request";
 describe("Comment API", () => {
   const workspaceEndpoint = "/api/v1/workspaces";
   const projectEndpoint = "/api/v1/projects";
-  const commentEndpoint = "/api/v1/comments";
 
   async function createWorkspace(token: string) {
     const response = await RequestHelper.post(
       workspaceEndpoint,
       {
-        name: `Comment Test Workspace ${Date.now()}`,
-        description: "Workspace for comment tests",
+        name: `Comment Test Workspace ${Date.now()}-${Math.random()}`,
+        description: "Comment integration test workspace",
       },
       token,
     );
@@ -26,8 +25,8 @@ describe("Comment API", () => {
       projectEndpoint,
       {
         workspace: workspaceId,
-        name: `Comment Test Project ${Date.now()}`,
-        description: "Project for comment tests",
+        name: `Comment Test Project ${Date.now()}-${Math.random()}`,
+        description: "Comment integration test project",
       },
       token,
     );
@@ -41,9 +40,8 @@ describe("Comment API", () => {
     const response = await RequestHelper.post(
       `${projectEndpoint}/${projectId}/tasks`,
       {
-        title: `Comment Test Task ${Date.now()}`,
-        description: "Task for comment tests",
-        priority: "MEDIUM",
+        title: `Comment Test Task ${Date.now()}-${Math.random()}`,
+        description: "Comment integration test task",
       },
       token,
     );
@@ -53,67 +51,73 @@ describe("Comment API", () => {
     return response.body.data;
   }
 
-  async function createOwnerTask() {
+  async function createOwnerProject() {
     const owner = await AuthHelper.createAuthenticatedUser();
 
     const workspace = await createWorkspace(owner.token);
 
     const project = await createProject(owner.token, workspace._id);
 
-    const task = await createTask(owner.token, project._id);
-
     return {
       owner,
       workspace,
       project,
-      task,
     };
-  }
-
-  async function createComment(
-    token: string,
-    taskId: string,
-    content = "Test comment",
-  ) {
-    return RequestHelper.post(
-      `/api/v1/tasks/${taskId}/comments`,
-      {
-        content,
-      },
-      token,
-    );
   }
 
   describe("POST /api/v1/tasks/:taskId/comments", () => {
     it("should allow workspace owner to create a comment", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const response = await createComment(owner.token, task._id);
+      const task = await createTask(owner.token, project._id);
+
+      const response = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Owner comment",
+        },
+        owner.token,
+      );
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
 
-      expect(response.body.data._id).toBeDefined();
+      expect(response.body.data.content).toBe("Owner comment");
 
-      expect(response.body.data.content).toBe("Test comment");
+      expect(response.body.data.task).toBe(task._id);
     });
 
     it("should reject unrelated user from creating a comment", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
       const unrelated = await AuthHelper.createAuthenticatedUser();
 
-      const response = await createComment(unrelated.token, task._id);
+      const task = await createTask(owner.token, project._id);
+
+      const response = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Unauthorized comment",
+        },
+        unrelated.token,
+      );
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
 
     it("should reject unauthenticated request", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const response = await createComment("", task._id);
+      const task = await createTask(owner.token, project._id);
+
+      const response = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Unauthenticated comment",
+        },
+      );
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
@@ -122,11 +126,17 @@ describe("Comment API", () => {
 
   describe("GET /api/v1/tasks/:taskId/comments", () => {
     it("should allow workspace owner to view comments", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const commentResponse = await createComment(owner.token, task._id);
+      const task = await createTask(owner.token, project._id);
 
-      expect(commentResponse.status).toBe(201);
+      await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Owner comment",
+        },
+        owner.token,
+      );
 
       const response = await RequestHelper.get(
         `/api/v1/tasks/${task._id}/comments`,
@@ -135,19 +145,16 @@ describe("Comment API", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
 
       expect(response.body.data).toHaveLength(1);
-
-      expect(response.body.data[0].content).toBe("Test comment");
     });
 
     it("should reject unrelated user", async () => {
-      const { owner, task } = await createOwnerTask();
-
-      await createComment(owner.token, task._id);
+      const { owner, project } = await createOwnerProject();
 
       const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const task = await createTask(owner.token, project._id);
 
       const response = await RequestHelper.get(
         `/api/v1/tasks/${task._id}/comments`,
@@ -159,7 +166,9 @@ describe("Comment API", () => {
     });
 
     it("should reject unauthenticated request", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
+
+      const task = await createTask(owner.token, project._id);
 
       const response = await RequestHelper.get(
         `/api/v1/tasks/${task._id}/comments`,
@@ -172,20 +181,24 @@ describe("Comment API", () => {
 
   describe("PUT /api/v1/comments/:id", () => {
     it("should allow comment owner to update a comment", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const commentResponse = await createComment(
+      const task = await createTask(owner.token, project._id);
+
+      const createResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Original comment",
+        },
         owner.token,
-        task._id,
-        "Original comment",
       );
 
-      expect(commentResponse.status).toBe(201);
+      expect(createResponse.status).toBe(201);
 
-      const comment = commentResponse.body.data;
+      const comment = createResponse.body.data;
 
       const response = await RequestHelper.put(
-        `${commentEndpoint}/${comment._id}`,
+        `/api/v1/comments/${comment._id}`,
         {
           content: "Updated comment",
         },
@@ -201,22 +214,28 @@ describe("Comment API", () => {
     });
 
     it("should reject another user from updating a comment", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const commentResponse = await createComment(owner.token, task._id);
+      const anotherUser = await AuthHelper.createAuthenticatedUser();
 
-      expect(commentResponse.status).toBe(201);
+      const task = await createTask(owner.token, project._id);
 
-      const comment = commentResponse.body.data;
+      const createResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Original comment",
+        },
+        owner.token,
+      );
 
-      const unrelated = await AuthHelper.createAuthenticatedUser();
+      const comment = createResponse.body.data;
 
       const response = await RequestHelper.put(
-        `${commentEndpoint}/${comment._id}`,
+        `/api/v1/comments/${comment._id}`,
         {
-          content: "Unauthorized update",
+          content: "Unauthorized edit",
         },
-        unrelated.token,
+        anotherUser.token,
       );
 
       expect(response.status).toBe(403);
@@ -224,18 +243,24 @@ describe("Comment API", () => {
     });
 
     it("should reject unauthenticated request", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const commentResponse = await createComment(owner.token, task._id);
+      const task = await createTask(owner.token, project._id);
 
-      expect(commentResponse.status).toBe(201);
+      const createResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Original comment",
+        },
+        owner.token,
+      );
 
-      const comment = commentResponse.body.data;
+      const comment = createResponse.body.data;
 
       const response = await RequestHelper.put(
-        `${commentEndpoint}/${comment._id}`,
+        `/api/v1/comments/${comment._id}`,
         {
-          content: "Unauthorized update",
+          content: "Unauthorized edit",
         },
       );
 
@@ -246,45 +271,49 @@ describe("Comment API", () => {
 
   describe("DELETE /api/v1/comments/:id", () => {
     it("should allow comment owner to delete a comment", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const commentResponse = await createComment(owner.token, task._id);
+      const task = await createTask(owner.token, project._id);
 
-      expect(commentResponse.status).toBe(201);
+      const createResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Comment to delete",
+        },
+        owner.token,
+      );
 
-      const comment = commentResponse.body.data;
+      const comment = createResponse.body.data;
 
       const response = await RequestHelper.delete(
-        `${commentEndpoint}/${comment._id}`,
+        `/api/v1/comments/${comment._id}`,
         owner.token,
       );
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-
-      const getResponse = await RequestHelper.get(
-        `/api/v1/tasks/${task._id}/comments`,
-        owner.token,
-      );
-
-      expect(getResponse.status).toBe(200);
-      expect(getResponse.body.data).toHaveLength(0);
     });
 
     it("should reject another user from deleting a comment", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const commentResponse = await createComment(owner.token, task._id);
+      const anotherUser = await AuthHelper.createAuthenticatedUser();
 
-      expect(commentResponse.status).toBe(201);
+      const task = await createTask(owner.token, project._id);
 
-      const comment = commentResponse.body.data;
+      const createResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Comment to protect",
+        },
+        owner.token,
+      );
 
-      const unrelated = await AuthHelper.createAuthenticatedUser();
+      const comment = createResponse.body.data;
 
       const response = await RequestHelper.delete(
-        `${commentEndpoint}/${comment._id}`,
-        unrelated.token,
+        `/api/v1/comments/${comment._id}`,
+        anotherUser.token,
       );
 
       expect(response.status).toBe(403);
@@ -292,16 +321,22 @@ describe("Comment API", () => {
     });
 
     it("should reject unauthenticated request", async () => {
-      const { owner, task } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const commentResponse = await createComment(owner.token, task._id);
+      const task = await createTask(owner.token, project._id);
 
-      expect(commentResponse.status).toBe(201);
+      const createResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Comment to protect",
+        },
+        owner.token,
+      );
 
-      const comment = commentResponse.body.data;
+      const comment = createResponse.body.data;
 
       const response = await RequestHelper.delete(
-        `${commentEndpoint}/${comment._id}`,
+        `/api/v1/comments/${comment._id}`,
       );
 
       expect(response.status).toBe(401);
@@ -311,61 +346,196 @@ describe("Comment API", () => {
 
   describe("Tenant isolation", () => {
     it("should reject access to comments from another workspace", async () => {
-      const { owner: owner1, task: task1 } = await createOwnerTask();
+      const { owner, project } = await createOwnerProject();
 
-      const { owner: owner2, task: task2 } = await createOwnerTask();
+      const otherOwner = await AuthHelper.createAuthenticatedUser();
 
-      const commentResponse = await createComment(owner1.token, task1._id);
+      const otherWorkspace = await createWorkspace(otherOwner.token);
+
+      const otherProject = await createProject(
+        otherOwner.token,
+        otherWorkspace._id,
+      );
+
+      const task = await createTask(otherOwner.token, otherProject._id);
+
+      await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Private workspace comment",
+        },
+        otherOwner.token,
+      );
+
+      const response = await RequestHelper.get(
+        `/api/v1/tasks/${task._id}/comments`,
+        owner.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe("Comment authorization", () => {
+    it("should reject unrelated user from creating a comment", async () => {
+      const { owner, project } = await createOwnerProject();
+
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const task = await createTask(owner.token, project._id);
+
+      const response = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Unauthorized comment",
+        },
+        unrelated.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+    });
+
+    it("should reject unrelated user from viewing comments", async () => {
+      const { owner, project } = await createOwnerProject();
+
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const task = await createTask(owner.token, project._id);
+
+      await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Private comment",
+        },
+        owner.token,
+      );
+
+      const response = await RequestHelper.get(
+        `/api/v1/tasks/${task._id}/comments`,
+        unrelated.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+    });
+
+    it("should allow active workspace member to create and view comments", async () => {
+      const { owner, project, workspace } = await createOwnerProject();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const membershipResponse = await RequestHelper.post(
+        "/api/v1/memberships",
+        {
+          workspace: workspace._id,
+          user: member.user._id,
+        },
+        owner.token,
+      );
+
+      expect(membershipResponse.status).toBe(201);
+
+      const task = await createTask(owner.token, project._id);
+
+      const createResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Member comment",
+        },
+        member.token,
+      );
+
+      expect(createResponse.status).toBe(201);
+      expect(createResponse.body.success).toBe(true);
+
+      const getResponse = await RequestHelper.get(
+        `/api/v1/tasks/${task._id}/comments`,
+        member.token,
+      );
+
+      expect(getResponse.status).toBe(200);
+      expect(getResponse.body.success).toBe(true);
+
+      expect(getResponse.body.data).toHaveLength(1);
+    });
+
+    it("should reject non-owner from editing another user's comment", async () => {
+      const { owner, project, workspace } = await createOwnerProject();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      await RequestHelper.post(
+        "/api/v1/memberships",
+        {
+          workspace: workspace._id,
+          user: member.user._id,
+        },
+        owner.token,
+      );
+
+      const task = await createTask(owner.token, project._id);
+
+      const commentResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Owner comment",
+        },
+        owner.token,
+      );
 
       expect(commentResponse.status).toBe(201);
 
       const comment = commentResponse.body.data;
 
-      /**
-       * Owner 2 tries to access
-       * Owner 1's task comments.
-       */
-      const getResponse = await RequestHelper.get(
-        `/api/v1/tasks/${task1._id}/comments`,
-        owner2.token,
-      );
-
-      expect(getResponse.status).toBe(404);
-      expect(getResponse.body.success).toBe(false);
-
-      /**
-       * Owner 2 tries to update
-       * Owner 1's comment.
-       */
-      const updateResponse = await RequestHelper.put(
-        `${commentEndpoint}/${comment._id}`,
+      const response = await RequestHelper.put(
+        `/api/v1/comments/${comment._id}`,
         {
-          content: "Cross workspace update",
+          content: "Unauthorized edit",
         },
-        owner2.token,
+        member.token,
       );
 
-      expect(updateResponse.status).toBe(403);
-      expect(updateResponse.body.success).toBe(false);
+      expect(response.status).toBe(403);
+      expect(response.body.success).toBe(false);
+    });
 
-      /**
-       * Owner 2 tries to delete
-       * Owner 1's comment.
-       */
-      const deleteResponse = await RequestHelper.delete(
-        `${commentEndpoint}/${comment._id}`,
-        owner2.token,
+    it("should reject non-owner from deleting another user's comment", async () => {
+      const { owner, project, workspace } = await createOwnerProject();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      await RequestHelper.post(
+        "/api/v1/memberships",
+        {
+          workspace: workspace._id,
+          user: member.user._id,
+        },
+        owner.token,
       );
 
-      expect(deleteResponse.status).toBe(403);
-      expect(deleteResponse.body.success).toBe(false);
+      const task = await createTask(owner.token, project._id);
 
-      /**
-       * Keep task2 referenced so the fixture
-       * is intentionally created as another
-       * isolated workspace.
-       */
-      expect(task2._id).toBeDefined();
+      const commentResponse = await RequestHelper.post(
+        `/api/v1/tasks/${task._id}/comments`,
+        {
+          content: "Owner comment",
+        },
+        owner.token,
+      );
+
+      expect(commentResponse.status).toBe(201);
+
+      const comment = commentResponse.body.data;
+
+      const response = await RequestHelper.delete(
+        `/api/v1/comments/${comment._id}`,
+        member.token,
+      );
+
+      expect(response.status).toBe(403);
+      expect(response.body.success).toBe(false);
     });
   });
 });

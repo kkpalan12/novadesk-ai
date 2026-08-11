@@ -1,0 +1,114 @@
+.dashboard {
+    min-height: 100vh;
+    background: #f5f7fb;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 20px 32px;
+
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+
+    h1,
+    p {
+        margin: 0;
+    }
+
+    p {
+        margin-top: 4px;
+        color: #6b7280;
+    }
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    button {
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+}
+
+.content {
+    padding: 32px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(160px, 1fr));
+
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.stat-card,
+.panel {
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-card {
+    span {
+        display: block;
+        color: #6b7280;
+        margin-bottom: 8px;
+    }
+
+    strong {
+        font-size: 28px;
+    }
+}
+
+.overview {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.panel {
+    h3 {
+        margin-top: 0;
+    }
+
+    p {
+        color: #6b7280;
+    }
+}
+
+.large-number {
+    font-size: 32px;
+}
+
+.activity {
+    margin-top: 24px;
+}
+
+.state,
+.error {
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.state {
+    background: #fff;
+}
+
+.error {
+    background: #fef2f2;
+    color: #b91c1c;
+}

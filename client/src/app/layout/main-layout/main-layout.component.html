@@ -1,0 +1,234 @@
+<div class="app-shell">
+
+    <!-- =========================================
+       SIDEBAR
+       ========================================= -->
+
+    <aside class="sidebar">
+
+        <!-- Brand -->
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                N
+            </div>
+
+            <div class="brand-name">
+                NovaDesk
+            </div>
+
+        </div>
+
+
+        <!-- =======================================
+         WORKSPACE SELECTOR
+         ======================================= -->
+
+        <div class="workspace-selector">
+
+            <label for="workspace" class="workspace-label">
+                WORKSPACE
+            </label>
+
+            <select id="workspace" class="workspace-select" [value]="
+          workspaceContext.activeWorkspace()?._id ?? ''
+        " (change)="
+          selectWorkspace(
+            $any($event.target).value
+          )
+        " [disabled]="
+          workspaceContext.loading()
+        ">
+
+                @if (
+                workspaceContext.loading()
+                ) {
+
+                <option value="">
+                    Loading...
+                </option>
+
+                } @else if (
+                workspaceContext.workspaces().length === 0
+                ) {
+
+                <option value="">
+                    No workspaces
+                </option>
+
+                } @else {
+
+                @for (
+                workspace of workspaceContext.workspaces();
+                track workspace._id
+                ) {
+
+                <option [value]="workspace._id">
+                    {{ workspace.name }}
+                </option>
+
+                }
+
+                }
+
+            </select>
+
+        </div>
+
+
+        <!-- Workspace Error -->
+
+        @if (
+        workspaceContext.error()
+        ) {
+
+        <div class="workspace-error">
+            {{ workspaceContext.error() }}
+        </div>
+
+        }
+
+
+        <!-- =======================================
+         NAVIGATION
+         ======================================= -->
+
+        <nav class="navigation">
+
+            <!-- Dashboard -->
+
+            <button type="button" class="nav-item" (click)="goToDashboard()">
+
+                <span class="nav-icon">
+                    ⌂
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </button>
+
+
+            <!-- Projects -->
+
+            <button type="button" class="nav-item" (click)="goToProjects()">
+
+                <span class="nav-icon">
+                    ▣
+                </span>
+
+                <span>
+                    Projects
+                </span>
+
+            </button>
+
+
+            <!-- Tasks -->
+
+            <button type="button" class="nav-item" (click)="goToTasks()">
+
+                <span class="nav-icon">
+                    ✓
+                </span>
+
+                <span>
+                    Tasks
+                </span>
+
+            </button>
+
+
+            <!-- Notifications -->
+
+            <button type="button" class="nav-item" (click)="goToNotifications()">
+
+                <span class="nav-icon">
+                    ♢
+                </span>
+
+                <span>
+                    Notifications
+                </span>
+
+            </button>
+
+        </nav>
+
+
+        <!-- =======================================
+         SIDEBAR BOTTOM
+         ======================================= -->
+
+        <div class="sidebar-bottom">
+
+            <button type="button" class="nav-item logout-button" (click)="logout()">
+
+                <span class="nav-icon">
+                    ↪
+                </span>
+
+                <span>
+                    Logout
+                </span>
+
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================
+       MAIN AREA
+       ========================================= -->
+
+    <main class="main-area">
+
+        <!-- =======================================
+         TOPBAR
+         ======================================= -->
+
+        <header class="topbar">
+
+            <div class="topbar-title">
+                NovaDesk AI
+            </div>
+
+
+            <div class="topbar-actions">
+
+                <!-- Notifications -->
+
+                <button type="button" class="notification-button" (click)="goToNotifications()"
+                    aria-label="Notifications">
+                    ♢
+                </button>
+
+
+                <!-- User -->
+
+                <div class="user-avatar" aria-label="Current user">
+                    K
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =======================================
+         ROUTED PAGE
+         ======================================= -->
+
+        <section class="page-content">
+
+            <router-outlet></router-outlet>
+
+        </section>
+
+    </main>
+
+</div>

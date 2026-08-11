@@ -1,0 +1,585 @@
+<div class="dashboard-page">
+
+    <!-- =========================================
+       HEADER
+       ========================================= -->
+
+    <header class="dashboard-header">
+
+        <div>
+            <h1>
+                Dashboard
+            </h1>
+
+            <p>
+                Welcome back,
+                {{ user?.firstName || 'User' }}.
+            </p>
+        </div>
+
+        <div class="dashboard-actions">
+
+            <button type="button" class="primary-button" (click)="goToProjects()" [disabled]="!workspaceId()">
+                <span>▣</span>
+                Projects
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================================
+       ERROR
+       ========================================= -->
+
+    @if (errorMessage()) {
+
+    <div class="error-banner">
+        {{ errorMessage() }}
+    </div>
+
+    }
+
+
+    <!-- =========================================
+       LOADING
+       ========================================= -->
+
+    @if (loading()) {
+
+    <div class="loading-state">
+
+        <div class="loading-spinner"></div>
+
+        <p>
+            Loading dashboard...
+        </p>
+
+    </div>
+
+    }
+
+
+    @if (!loading() && dashboard()) {
+
+    <!-- =======================================
+         TASK OVERVIEW
+         ======================================= -->
+
+    <section class="dashboard-section">
+
+        <div class="section-header">
+
+            <div>
+                <h2>
+                    Task Overview
+                </h2>
+
+                <p>
+                    Current task status
+                </p>
+            </div>
+
+            <button type="button" class="secondary-button" (click)="goToProjects()" [disabled]="!workspaceId()">
+                View Projects
+            </button>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+            <!-- Total -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon total">
+                    #
+                </div>
+
+                <div class="stat-content">
+
+                    <span class="stat-label">
+                        Total Tasks
+                    </span>
+
+                    <strong class="stat-value">
+                        {{ dashboard()!.tasks.total }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- TODO -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon todo">
+                    ○
+                </div>
+
+                <div class="stat-content">
+
+                    <span class="stat-label">
+                        To Do
+                    </span>
+
+                    <strong class="stat-value">
+                        {{ dashboard()!.tasks.TODO }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- In Progress -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon progress">
+                    ◐
+                </div>
+
+                <div class="stat-content">
+
+                    <span class="stat-label">
+                        In Progress
+                    </span>
+
+                    <strong class="stat-value">
+                        {{ dashboard()!.tasks.IN_PROGRESS }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- Review -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon review">
+                    ◑
+                </div>
+
+                <div class="stat-content">
+
+                    <span class="stat-label">
+                        Review
+                    </span>
+
+                    <strong class="stat-value">
+                        {{ dashboard()!.tasks.REVIEW }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- Done -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon done">
+                    ✓
+                </div>
+
+                <div class="stat-content">
+
+                    <span class="stat-label">
+                        Completed
+                    </span>
+
+                    <strong class="stat-value">
+                        {{ dashboard()!.tasks.DONE }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =======================================
+         PRIORITIES
+         ======================================= -->
+
+    <section class="dashboard-section">
+
+        <div class="section-header">
+
+            <div>
+                <h2>
+                    Priority
+                </h2>
+
+                <p>
+                    Tasks grouped by priority
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="priority-grid">
+
+            <!-- Low -->
+
+            <div class="priority-card">
+
+                <span class="priority-label">
+                    Low
+                </span>
+
+                <strong>
+                    {{ dashboard()!.priorities.LOW }}
+                </strong>
+
+            </div>
+
+
+            <!-- Medium -->
+
+            <div class="priority-card">
+
+                <span class="priority-label">
+                    Medium
+                </span>
+
+                <strong>
+                    {{ dashboard()!.priorities.MEDIUM }}
+                </strong>
+
+            </div>
+
+
+            <!-- High -->
+
+            <div class="priority-card">
+
+                <span class="priority-label">
+                    High
+                </span>
+
+                <strong>
+                    {{ dashboard()!.priorities.HIGH }}
+                </strong>
+
+            </div>
+
+
+            <!-- Urgent -->
+
+            <div class="priority-card">
+
+                <span class="priority-label">
+                    Urgent
+                </span>
+
+                <strong>
+                    {{ dashboard()!.priorities.URGENT }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =======================================
+         QUICK ACTIONS
+         ======================================= -->
+
+    <section class="dashboard-section">
+
+        <div class="section-header">
+
+            <div>
+                <h2>
+                    Quick Actions
+                </h2>
+
+                <p>
+                    Continue working with NovaDesk
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="quick-actions">
+
+            <button type="button" class="quick-action" (click)="goToProjects()" [disabled]="!workspaceId()">
+
+                <span class="quick-action-icon">
+                    ▣
+                </span>
+
+                <span class="quick-action-content">
+
+                    <strong>
+                        Projects
+                    </strong>
+
+                    <small>
+                        View and manage projects
+                    </small>
+
+                </span>
+
+                <span class="quick-action-arrow">
+                    →
+                </span>
+
+            </button>
+
+
+            <div class="quick-action disabled">
+
+                <span class="quick-action-icon">
+                    ✓
+                </span>
+
+                <span class="quick-action-content">
+
+                    <strong>
+                        My Tasks
+                    </strong>
+
+                    <small>
+                        Your assigned tasks
+                    </small>
+
+                </span>
+
+                <span class="coming-soon">
+                    Available from Projects
+                </span>
+
+            </div>
+
+
+            <div class="quick-action">
+
+                <span class="quick-action-icon">
+                    ♢
+                </span>
+
+                <span class="quick-action-content">
+
+                    <strong>
+                        Notifications
+                    </strong>
+
+                    <small>
+                        Recent notifications
+                    </small>
+
+                </span>
+
+                <span class="notification-count">
+                    {{ dashboard()!.unreadNotifications }}
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =======================================
+         MY TASKS
+         ======================================= -->
+
+    <section class="dashboard-section">
+
+        <div class="section-header">
+
+            <div>
+                <h2>
+                    My Tasks
+                </h2>
+
+                <p>
+                    Tasks assigned to you
+                </p>
+            </div>
+
+        </div>
+
+
+        @if (
+        dashboard()!.myTasks.length === 0
+        ) {
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                ✓
+            </div>
+
+            <h3>
+                No tasks yet
+            </h3>
+
+            <p>
+                Your assigned tasks will
+                appear here.
+            </p>
+
+        </div>
+
+        } @else {
+
+        <div class="task-list">
+
+            @for (
+            task of dashboard()!.myTasks;
+            track $index
+            ) {
+
+            <div class="task-row">
+
+                <div class="task-row-content">
+
+                    <strong>
+                        {{ $any(task).title || 'Task' }}
+                    </strong>
+
+                    @if ($any(task).status) {
+
+                    <span class="task-status">
+                        {{ $any(task).status }}
+                    </span>
+
+                    }
+
+                </div>
+
+            </div>
+
+            }
+
+        </div>
+
+        }
+
+    </section>
+
+
+    <!-- =======================================
+         RECENT ACTIVITY
+         ======================================= -->
+
+    <section class="dashboard-section">
+
+        <div class="section-header">
+
+            <div>
+                <h2>
+                    Recent Activity
+                </h2>
+
+                <p>
+                    Latest activity in your workspace
+                </p>
+            </div>
+
+        </div>
+
+
+        @if (
+        dashboard()!.recentActivities.length === 0
+        ) {
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                ◷
+            </div>
+
+            <h3>
+                No recent activity
+            </h3>
+
+            <p>
+                Recent project and task
+                activity will appear here.
+            </p>
+
+        </div>
+
+        } @else {
+
+        <div class="activity-list">
+
+            @for (
+            activity of dashboard()!.recentActivities;
+            track $index
+            ) {
+
+            <div class="activity-row">
+
+                <div class="activity-dot"></div>
+
+                <div class="activity-content">
+
+                    <strong>
+                        {{ $any(activity).action || 'Activity' }}
+                    </strong>
+
+                    @if (
+                    $any(activity).createdAt
+                    ) {
+
+                    <small>
+                        {{ $any(activity).createdAt | date:'medium' }}
+                    </small>
+
+                    }
+
+                </div>
+
+            </div>
+
+            }
+
+        </div>
+
+        }
+
+    </section>
+
+
+    } @else if (!loading()) {
+
+    <div class="empty-state">
+
+        <div class="empty-icon">
+            —
+        </div>
+
+        <h3>
+            Dashboard unavailable
+        </h3>
+
+        <p>
+            No dashboard data is available.
+        </p>
+
+    </div>
+
+    }
+
+</div>

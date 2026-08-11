@@ -1,41 +1,27 @@
-import { Types } from "mongoose";
+import { CreateAttachmentDto } from "../dto/attachment/create-attachment.dto";
 
 export class AttachmentEntity {
-  task: Types.ObjectId;
-
-  uploadedBy: Types.ObjectId;
-
-  originalName: string;
+  task: string;
+  uploadedBy: string;
 
   fileName: string;
-
+  originalName: string;
   mimeType: string;
-
   size: number;
-
   path: string;
 
-  constructor(data: {
-    task: string;
-    uploadedBy: string;
-    originalName: string;
-    fileName: string;
-    mimeType: string;
-    size: number;
-    path: string;
-  }) {
-    this.task = new Types.ObjectId(data.task);
+  isDeleted: boolean;
 
-    this.uploadedBy = new Types.ObjectId(data.uploadedBy);
-
-    this.originalName = data.originalName;
+  constructor(data: CreateAttachmentDto) {
+    this.task = data.task;
+    this.uploadedBy = data.uploadedBy;
 
     this.fileName = data.fileName;
-
+    this.originalName = data.originalName;
     this.mimeType = data.mimeType;
-
     this.size = data.size;
-
     this.path = data.path;
+
+    this.isDeleted = false;
   }
 }

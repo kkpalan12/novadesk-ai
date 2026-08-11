@@ -1,0 +1,270 @@
+.task-page {
+    min-height: 100vh;
+    padding: 32px;
+    box-sizing: border-box;
+    background: #f5f7fb;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+
+    h1 {
+        margin: 0;
+        font-size: 30px;
+    }
+
+    p {
+        margin: 6px 0 0;
+        color: #6b7280;
+    }
+}
+
+.primary-button,
+.secondary-button {
+    min-height: 42px;
+    padding: 10px 18px;
+    border-radius: 7px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.primary-button {
+    border: 0;
+    background: #2563eb;
+    color: #fff;
+}
+
+.secondary-button {
+    border: 1px solid #d1d5db;
+    background: #fff;
+}
+
+.create-form {
+    max-width: 760px;
+    margin-bottom: 24px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    h2 {
+        margin-top: 0;
+    }
+}
+
+.form-error,
+.error-message {
+    padding: 12px;
+    margin-bottom: 18px;
+    border-radius: 7px;
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+.form-group {
+    margin-bottom: 18px;
+
+    label {
+        display: block;
+        margin-bottom: 7px;
+        font-weight: 600;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 11px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        font: inherit;
+    }
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.task-list {
+    display: grid;
+    gap: 14px;
+}
+
+.task-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.task-main {
+    h2 {
+        margin: 0 0 7px;
+        font-size: 18px;
+    }
+
+    p {
+        margin: 0;
+        color: #6b7280;
+    }
+}
+
+.task-meta {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.status,
+.priority {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f3f4f6;
+}
+
+.state,
+.empty {
+    padding: 40px 24px;
+    text-align: center;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+.empty p {
+    color: #6b7280;
+}
+
+@media (max-width: 640px) {
+    .task-page {
+        padding: 20px 14px;
+    }
+
+    .page-header {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .task-card {
+        flex-direction: column;
+    }
+
+    .task-meta {
+        align-items: center;
+    }
+}
+.create-form {
+    max-width: 760px;
+    margin-bottom: 24px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+.form-header {
+    margin-bottom: 22px;
+
+    h2 {
+        margin: 0;
+        font-size: 21px;
+    }
+
+    p {
+        margin: 6px 0 0;
+        color: #6b7280;
+    }
+}
+
+.form-error {
+    padding: 12px;
+    margin-bottom: 18px;
+    border-radius: 7px;
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+.form-group {
+    margin-bottom: 18px;
+
+    label {
+        display: block;
+        margin-bottom: 7px;
+        font-weight: 600;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 11px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        font: inherit;
+        outline: none;
+
+        &:focus {
+            border-color: #2563eb;
+        }
+
+        &:disabled {
+            background: #f3f4f6;
+        }
+    }
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.status-select {
+    min-width: 120px;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:focus {
+        outline: none;
+        border-color: #2563eb;
+    }
+}

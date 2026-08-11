@@ -7,11 +7,8 @@ const router = Router();
 
 const taskHistoryController = new TaskHistoryController();
 
-/**
- * Get Task History
- */
 router.get(
-  "/tasks/:taskId/history",
+  "/:taskId/history",
   authenticate,
   taskHistoryController.getTaskHistory,
 );

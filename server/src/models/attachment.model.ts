@@ -8,37 +8,50 @@ const attachmentSchema = new Schema<IAttachment>(
       type: Schema.Types.ObjectId,
       ref: "Task",
       required: true,
+      index: true,
     },
 
     uploadedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    },
-
-    originalName: {
-      type: String,
-      required: true,
+      index: true,
     },
 
     fileName: {
       type: String,
       required: true,
+      trim: true,
+    },
+
+    originalName: {
+      type: String,
+      required: true,
+      trim: true,
     },
 
     mimeType: {
       type: String,
       required: true,
+      trim: true,
     },
 
     size: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     path: {
       type: String,
       required: true,
+      trim: true,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   {
@@ -48,10 +61,7 @@ const attachmentSchema = new Schema<IAttachment>(
 
 attachmentSchema.index({
   task: 1,
-});
-
-attachmentSchema.index({
-  uploadedBy: 1,
+  isDeleted: 1,
 });
 
 export const Attachment = mongoose.model<IAttachment>(

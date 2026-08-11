@@ -9,8 +9,8 @@ describe("Membership API", () => {
     const response = await RequestHelper.post(
       workspaceEndpoint,
       {
-        name: "Membership Test Workspace",
-        description: "Workspace for membership tests",
+        name: `Membership Test Workspace ${Date.now()}-${Math.random()}`,
+        description: "Membership integration test workspace",
       },
       token,
     );
@@ -20,39 +20,108 @@ describe("Membership API", () => {
     return response.body.data;
   }
 
+  async function createMembership(
+    ownerToken: string,
+    workspaceId: string,
+    userId: string,
+    overrides: Record<string, unknown> = {},
+  ) {
+    return RequestHelper.post(
+      membershipEndpoint,
+      {
+        workspace: workspaceId,
+        user: userId,
+        ...overrides,
+      },
+      ownerToken,
+    );
+  }
+
   describe("POST /api/v1/memberships", () => {
-    it("should allow workspace owner to add a member", async () => {
+    it("should allow workspace owner to add member", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
 
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
 
-      const response = await RequestHelper.post(
-        membershipEndpoint,
-        {
-          workspace: workspace._id,
-          user: member.user._id,
-        },
+      const response = await createMembership(
         owner.token,
+        workspace._id,
+        member.user._id,
       );
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
+
       expect(response.body.data).toBeDefined();
 
-      expect(response.body.data.workspace).toBeDefined();
-      expect(response.body.data.user).toBeDefined();
+      expect(response.body.data.workspace).toBe(workspace._id);
+
+      expect(response.body.data.user).toBe(member.user._id);
+
+      expect(response.body.data.status).toBe("ACTIVE");
+    });
+
+    it("should reject unrelated user from adding member", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const response = await createMembership(
+        unrelated.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
     });
 
     it("should reject unauthenticated request", async () => {
-      const response = await RequestHelper.post(membershipEndpoint, {
-        workspace: "507f1f77bcf86cd799439011",
-        user: "507f1f77bcf86cd799439012",
-      });
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const response = await createMembership(
+        "",
+        workspace._id,
+        member.user._id,
+      );
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
+    });
+
+    it("should reject duplicate membership", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const firstResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      expect(firstResponse.status).toBe(201);
+
+      const secondResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      expect(secondResponse.status).toBe(409);
+      expect(secondResponse.body.success).toBe(false);
     });
   });
 
@@ -64,16 +133,13 @@ describe("Membership API", () => {
 
       const workspace = await createWorkspace(owner.token);
 
-      const membershipResponse = await RequestHelper.post(
-        membershipEndpoint,
-        {
-          workspace: workspace._id,
-          user: member.user._id,
-        },
+      const membership = await createMembership(
         owner.token,
+        workspace._id,
+        member.user._id,
       );
 
-      expect(membershipResponse.status).toBe(201);
+      expect(membership.status).toBe(201);
 
       const response = await RequestHelper.get(
         `${membershipEndpoint}/workspace/${workspace._id}`,
@@ -82,10 +148,39 @@ describe("Membership API", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
+
       expect(response.body.data).toBeDefined();
+
+      expect(response.body.data).toHaveLength(1);
+
+      expect(response.body.data[0].user._id).toBe(member.user._id);
     });
 
-    it("should reject unrelated user", async () => {
+    it("should allow active member to view workspace members", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const member1 = await AuthHelper.createAuthenticatedUser();
+
+      const member2 = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      await createMembership(owner.token, workspace._id, member1.user._id);
+
+      await createMembership(owner.token, workspace._id, member2.user._id);
+
+      const response = await RequestHelper.get(
+        `${membershipEndpoint}/workspace/${workspace._id}`,
+        member1.token,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      expect(response.body.data).toHaveLength(2);
+    });
+
+    it("should reject unrelated user from viewing members", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
 
       const unrelated = await AuthHelper.createAuthenticatedUser();
@@ -113,33 +208,6 @@ describe("Membership API", () => {
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
     });
-
-    it("should allow active member to view workspace members", async () => {
-      const owner = await AuthHelper.createAuthenticatedUser();
-
-      const member = await AuthHelper.createAuthenticatedUser();
-
-      const workspace = await createWorkspace(owner.token);
-
-      const membershipResponse = await RequestHelper.post(
-        membershipEndpoint,
-        {
-          workspace: workspace._id,
-          user: member.user._id,
-        },
-        owner.token,
-      );
-
-      expect(membershipResponse.status).toBe(201);
-
-      const response = await RequestHelper.get(
-        `${membershipEndpoint}/workspace/${workspace._id}`,
-        member.token,
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-    });
   });
 
   describe("PUT /api/v1/memberships/:id", () => {
@@ -150,23 +218,18 @@ describe("Membership API", () => {
 
       const workspace = await createWorkspace(owner.token);
 
-      const membershipResponse = await RequestHelper.post(
-        membershipEndpoint,
-        {
-          workspace: workspace._id,
-          user: member.user._id,
-        },
+      const membershipResponse = await createMembership(
         owner.token,
+        workspace._id,
+        member.user._id,
       );
 
       expect(membershipResponse.status).toBe(201);
 
-      const membershipId = membershipResponse.body.data._id;
-
-      expect(membershipId).toBeDefined();
+      const membership = membershipResponse.body.data;
 
       const response = await RequestHelper.put(
-        `${membershipEndpoint}/${membershipId}`,
+        `${membershipEndpoint}/${membership._id}`,
         {
           role: "ADMIN",
         },
@@ -175,33 +238,56 @@ describe("Membership API", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
+
+      expect(response.body.data.role).toBe("ADMIN");
     });
 
-    it("should reject non-owner from updating membership", async () => {
+    it("should reject unrelated user from updating membership", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const membershipResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      const membership = membershipResponse.body.data;
+
+      const response = await RequestHelper.put(
+        `${membershipEndpoint}/${membership._id}`,
+        {
+          role: "ADMIN",
+        },
+        unrelated.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+    });
+
+    it("should reject active member from updating membership", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
 
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
 
-      const membershipResponse = await RequestHelper.post(
-        membershipEndpoint,
-        {
-          workspace: workspace._id,
-          user: member.user._id,
-        },
+      const membershipResponse = await createMembership(
         owner.token,
+        workspace._id,
+        member.user._id,
       );
 
-      expect(membershipResponse.status).toBe(201);
-
-      const membershipId = membershipResponse.body.data._id;
-
-      expect(membershipId).toBeDefined();
+      const membership = membershipResponse.body.data;
 
       const response = await RequestHelper.put(
-        `${membershipEndpoint}/${membershipId}`,
+        `${membershipEndpoint}/${membership._id}`,
         {
           role: "ADMIN",
         },
@@ -213,8 +299,22 @@ describe("Membership API", () => {
     });
 
     it("should reject unauthenticated update", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const membershipResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      const membership = membershipResponse.body.data;
+
       const response = await RequestHelper.put(
-        `${membershipEndpoint}/507f1f77bcf86cd799439011`,
+        `${membershipEndpoint}/${membership._id}`,
         {
           role: "ADMIN",
         },
@@ -233,55 +333,88 @@ describe("Membership API", () => {
 
       const workspace = await createWorkspace(owner.token);
 
-      const membershipResponse = await RequestHelper.post(
-        membershipEndpoint,
-        {
-          workspace: workspace._id,
-          user: member.user._id,
-        },
+      const membershipResponse = await createMembership(
         owner.token,
+        workspace._id,
+        member.user._id,
       );
 
-      expect(membershipResponse.status).toBe(201);
-
-      const membershipId = membershipResponse.body.data._id;
-
-      expect(membershipId).toBeDefined();
+      const membership = membershipResponse.body.data;
 
       const response = await RequestHelper.delete(
-        `${membershipEndpoint}/${membershipId}`,
+        `${membershipEndpoint}/${membership._id}`,
         owner.token,
       );
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
+
+      const membersResponse = await RequestHelper.get(
+        `${membershipEndpoint}/workspace/${workspace._id}`,
+        owner.token,
+      );
+
+      expect(membersResponse.status).toBe(200);
+
+      expect(membersResponse.body.data).toHaveLength(0);
     });
 
-    it("should reject non-owner from removing member", async () => {
+    it("should reject unrelated user from removing member", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
 
       const member = await AuthHelper.createAuthenticatedUser();
 
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
       const workspace = await createWorkspace(owner.token);
 
-      const membershipResponse = await RequestHelper.post(
-        membershipEndpoint,
-        {
-          workspace: workspace._id,
-          user: member.user._id,
-        },
+      const membershipResponse = await createMembership(
         owner.token,
+        workspace._id,
+        member.user._id,
       );
+
+      const membership = membershipResponse.body.data;
+
+      const response = await RequestHelper.delete(
+        `${membershipEndpoint}/${membership._id}`,
+        unrelated.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+    });
+
+    it("should reject active member from removing another member", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const member1 = await AuthHelper.createAuthenticatedUser();
+
+      const member2 = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const membershipResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member1.user._id,
+      );
+
+      const membership2Response = await createMembership(
+        owner.token,
+        workspace._id,
+        member2.user._id,
+      );
+
+      const membership2 = membership2Response.body.data;
 
       expect(membershipResponse.status).toBe(201);
 
-      const membershipId = membershipResponse.body.data._id;
-
-      expect(membershipId).toBeDefined();
+      expect(membership2Response.status).toBe(201);
 
       const response = await RequestHelper.delete(
-        `${membershipEndpoint}/${membershipId}`,
-        member.token,
+        `${membershipEndpoint}/${membership2._id}`,
+        member1.token,
       );
 
       expect(response.status).toBe(404);
@@ -289,11 +422,39 @@ describe("Membership API", () => {
     });
 
     it("should reject unauthenticated delete", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const membershipResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      const membership = membershipResponse.body.data;
+
       const response = await RequestHelper.delete(
-        `${membershipEndpoint}/507f1f77bcf86cd799439011`,
+        `${membershipEndpoint}/${membership._id}`,
       );
 
       expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+    });
+
+    it("should return 404 when removing non-existing membership", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const fakeMembershipId = "507f1f77bcf86cd799439011";
+
+      const response = await RequestHelper.delete(
+        `${membershipEndpoint}/${fakeMembershipId}`,
+        owner.token,
+      );
+
+      expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
   });

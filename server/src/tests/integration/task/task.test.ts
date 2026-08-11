@@ -330,9 +330,21 @@ describe("Task API", () => {
 
   describe("PATCH /api/v1/projects/:projectId/tasks/:id/assign", () => {
     it("should allow workspace owner to assign a task", async () => {
-      const { owner, project } = await createOwnerProject();
+      const { owner, project, workspace } = await createOwnerProject();
 
       const assignee = await AuthHelper.createAuthenticatedUser();
+
+      // Assignee must belong to the same workspace.
+      const membershipResponse = await RequestHelper.post(
+        "/api/v1/memberships",
+        {
+          workspace: workspace._id,
+          user: assignee.user._id,
+        },
+        owner.token,
+      );
+
+      expect(membershipResponse.status).toBe(201);
 
       const taskResponse = await createTask(owner.token, project._id);
 
@@ -351,8 +363,44 @@ describe("Task API", () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
+      expect(response.body.data.assignedTo).toBeDefined();
     });
 
+    it("should reject assigning task to user from another workspace", async () => {
+      const { owner, project, workspace } = await createOwnerProject();
+
+      const otherOwner = await AuthHelper.createAuthenticatedUser();
+
+      const otherWorkspace = await createWorkspace(otherOwner.token);
+
+      const assignee = await AuthHelper.createAuthenticatedUser();
+
+      await RequestHelper.post(
+        "/api/v1/memberships",
+        {
+          workspace: otherWorkspace._id,
+          user: assignee.user._id,
+        },
+        otherOwner.token,
+      );
+
+      const taskResponse = await createTask(owner.token, project._id);
+
+      expect(taskResponse.status).toBe(201);
+
+      const task = taskResponse.body.data;
+
+      const response = await RequestHelper.patch(
+        `${taskEndpoint}/${project._id}/tasks/${task._id}/assign`,
+        {
+          assignedTo: assignee.user._id,
+        },
+        owner.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+    });
     it("should reject unrelated user from assigning a task", async () => {
       const { owner, project } = await createOwnerProject();
 

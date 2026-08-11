@@ -1,0 +1,362 @@
+<div class="task-page">
+
+    <!-- ==============================
+       PAGE HEADER
+       ============================== -->
+
+    <header class="page-header">
+
+        <div>
+            <h1>Tasks</h1>
+
+            <p>
+                Manage project tasks
+            </p>
+        </div>
+
+        <button type="button" class="primary-button" (click)="openCreateForm()" [disabled]="showCreateForm()">
+            + New Task
+        </button>
+
+    </header>
+
+
+    <!-- ==============================
+       GENERAL ERROR
+       ============================== -->
+
+    @if (errorMessage()) {
+
+    <div class="error-message">
+        {{ errorMessage() }}
+    </div>
+
+    }
+
+
+    <!-- ==============================
+       CREATE TASK FORM
+       ============================== -->
+
+    @if (showCreateForm()) {
+
+    <section class="create-form">
+
+        <div class="form-header">
+
+            <h2>
+                Create Task
+            </h2>
+
+            <p>
+                Create a task for this project.
+            </p>
+
+        </div>
+
+
+        @if (formError()) {
+
+        <div class="form-error">
+            {{ formError() }}
+        </div>
+
+        }
+
+
+        <!-- Title -->
+
+        <div class="form-group">
+
+            <label for="taskTitle">
+                Task Title
+            </label>
+
+            <input id="taskTitle" type="text" [(ngModel)]="taskTitle" placeholder="Enter task title" autocomplete="off"
+                [disabled]="saving()" />
+
+        </div>
+
+
+        <!-- Description -->
+
+        <div class="form-group">
+
+            <label for="taskDescription">
+                Description
+            </label>
+
+            <textarea id="taskDescription" rows="4" [(ngModel)]="taskDescription" placeholder="Enter task description"
+                [disabled]="saving()"></textarea>
+
+        </div>
+
+
+        <!-- Priority + Status -->
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="taskPriority">
+                    Priority
+                </label>
+
+                <select id="taskPriority" [(ngModel)]="taskPriority" [disabled]="saving()">
+
+                    @for (
+                    priority of priorities;
+                    track priority
+                    ) {
+
+                    <option [value]="priority">
+                        {{ priority }}
+                    </option>
+
+                    }
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="taskStatus">
+                    Status
+                </label>
+
+                <select id="taskStatus" [(ngModel)]="taskStatus" [disabled]="saving()">
+
+                    @for (
+                    status of statuses;
+                    track status
+                    ) {
+
+                    <option [value]="status">
+                        {{ status.replace('_', ' ') }}
+                    </option>
+
+                    }
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- Form Actions -->
+
+        <div class="form-actions">
+
+            <button type="button" class="secondary-button" (click)="closeCreateForm()" [disabled]="saving()">
+                Cancel
+            </button>
+
+
+            <button type="button" class="primary-button" (click)="createTask()" [disabled]="saving()">
+
+                @if (saving()) {
+                Creating...
+                } @else {
+                Create Task
+                }
+
+            </button>
+
+        </div>
+
+    </section>
+
+    }
+
+
+    <!-- ==============================
+       LOADING
+       ============================== -->
+
+    @if (loading()) {
+
+    <div class="state">
+
+        <p>
+            Loading tasks...
+        </p>
+
+    </div>
+
+    }
+
+
+    <!-- ==============================
+       EMPTY STATE
+       ============================== -->
+
+    @if (
+    !loading() &&
+    !showCreateForm() &&
+    tasks().length === 0
+    ) {
+
+    <section class="empty">
+
+        <div class="empty-icon">
+            +
+        </div>
+
+        <h2>
+            No tasks yet
+        </h2>
+
+        <p>
+            Create your first task for this project.
+        </p>
+
+        <button type="button" class="primary-button" (click)="openCreateForm()">
+            Create Task
+        </button>
+
+    </section>
+
+    }
+
+
+    <!-- ==============================
+       TASK LIST
+       ============================== -->
+
+    @if (
+    !loading() &&
+    tasks().length > 0
+    ) {
+
+    <section class="task-list">
+
+        @for (
+        task of tasks();
+        track task._id
+        ) {
+
+        <article class="task-card">
+
+
+            <!-- Task Information -->
+
+            <div class="task-main">
+
+                <h2 class="task-title" (click)="openTask(task._id)" (keydown.enter)="openTask(task._id)" role="button"
+                    tabindex="0">
+                    {{ task.title }}
+                </h2>
+
+                <p>
+                    {{
+                    task.description ||
+                    'No description'
+                    }}
+                </p>
+
+            </div>
+
+
+            <!-- Status + Priority -->
+
+            <div class="task-meta">
+
+                <select class="status-select" [ngModel]="task.status" (ngModelChange)="
+                updateTaskStatus(
+                  task,
+                  $event
+                )
+              ">
+
+                    @for (
+                    status of statuses;
+                    track status
+                    ) {
+
+                    <option [value]="status">
+                        {{ status.replace('_', ' ') }}
+                    </option>
+
+                    }
+
+                </select>
+
+
+                <span class="priority">
+                    {{ task.priority }}
+                </span>
+
+            </div>
+
+
+            <!-- Assignment -->
+
+            <div class="task-assignment">
+
+                <label [for]="'assign-' + task._id">
+                    Assigned to
+                </label>
+
+
+                <select [id]="'assign-' + task._id" [disabled]="
+                assigning() === task._id
+              " [ngModel]="
+                getAssignedUserId(task)
+              " (ngModelChange)="
+                assignTask(
+                  task,
+                  $event
+                )
+              ">
+
+                    <option value="">
+                        Unassigned
+                    </option>
+
+
+                    @for (
+                    member of members();
+                    track member._id
+                    ) {
+
+                    <option [value]="member.user._id">
+                        {{ member.user.firstName }}
+                        {{ member.user.lastName }}
+                    </option>
+
+                    }
+
+                </select>
+
+
+                @if (
+                assigning() === task._id
+                ) {
+
+                <small>
+                    Updating...
+                </small>
+
+                }
+
+            </div>
+
+
+            <!-- Open Details -->
+
+            <button type="button" class="task-details-button" (click)="openTask(task._id)">
+                View Details →
+            </button>
+
+        </article>
+
+        }
+
+    </section>
+
+    }
+
+</div>

@@ -3,7 +3,7 @@ import { AttachmentEntity } from "../entities/attachment.entity";
 
 export class AttachmentRepository {
   /**
-   * Upload Attachment
+   * Create Attachment
    */
   async create(entity: AttachmentEntity) {
     return Attachment.create(entity);
@@ -15,6 +15,7 @@ export class AttachmentRepository {
   async findByTask(taskId: string) {
     return Attachment.find({
       task: taskId,
+      isDeleted: false,
     })
       .populate("uploadedBy", "firstName lastName email")
       .sort({
@@ -23,19 +24,30 @@ export class AttachmentRepository {
   }
 
   /**
-   * Find Attachment By Id
+   * Get Attachment By Id
    */
   async findById(id: string) {
-    return Attachment.findById(id).populate(
-      "uploadedBy",
-      "firstName lastName email",
-    );
+    return Attachment.findOne({
+      _id: id,
+      isDeleted: false,
+    }).populate("uploadedBy", "firstName lastName email");
   }
 
   /**
-   * Delete Attachment
+   * Soft Delete Attachment
    */
   async delete(id: string) {
-    return Attachment.findByIdAndDelete(id);
+    return Attachment.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+      },
+      {
+        isDeleted: true,
+      },
+      {
+        new: true,
+      },
+    );
   }
 }

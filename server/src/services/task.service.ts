@@ -273,6 +273,34 @@ export class TaskService {
       throw new NotFoundError("Task not found");
     }
 
+    /**
+     * Assignee must belong to the same workspace.
+     */
+    const workspaceId =
+      access.project.workspace &&
+      typeof access.project.workspace === "object" &&
+      "_id" in access.project.workspace
+        ? String((access.project.workspace as any)._id)
+        : String(access.project.workspace);
+
+    const assigneeMembership =
+      await this.membershipRepository.findActiveMembership(
+        workspaceId,
+        assignedTo,
+      );
+
+    /**
+     * Workspace owner can also be assigned.
+     */
+    const isWorkspaceOwner = await this.workspaceRepository.isOwner(
+      workspaceId,
+      assignedTo,
+    );
+
+    if (!assigneeMembership && !isWorkspaceOwner) {
+      throw new NotFoundError("User is not a member of this workspace");
+    }
+
     const task = await this.taskRepository.assignTask(id, assignedTo);
 
     if (!task) {
@@ -311,7 +339,6 @@ export class TaskService {
 
     return task;
   }
-
   /**
    * Helper
    * Returns project id whether populated or not

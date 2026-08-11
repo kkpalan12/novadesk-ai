@@ -1,0 +1,136 @@
+<div class="project-page">
+
+    <header class="page-header">
+        <div>
+            <h1>Projects</h1>
+            <p>Manage workspace projects</p>
+        </div>
+
+        <button type="button" class="primary-button" (click)="openCreateForm()" [disabled]="showCreateForm()">
+            + New Project
+        </button>
+    </header>
+
+    @if (errorMessage()) {
+    <div class="error-message">
+        {{ errorMessage() }}
+    </div>
+    }
+
+    @if (showCreateForm()) {
+    <section class="create-form">
+
+        <div class="form-header">
+            <h2>Create Project</h2>
+            <p>
+                Create a project inside this workspace.
+            </p>
+        </div>
+
+        @if (formError()) {
+        <div class="form-error">
+            {{ formError() }}
+        </div>
+        }
+
+        <div class="form-group">
+            <label for="projectName">
+                Project Name
+            </label>
+
+            <input id="projectName" type="text" [(ngModel)]="projectName" placeholder="e.g. NovaDesk Web App"
+                autocomplete="off" [disabled]="saving()" />
+        </div>
+
+        <div class="form-group">
+            <label for="projectDescription">
+                Description
+            </label>
+
+            <textarea id="projectDescription" [(ngModel)]="projectDescription" placeholder="Describe the project"
+                rows="4" [disabled]="saving()"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="secondary-button" (click)="closeCreateForm()" [disabled]="saving()">
+                Cancel
+            </button>
+
+            <button type="button" class="primary-button" (click)="createProject()" [disabled]="saving()">
+                {{ saving() ? 'Creating...' : 'Create Project' }}
+            </button>
+        </div>
+
+    </section>
+    }
+
+    @if (loading()) {
+    <div class="state">
+        Loading projects...
+    </div>
+    }
+
+    @if (!loading() && projects().length === 0) {
+    <section class="empty">
+        <div class="empty-icon">+</div>
+
+        <h2>No projects yet</h2>
+
+        <p>
+            Create your first project to start
+            managing tasks.
+        </p>
+
+        @if (!showCreateForm()) {
+        <button type="button" class="primary-button" (click)="openCreateForm()">
+            Create Project
+        </button>
+        }
+    </section>
+    }
+
+    @if (!loading() && projects().length > 0) {
+    <section class="project-grid">
+
+        @for (
+        project of projects();
+        track project._id
+        ) {
+        <article  class="project-card"
+  (click)="openProject(project._id)"
+  role="button"
+  tabindex="0">
+
+            <div class="project-icon">
+                {{ project.name.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="project-content">
+
+                <h2>
+                    {{ project.name }}
+                </h2>
+
+                <p>
+                    {{
+                    project.description ||
+                    'No description'
+                    }}
+                </p>
+
+                @if (project.createdAt) {
+                <small>
+                    Created
+                    {{ project.createdAt | date:'mediumDate' }}
+                </small>
+                }
+
+            </div>
+
+        </article>
+        }
+
+    </section>
+    }
+
+</div>

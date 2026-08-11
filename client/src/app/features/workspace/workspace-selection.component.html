@@ -1,0 +1,171 @@
+<div class="workspace-page">
+
+    <div class="workspace-container">
+
+        <!-- Header -->
+
+        <div class="workspace-header">
+
+            <div class="brand-icon">
+                N
+            </div>
+
+            <h1>
+                Choose your workspace
+            </h1>
+
+            <p>
+                Select a workspace to continue
+                to NovaDesk.
+            </p>
+
+        </div>
+
+
+        <!-- Loading -->
+
+        @if (
+        workspaceContext.loading()
+        ) {
+
+        <div class="loading-state">
+
+            <div class="spinner"></div>
+
+            <p>
+                Loading workspaces...
+            </p>
+
+        </div>
+
+        }
+
+
+        <!-- Error -->
+
+        @else if (
+        workspaceContext.error()
+        ) {
+
+        <div class="error-state">
+
+            <h3>
+                Unable to load workspaces
+            </h3>
+
+            <p>
+                {{ workspaceContext.error() }}
+            </p>
+
+            <button type="button" class="retry-button" (click)="retry()">
+                Try Again
+            </button>
+
+        </div>
+
+        }
+
+
+        <!-- Workspaces -->
+
+        @else if (
+        workspaceContext.workspaces().length > 0
+        ) {
+
+        <div class="workspace-list">
+
+            @for (
+            workspace of workspaceContext.workspaces();
+            track workspace._id
+            ) {
+
+            <button type="button" class="workspace-card" (click)="selectWorkspace(workspace._id)">
+
+                <div class="workspace-logo">
+
+                    @if (workspace.logo) {
+
+                    <img [src]="workspace.logo" [alt]="workspace.name" />
+
+                    } @else {
+
+                    {{
+                    workspace.name
+                    .charAt(0)
+                    .toUpperCase()
+                    }}
+
+                    }
+
+                </div>
+
+
+                <div class="workspace-info">
+
+                    <h2>
+                        {{ workspace.name }}
+                    </h2>
+
+                    @if (
+                    workspace.description
+                    ) {
+
+                    <p>
+                        {{ workspace.description }}
+                    </p>
+
+                    }
+
+                    <span>
+                        {{
+                        workspace.members?.length ?? 0
+                        }}
+                        member{{
+                        (workspace.members?.length ?? 0) === 1
+                        ? ''
+                        : 's'
+                        }}
+                    </span>
+
+                </div>
+
+
+                <div class="workspace-arrow">
+                    →
+                </div>
+
+            </button>
+
+            }
+
+        </div>
+
+        }
+
+
+        <!-- Empty -->
+
+        @else {
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                □
+            </div>
+
+            <h3>
+                No workspaces found
+            </h3>
+
+            <p>
+                You don't have access to any
+                workspace yet.
+            </p>
+
+        </div>
+
+        }
+
+    </div>
+
+</div>
