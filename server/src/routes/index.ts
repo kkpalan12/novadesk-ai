@@ -13,14 +13,14 @@ import attachmentRoutes from "./attachment.routes";
 import commentRoutes from "./comment.routes";
 import notificationRoutes from "./notification.routes";
 import activityRoutes from "./activity.routes";
-
+import searchRoutes from "./search.routes";
 const router = Router();
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
 router.use("/", taskRoutes);
 router.use("/tasks", taskHistoryRoutes);
-router.use("/dashboard", dashboardRoutes);
+router.use("/", dashboardRoutes);
 router.use("/workspaces", workspaceRoutes);
 router.use("/memberships", membershipRoutes);
 router.use("/projects", projectRoutes);
@@ -28,5 +28,6 @@ router.use("/", attachmentRoutes);
 router.use("/", commentRoutes);
 router.use("/", notificationRoutes);
 router.use("/", activityRoutes);
+router.use("/", searchRoutes);
 
 export default router;

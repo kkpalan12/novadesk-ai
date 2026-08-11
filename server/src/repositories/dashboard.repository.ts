@@ -1,101 +1,201 @@
+import { Workspace } from "../models/workspace.model";
+import { Membership } from "../models/membership.model";
+import { Project } from "../models/project.model";
 import { Task } from "../models/task.model";
+import { Activity } from "../models/activity.model";
+import { Notification } from "../models/notification.model";
 
 export class DashboardRepository {
-  async getDashboardStats() {
-    const result = await Task.aggregate([
-      {
-        $match: {
-          isDeleted: { $ne: true },
-        },
-      },
-      {
-        $group: {
-          _id: null,
+  /**
+   * Get accessible workspace IDs
+   */
+  private async getWorkspaceIds(userId: string) {
+    const [memberships, ownedWorkspaces] = await Promise.all([
+      Membership.find({
+        user: userId,
+        status: "ACTIVE",
+      }).select("workspace"),
 
-          totalTasks: {
-            $sum: 1,
-          },
-
-          completedTasks: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "DONE"] }, 1, 0],
-            },
-          },
-
-          pendingTasks: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "TODO"] }, 1, 0],
-            },
-          },
-
-          inProgressTasks: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "IN_PROGRESS"] }, 1, 0],
-            },
-          },
-
-          reviewTasks: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "REVIEW"] }, 1, 0],
-            },
-          },
-
-          criticalTasks: {
-            $sum: {
-              $cond: [{ $eq: ["$priority", "CRITICAL"] }, 1, 0],
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-
-          totalTasks: 1,
-
-          completedTasks: 1,
-
-          pendingTasks: 1,
-
-          inProgressTasks: 1,
-
-          reviewTasks: 1,
-
-          criticalTasks: 1,
-
-          completionRate: {
-            $cond: [
-              { $eq: ["$totalTasks", 0] },
-              0,
-              {
-                $round: [
-                  {
-                    $multiply: [
-                      {
-                        $divide: ["$completedTasks", "$totalTasks"],
-                      },
-                      100,
-                    ],
-                  },
-                  2,
-                ],
-              },
-            ],
-          },
-        },
-      },
+      Workspace.find({
+        owner: userId,
+        isDeleted: { $ne: true },
+      }).select("_id"),
     ]);
 
-    return (
-      result[0] || {
-        totalTasks: 0,
-        completedTasks: 0,
-        pendingTasks: 0,
-        inProgressTasks: 0,
-        reviewTasks: 0,
-        criticalTasks: 0,
-        completionRate: 0,
-      }
+    const membershipWorkspaceIds = memberships.map((membership) =>
+      membership.workspace.toString(),
     );
+
+    const ownedWorkspaceIds = ownedWorkspaces.map((workspace) =>
+      workspace._id.toString(),
+    );
+
+    return [...new Set([...ownedWorkspaceIds, ...membershipWorkspaceIds])];
+  }
+
+  /**
+   * Get Dashboard
+   */
+  async getDashboard(userId: string) {
+    const workspaceIds = await this.getWorkspaceIds(userId);
+
+    /**
+     * No accessible workspaces
+     */
+    if (workspaceIds.length === 0) {
+      return {
+        tasks: {
+          total: 0,
+          TODO: 0,
+          IN_PROGRESS: 0,
+          REVIEW: 0,
+          DONE: 0,
+        },
+
+        priorities: {
+          LOW: 0,
+          MEDIUM: 0,
+          HIGH: 0,
+          CRITICAL: 0,
+        },
+
+        myTasks: [],
+        recentActivities: [],
+        unreadNotifications: 0,
+      };
+    }
+
+    /**
+     * Get accessible projects
+     */
+    const projects = await Project.find({
+      workspace: {
+        $in: workspaceIds,
+      },
+      isDeleted: {
+        $ne: true,
+      },
+    }).select("_id");
+
+    const projectIds = projects.map((project) => project._id);
+
+    /**
+     * Base task query
+     */
+    const taskQuery = {
+      project: {
+        $in: projectIds,
+      },
+      isDeleted: false,
+    };
+
+    /**
+     * Task and priority statistics
+     */
+    const [total, todo, inProgress, review, done, low, medium, high, critical] =
+      await Promise.all([
+        Task.countDocuments(taskQuery),
+
+        Task.countDocuments({
+          ...taskQuery,
+          status: "TODO",
+        }),
+
+        Task.countDocuments({
+          ...taskQuery,
+          status: "IN_PROGRESS",
+        }),
+
+        Task.countDocuments({
+          ...taskQuery,
+          status: "REVIEW",
+        }),
+
+        Task.countDocuments({
+          ...taskQuery,
+          status: "DONE",
+        }),
+
+        Task.countDocuments({
+          ...taskQuery,
+          priority: "LOW",
+        }),
+
+        Task.countDocuments({
+          ...taskQuery,
+          priority: "MEDIUM",
+        }),
+
+        Task.countDocuments({
+          ...taskQuery,
+          priority: "HIGH",
+        }),
+
+        Task.countDocuments({
+          ...taskQuery,
+          priority: "CRITICAL",
+        }),
+      ]);
+
+    /**
+     * My assigned tasks
+     */
+    const myTasks = await Task.find({
+      ...taskQuery,
+      assignedTo: userId,
+    })
+      .populate("project", "name")
+      .populate("assignedTo", "firstName lastName email")
+      .sort({
+        dueDate: 1,
+        createdAt: -1,
+      })
+      .limit(10);
+
+    /**
+     * Recent activity
+     */
+    const recentActivities = await Activity.find({
+      project: {
+        $in: projectIds,
+      },
+    })
+      .populate("user", "firstName lastName email")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(10);
+
+    /**
+     * Unread notifications
+     */
+    const unreadNotifications = await Notification.countDocuments({
+      recipient: userId,
+      isRead: false,
+      isDeleted: false,
+    });
+
+    return {
+      tasks: {
+        total,
+        TODO: todo,
+        IN_PROGRESS: inProgress,
+        REVIEW: review,
+        DONE: done,
+      },
+
+      priorities: {
+        LOW: low,
+        MEDIUM: medium,
+        HIGH: high,
+        CRITICAL: critical,
+      },
+
+      myTasks,
+
+      recentActivities,
+
+      unreadNotifications,
+    };
   }
 }

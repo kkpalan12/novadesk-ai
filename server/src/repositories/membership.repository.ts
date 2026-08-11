@@ -22,7 +22,7 @@ export class MembershipRepository {
   }
 
   /**
-   * Check whether a user is a workspace member
+   * Check whether user is an active member
    */
   async isMember(workspaceId: string, userId: string) {
     return Membership.exists({
@@ -47,7 +47,7 @@ export class MembershipRepository {
   }
 
   /**
-   * Find membership by ID
+   * Find Membership By ID
    */
   async findById(id: string) {
     return Membership.findById(id);
@@ -64,7 +64,7 @@ export class MembershipRepository {
   }
 
   /**
-   * Remove Member
+   * Remove Membership
    */
   async remove(id: string) {
     return Membership.findByIdAndUpdate(
@@ -77,6 +77,24 @@ export class MembershipRepository {
       },
     );
   }
+
+  /**
+   * Check Workspace Owner
+   */
+  async isOwner(workspaceId: string, userId: string): Promise<boolean> {
+    const workspace = await Workspace.exists({
+      _id: workspaceId,
+      owner: userId,
+      isDeleted: {
+        $ne: true,
+      },
+    });
+
+    return !!workspace;
+  }
+  /**
+   * Find Active Membership
+   */
   async findActiveMembership(workspaceId: string, userId: string) {
     return Membership.findOne({
       workspace: workspaceId,
