@@ -1,21 +1,20 @@
 import { Request, Response, NextFunction } from "express";
-import { ApiError } from "../common/errors/ApiError";
+import { AppError } from "../common/errors/AppError";
 
 export const errorHandler = (
   err: Error,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction,
 ) => {
-console.error(err.stack);
-  // console.error("🔥 ERROR:", err);
-
-  if (err instanceof ApiError) {
+  if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       success: false,
       message: err.message,
     });
   }
+
+  console.error(err);
 
   return res.status(500).json({
     success: false,

@@ -1,6 +1,6 @@
-import { ApiError } from "./ApiError";
+import { AppError } from "./AppError";
 
-export class BadRequestError extends ApiError {
+export class BadRequestError extends AppError {
   constructor(message: string) {
     super(400, message);
   }

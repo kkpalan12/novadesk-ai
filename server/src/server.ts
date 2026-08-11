@@ -1,13 +1,27 @@
+import http from "http";
+
 import app from "./app";
-import { connectDatabase } from "./config/database";
 import { env } from "./config/env";
+import { connectDatabase } from "./config/database";
+import { initializeSocket } from "./socket";
 
-const startServer = async () => {
-  await connectDatabase();
+const PORT = env.PORT || 5000;
 
-  app.listen(env.PORT, () => {
-    console.log(`🚀 Server running on port ${env.PORT}`);
-  });
-};
+async function bootstrap() {
+  try {
+    await connectDatabase();
 
-startServer();
+    const server = http.createServer(app);
+
+    initializeSocket(server);
+
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server", error);
+    process.exit(1);
+  }
+}
+
+bootstrap();

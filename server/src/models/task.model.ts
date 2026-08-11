@@ -26,7 +26,9 @@ const taskSchema = new Schema<ITask>(
       default: "MEDIUM",
     },
 
-    dueDate: Date,
+    dueDate: {
+      type: Date,
+    },
 
     assignedTo: {
       type: Schema.Types.ObjectId,
@@ -36,6 +38,12 @@ const taskSchema = new Schema<ITask>(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+    },
+
+    project: {
+      type: Schema.Types.ObjectId,
+      ref: "Project",
       required: true,
     },
 
@@ -50,11 +58,13 @@ const taskSchema = new Schema<ITask>(
 );
 
 /**
- * Production Indexes
+ * Indexes
  */
 taskSchema.index({ title: "text" });
 taskSchema.index({ status: 1 });
 taskSchema.index({ priority: 1 });
 taskSchema.index({ createdBy: 1 });
+taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ project: 1 });
 
 export const Task = mongoose.model<ITask>("Task", taskSchema);

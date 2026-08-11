@@ -15,11 +15,12 @@ export class AuthController {
   });
 
   login = asyncHandler(async (req: Request, res: Response) => {
+    console.log(req.body);
     const result = await this.authService.login(req.body);
 
     res.status(200).json(new ApiResponse(true, "Login successful", result));
   });
-  profile = asyncHandler(async (req: Request, res: Response) => {
+  profile = asyncHandler(async (req, res) => {
     res
       .status(200)
       .json(new ApiResponse(true, "Profile fetched successfully", req.user));

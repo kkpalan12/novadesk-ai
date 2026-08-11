@@ -1,7 +1,7 @@
-import { ApiError } from "./ApiError";
+import { AppError } from "./AppError";
 
-export class ConflictError extends ApiError {
-  constructor(message: string) {
+export class ConflictError extends AppError {
+  constructor(message = "Conflict") {
     super(409, message);
   }
 }

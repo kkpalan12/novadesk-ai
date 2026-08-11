@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+
 import { ITaskHistory } from "../interfaces/task-history.interface";
 
 const taskHistorySchema = new Schema<ITaskHistory>(
@@ -34,9 +35,20 @@ const taskHistorySchema = new Schema<ITaskHistory>(
   },
 );
 
-taskHistorySchema.index({ task: 1 });
-taskHistorySchema.index({ performedBy: 1 });
-taskHistorySchema.index({ createdAt: -1 });
+/**
+ * Indexes
+ */
+taskHistorySchema.index({
+  task: 1,
+});
+
+taskHistorySchema.index({
+  performedBy: 1,
+});
+
+taskHistorySchema.index({
+  createdAt: -1,
+});
 
 export const TaskHistory = mongoose.model<ITaskHistory>(
   "TaskHistory",

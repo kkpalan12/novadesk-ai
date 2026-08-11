@@ -12,7 +12,10 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
 
-    "types": ["node"]
+    "types": ["node", "jest"],
+        "isolatedModules": true
+
+    
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "socket-test.js"]
 }

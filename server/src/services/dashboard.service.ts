@@ -1,9 +1,9 @@
 import { DashboardRepository } from "../repositories/dashboard.repository";
 
 export class DashboardService {
-  private readonly dashboardRepository = new DashboardRepository();
+  private readonly repository = new DashboardRepository();
 
-  async getDashboard() {
-    return this.dashboardRepository.getDashboardStats();
+  async getDashboard(userId: string) {
+    return this.repository.getDashboard(userId);
   }
 }

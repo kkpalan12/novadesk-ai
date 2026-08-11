@@ -1,48 +1,56 @@
-import { TaskPriority, TaskStatus } from "../interfaces/task.interface";
+import { Types } from "mongoose";
 
 export class TaskEntity {
+  project: Types.ObjectId;
+
   title: string;
 
-  description: string;
+  description?: string;
 
-  priority: TaskPriority;
+  createdBy: Types.ObjectId;
 
-  status: TaskStatus;
+  assignedTo?: Types.ObjectId;
+
+  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+  status: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
 
   dueDate?: Date;
-
-  assignedTo?: string;
-
-  createdBy: string;
 
   isDeleted: boolean;
 
   constructor(data: {
+    project: string;
+
     title: string;
 
     description?: string;
 
-    priority?: TaskPriority;
-
-    dueDate?: Date;
+    createdBy: string;
 
     assignedTo?: string;
 
-    createdBy: string;
+    priority?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+    dueDate?: Date;
   }) {
+    this.project = new Types.ObjectId(data.project);
+
     this.title = data.title;
 
     this.description = data.description ?? "";
+
+    this.createdBy = new Types.ObjectId(data.createdBy);
+
+    this.assignedTo = data.assignedTo
+      ? new Types.ObjectId(data.assignedTo)
+      : undefined;
 
     this.priority = data.priority ?? "MEDIUM";
 
     this.status = "TODO";
 
     this.dueDate = data.dueDate;
-
-    this.assignedTo = data.assignedTo;
-
-    this.createdBy = data.createdBy;
 
     this.isDeleted = false;
   }

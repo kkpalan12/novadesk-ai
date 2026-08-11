@@ -3,13 +3,36 @@ import { z } from "zod";
 
 dotenv.config();
 
-console.log("Loaded ENV:", process.env.MONGO_URI);
-
 const envSchema = z.object({
-  PORT: z.string().default("5000"),
-  MONGO_URI: z.string().min(1),
-  JWT_SECRET: z.string().min(1),
-  JWT_REFRESH_SECRET: z.string().min(1),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+
+  PORT: z.coerce.number().int().positive().default(5000),
+
+  MONGO_URI: z.string().min(1, "MONGO_URI is required"),
+
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+
+  JWT_REFRESH_SECRET: z
+    .string()
+    .min(32, "JWT_REFRESH_SECRET must be at least 32 characters"),
+
+  JWT_EXPIRES_IN: z.string().default("1d"),
+
+  JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+
+  LOG_LEVEL: z
+    .enum(["fatal", "error", "warn", "info", "debug", "trace"])
+    .default("info"),
 });
 
-export const env = envSchema.parse(process.env);
+const parsed = envSchema.safeParse(process.env);
+
+if (!parsed.success) {
+  console.error("❌ Invalid environment variables");
+  console.error(parsed.error.format());
+  process.exit(1);
+}
+
+export const env = parsed.data;

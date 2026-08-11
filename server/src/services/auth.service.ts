@@ -88,7 +88,11 @@ export class AuthService {
       throw new UnauthorizedError("Refresh token missing");
     }
 
-    const payload = verifyRefreshToken(refreshToken);
+    try {
+      verifyRefreshToken(refreshToken);
+    } catch {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
 
     const user = await this.userRepository.findByRefreshToken(refreshToken);
 
@@ -111,12 +115,26 @@ export class AuthService {
       throw new UnauthorizedError("Refresh token missing");
     }
 
-    const payload = verifyRefreshToken(refreshToken);
+    try {
+      const payload = verifyRefreshToken(refreshToken);
 
-    await this.userRepository.clearRefreshToken(payload.userId);
+      const user = await this.userRepository.findByRefreshToken(refreshToken);
 
-    return {
-      message: "Logged out successfully",
-    };
+      if (!user) {
+        throw new UnauthorizedError("Invalid refresh token");
+      }
+
+      await this.userRepository.clearRefreshToken(String(user._id));
+
+      return {
+        message: "Logged out successfully",
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        throw error;
+      }
+
+      throw new UnauthorizedError("Invalid refresh token");
+    }
   }
 }

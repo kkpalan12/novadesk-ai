@@ -1,0 +1,751 @@
+<div class="task-detail-page">
+
+    <!-- ==============================
+       HEADER
+       ============================== -->
+
+    <header class="page-header">
+
+        <button type="button" class="back-button" (click)="goBack()">
+            ← Back to Tasks
+        </button>
+
+    </header>
+
+
+    <!-- ==============================
+       LOADING
+       ============================== -->
+
+    @if (loading()) {
+
+    <div class="state">
+        Loading task...
+    </div>
+
+    }
+
+
+    <!-- ==============================
+       ERROR
+       ============================== -->
+
+    @if (
+    !loading() &&
+    errorMessage()
+    ) {
+
+    <section class="error-state">
+
+        <h2>
+            Unable to load task
+        </h2>
+
+        <p>
+            {{ errorMessage() }}
+        </p>
+
+        <button type="button" class="primary-button" (click)="goBack()">
+            Back to Tasks
+        </button>
+
+    </section>
+
+    }
+
+
+    <!-- ==============================
+       TASK DETAILS
+       ============================== -->
+
+    @if (
+    !loading() &&
+    task()
+    ) {
+
+    <section class="task-detail-card">
+
+        <!-- ==========================
+           TASK HEADER
+           ========================== -->
+
+        <div class="task-header">
+
+            <div>
+
+                <h1>
+                    {{ task()!.title }}
+                </h1>
+
+                <p class="task-id">
+                    Task ID:
+                    {{ task()!._id }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==========================
+           DESCRIPTION
+           ========================== -->
+
+        <section class="detail-section">
+
+            <h2>
+                Description
+            </h2>
+
+            <p>
+                {{
+                task()!.description ||
+                'No description provided.'
+                }}
+            </p>
+
+        </section>
+
+
+        <!-- ==========================
+           TASK INFORMATION
+           ========================== -->
+
+        <section class="detail-section">
+
+            <h2>
+                Task Information
+            </h2>
+
+            <div class="detail-grid">
+
+                <!-- Status -->
+
+                <div class="detail-item">
+
+                    <span class="label">
+                        Status
+                    </span>
+
+                    <span class="value status">
+                        {{ formatStatus(task()!.status) }}
+                    </span>
+
+                </div>
+
+
+                <!-- Priority -->
+
+                <div class="detail-item">
+
+                    <span class="label">
+                        Priority
+                    </span>
+
+                    <span class="value priority">
+                        {{ task()!.priority }}
+                    </span>
+
+                </div>
+
+
+                <!-- Assigned -->
+
+                <div class="detail-item">
+
+                    <span class="label">
+                        Assigned To
+                    </span>
+
+                    <span class="value">
+                        {{ getAssignedUserName() }}
+                    </span>
+
+                </div>
+
+
+                <!-- Created -->
+
+                <div class="detail-item">
+
+                    <span class="label">
+                        Created
+                    </span>
+
+                    <span class="value">
+
+                        @if (task()!.createdAt) {
+                        {{ task()!.createdAt | date:'medium' }}
+                        } @else {
+                        —
+                        }
+
+                    </span>
+
+                </div>
+
+
+                <!-- Updated -->
+
+                <div class="detail-item">
+
+                    <span class="label">
+                        Updated
+                    </span>
+
+                    <span class="value">
+
+                        @if (task()!.updatedAt) {
+                        {{ task()!.updatedAt | date:'medium' }}
+                        } @else {
+                        —
+                        }
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==========================
+           COMMENTS
+           ========================== -->
+
+        <section class="detail-section comments-section">
+
+            <h2>
+                Comments
+            </h2>
+
+
+            @if (commentError()) {
+
+            <div class="form-error">
+                {{ commentError() }}
+            </div>
+
+            }
+
+
+            <!-- Add Comment -->
+
+            <div class="comment-form">
+
+                <textarea rows="3" [(ngModel)]="commentText" placeholder="Write a comment..."
+                    [disabled]="commentSaving()"></textarea>
+
+                <div class="comment-actions">
+
+                    <button type="button" class="primary-button" (click)="createComment()" [disabled]="
+                commentSaving() ||
+                !commentText.trim()
+              ">
+
+                        @if (commentSaving()) {
+                        Posting...
+                        } @else {
+                        Add Comment
+                        }
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Loading -->
+
+            @if (commentsLoading()) {
+
+            <div class="state">
+                Loading comments...
+            </div>
+
+            }
+
+
+            <!-- Empty -->
+
+            @if (
+            !commentsLoading() &&
+            comments().length === 0
+            ) {
+
+            <div class="placeholder">
+                No comments yet.
+            </div>
+
+            }
+
+
+            <!-- Comment List -->
+
+            @if (
+            !commentsLoading() &&
+            comments().length > 0
+            ) {
+
+            <div class="comments-list">
+
+                @for (
+                comment of comments();
+                track comment._id
+                ) {
+
+                <article class="comment-card">
+
+                    <div class="comment-header">
+
+                        <strong>
+                            {{ getCommentAuthorName(comment) }}
+                        </strong>
+
+                        <small>
+
+                            {{ comment.createdAt | date:'medium' }}
+
+                            @if (comment.isEdited) {
+
+                            <span>
+                                · edited
+                            </span>
+
+                            }
+
+                        </small>
+
+                    </div>
+
+                    <p>
+                        {{ comment.content }}
+                    </p>
+
+                </article>
+
+                }
+
+            </div>
+
+            }
+
+        </section>
+
+
+        <!-- ==========================
+           HISTORY
+           ========================== -->
+
+        <section class="detail-section history-section">
+
+            <h2>
+                History
+            </h2>
+
+
+            @if (historyError()) {
+
+            <div class="form-error">
+                {{ historyError() }}
+            </div>
+
+            }
+
+
+            @if (historyLoading()) {
+
+            <div class="state">
+                Loading history...
+            </div>
+
+            }
+
+
+            @if (
+            !historyLoading() &&
+            !historyError() &&
+            history().length === 0
+            ) {
+
+            <div class="placeholder">
+                No history available.
+            </div>
+
+            }
+
+
+            @if (
+            !historyLoading() &&
+            history().length > 0
+            ) {
+
+            <div class="history-list">
+
+                @for (
+                item of history();
+                track item._id
+                ) {
+
+                <article class="history-item">
+
+                    <div class="history-marker"></div>
+
+                    <div class="history-content">
+
+                        <div class="history-header">
+
+                            <strong>
+                                {{
+                                formatHistoryAction(
+                                item.action
+                                )
+                                }}
+                            </strong>
+
+                            <small>
+                                {{
+                                item.createdAt
+                                | date:'medium'
+                                }}
+                            </small>
+
+                        </div>
+
+
+                        <p>
+                            {{ getHistoryUserName(item) }}
+                        </p>
+
+@if (
+item.newValue !== null &&
+item.newValue !== undefined
+) {
+
+<div class="history-change">
+
+    <span>
+        {{ formatHistoryValue(item.newValue) }}
+    </span>
+
+</div>
+
+}
+
+                    </div>
+
+                </article>
+
+                }
+
+            </div>
+
+            }
+
+        </section>
+
+
+        <!-- ==========================
+           ACTIVITY
+           ========================== -->
+
+        <section class="detail-section activity-section">
+
+            <h2>
+                Activity
+            </h2>
+
+
+            @if (activityError()) {
+
+            <div class="form-error">
+                {{ activityError() }}
+            </div>
+
+            }
+
+
+            @if (activityLoading()) {
+
+            <div class="state">
+                Loading activity...
+            </div>
+
+            }
+
+
+            @if (
+            !activityLoading() &&
+            !activityError() &&
+            activities().length === 0
+            ) {
+
+            <div class="placeholder">
+                No activity available.
+            </div>
+
+            }
+
+
+            @if (
+            !activityLoading() &&
+            activities().length > 0
+            ) {
+
+            <div class="activity-list">
+
+                @for (
+                activity of activities();
+                track activity._id
+                ) {
+
+                <article class="activity-item">
+
+                    <div class="activity-marker"></div>
+
+                    <div class="activity-content">
+
+                        <div class="activity-header">
+
+                            <strong>
+                                {{
+                                formatActivityAction(
+                                activity.action
+                                )
+                                }}
+                            </strong>
+
+                            <small>
+                                {{
+                                activity.createdAt
+                                | date:'medium'
+                                }}
+                            </small>
+
+                        </div>
+
+                        <p>
+                            {{
+                            getActivityUserName(
+                            activity
+                            )
+                            }}
+                        </p>
+
+                    </div>
+
+                </article>
+
+                }
+
+            </div>
+
+            }
+
+        </section>
+
+
+        <!-- ==========================
+           ATTACHMENTS
+           ========================== -->
+
+        <section class="detail-section attachments-section">
+
+            <div class="section-header">
+
+                <div>
+
+                    <h2>
+                        Attachments
+                    </h2>
+
+                    <p>
+                        Files attached to this task.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            @if (attachmentError()) {
+
+            <div class="form-error">
+                {{ attachmentError() }}
+            </div>
+
+            }
+
+
+            <!-- Upload -->
+
+            <div class="attachment-upload">
+
+                <input #fileInput type="file" (change)="onFileSelected($event)" [disabled]="attachmentUploading()" />
+
+
+                @if (selectedFile()) {
+
+                <div class="selected-file">
+
+                    <span>
+                        {{ selectedFile()!.name }}
+                    </span>
+
+                    <button type="button" class="remove-file-button" (click)="selectedFile.set(null)"
+                        [disabled]="attachmentUploading()">
+                        Remove
+                    </button>
+
+                </div>
+
+                }
+
+
+                <button type="button" class="primary-button" (click)="uploadAttachment()" [disabled]="
+              attachmentUploading() ||
+              !selectedFile()
+            ">
+
+                    @if (attachmentUploading()) {
+                    Uploading...
+                    } @else {
+                    Upload Attachment
+                    }
+
+                </button>
+
+            </div>
+
+
+            <!-- Loading -->
+
+            @if (attachmentsLoading()) {
+
+            <div class="state">
+                Loading attachments...
+            </div>
+
+            }
+
+
+            <!-- Empty -->
+
+            @if (
+            !attachmentsLoading() &&
+            !attachmentError() &&
+            attachments().length === 0
+            ) {
+
+            <div class="placeholder">
+                No attachments yet.
+            </div>
+
+            }
+
+
+            <!-- Attachment List -->
+
+            @if (
+            !attachmentsLoading() &&
+            attachments().length > 0
+            ) {
+
+            <div class="attachment-list">
+
+                @for (
+                attachment of attachments();
+                track attachment._id
+                ) {
+
+                <article class="attachment-card">
+
+                    <div class="attachment-icon">
+                        📎
+                    </div>
+
+
+                    <div class="attachment-info">
+
+                        <strong>
+                            {{
+                            getAttachmentName(
+                            attachment
+                            )
+                            }}
+                        </strong>
+
+                        <small>
+
+                            {{
+                            formatFileSize(
+                            attachment.size
+                            )
+                            }}
+
+                            @if (attachment.mimeType) {
+                            · {{ attachment.mimeType }}
+                            }
+
+                            ·
+
+                            {{
+                            attachment.createdAt
+                            | date:'medium'
+                            }}
+
+                        </small>
+
+                    </div>
+
+
+                    <div class="attachment-actions">
+
+                        @if (attachment.url) {
+
+                        <a class="action-button" [href]="attachment.url" target="_blank" rel="noopener noreferrer">
+                            Open
+                        </a>
+
+                        }
+
+
+                        <button type="button" class="delete-button" (click)="
+                      deleteAttachment(
+                        attachment
+                      )
+                    " [disabled]="
+                      attachmentDeleting() ===
+                      attachment._id
+                    ">
+
+                            @if (
+                            attachmentDeleting() ===
+                            attachment._id
+                            ) {
+                            Deleting...
+                            } @else {
+                            Delete
+                            }
+
+                        </button>
+
+                    </div>
+
+                </article>
+
+                }
+
+            </div>
+
+            }
+
+        </section>
+
+    </section>
+
+    }
+
+</div>
