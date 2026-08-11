@@ -44,5 +44,5 @@ router.get(
   validate(activityQuerySchema),
   controller.getProjectActivities,
 );
-
+router.get("/activities/:id", authenticate, controller.getActivity);
 export default router;

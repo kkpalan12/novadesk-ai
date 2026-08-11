@@ -13,6 +13,7 @@ export class ActivityController {
   getProjectActivities = asyncHandler(async (req: Request, res: Response) => {
     const result = await this.activityService.getProjectActivities(
       req.params.projectId as string,
+      req.user!.userId,
       Number(req.query.page) || 1,
       Number(req.query.limit) || 20,
     );
@@ -28,6 +29,7 @@ export class ActivityController {
   getActivity = asyncHandler(async (req: Request, res: Response) => {
     const activity = await this.activityService.getActivity(
       req.params.id as string,
+      req.user!.userId,
     );
 
     res

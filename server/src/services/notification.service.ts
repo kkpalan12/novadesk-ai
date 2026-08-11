@@ -6,10 +6,15 @@ import { ENTITY_TYPES } from "../common/constants/entity.constants";
 
 export class NotificationService {
   private readonly repository = new NotificationRepository();
+
   private readonly socketService = new SocketService();
 
+  /**
+   * Create Notification
+   *
+   * Internal use only.
+   */
   async create(dto: CreateNotificationDto) {
-    console.log("📤 Creating notification:", dto);
     const notification = await this.repository.create(dto);
 
     this.socketService.sendNotification(dto.recipient, notification);
@@ -21,31 +26,36 @@ export class NotificationService {
     return notification;
   }
 
+  /**
+   * Get logged-in user's notifications
+   */
   async getMyNotifications(userId: string) {
     return this.repository.findByRecipient(userId);
   }
 
+  /**
+   * Mark notification as read
+   */
   async markAsRead(id: string, userId: string) {
-    const notification = await this.repository.findById(id);
+    const notification = await this.repository.markAsRead(id, userId);
 
-    if (notification) {
-      const count = await this.repository.countUnread(
-        notification.recipient.toString(),
-      );
-
-      this.socketService.sendUnreadCount(
-        notification.recipient.toString(),
-        count,
-      );
+    if (!notification) {
+      throw new NotFoundError("Notification not found");
     }
+
+    const count = await this.repository.countUnread(userId);
+
+    this.socketService.sendUnreadCount(userId, count);
+
+    return notification;
   }
+
   /**
    * Mark all notifications as read
    */
   async markAllAsRead(userId: string) {
     await this.repository.markAllAsRead(userId);
 
-    // Update badge count in real time
     this.socketService.sendUnreadCount(userId, 0);
 
     return {
@@ -53,6 +63,9 @@ export class NotificationService {
     };
   }
 
+  /**
+   * Delete notification
+   */
   async delete(id: string, userId: string) {
     const notification = await this.repository.softDelete(id, userId);
 
@@ -62,6 +75,7 @@ export class NotificationService {
 
     return notification;
   }
+
   /**
    * Get unread notification count
    */
@@ -72,6 +86,10 @@ export class NotificationService {
       count,
     };
   }
+
+  /**
+   * Notify task assigned
+   */
   async notifyTaskAssigned(data: {
     recipient: string;
     sender: string;
@@ -88,6 +106,10 @@ export class NotificationService {
       entityId: data.taskId,
     });
   }
+
+  /**
+   * Notify comment added
+   */
   async notifyCommentAdded(data: {
     recipient: string;
     sender: string;
@@ -105,6 +127,10 @@ export class NotificationService {
       entityId: data.taskId,
     });
   }
+
+  /**
+   * Notify task status changed
+   */
   async notifyTaskStatusChanged(data: {
     recipient: string;
     sender: string;
@@ -118,10 +144,14 @@ export class NotificationService {
       type: "TASK_STATUS_CHANGED",
       title: "Task Updated",
       message: `"${data.taskTitle}" status changed to ${data.status}.`,
-      entityType: "Task",
+      entityType: ENTITY_TYPES.TASK,
       entityId: data.taskId,
     });
   }
+
+  /**
+   * Notify task updated
+   */
   async notifyTaskUpdated(data: {
     recipient: string;
     sender: string;

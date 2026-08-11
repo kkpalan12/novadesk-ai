@@ -1,9 +1,10 @@
-import { Schema, model, Types } from "mongoose";
-import { InferSchemaType, HydratedDocument } from "mongoose";
-
-export type CommentDocument = HydratedDocument<
-  InferSchemaType<typeof commentSchema>
->;
+import {
+  Schema,
+  model,
+  Types,
+  InferSchemaType,
+  HydratedDocument,
+} from "mongoose";
 
 const commentSchema = new Schema(
   {
@@ -39,5 +40,21 @@ const commentSchema = new Schema(
     timestamps: true,
   },
 );
+
+/**
+ * Indexes
+ */
+commentSchema.index({
+  task: 1,
+  createdAt: -1,
+});
+
+commentSchema.index({
+  createdBy: 1,
+});
+
+export type CommentDocument = HydratedDocument<
+  InferSchemaType<typeof commentSchema>
+>;
 
 export const Comment = model("Comment", commentSchema);

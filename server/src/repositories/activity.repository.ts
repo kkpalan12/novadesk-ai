@@ -40,7 +40,9 @@ export class ActivityRepository {
    * Get Activity By Id
    */
   async findById(id: string) {
-    return Activity.findById(id).populate("user", "firstName lastName email");
+    return Activity.findById(id)
+      .populate("user", "firstName lastName email")
+      .populate("project", "name workspace");
   }
 
   /**
