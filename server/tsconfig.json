@@ -13,9 +13,9 @@
     "skipLibCheck": true,
 
     "types": ["node"],
-        "isolatedModules": true
-
-    
+    "isolatedModules": true
   },
-  "include": ["src/**/*", "socket-test.js"]
+
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/tests", "node_modules", "dist"]
 }
