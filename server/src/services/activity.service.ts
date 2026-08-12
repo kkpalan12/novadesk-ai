@@ -8,6 +8,7 @@ import { MembershipRepository } from "../repositories/membership.repository";
 
 import { MembershipRole } from "../interfaces/membership.interface";
 import { NotFoundError } from "../common/errors/NotFoundError";
+import { SocketService } from "../socket/socket.service";
 
 export class ActivityService {
   private readonly repository = new ActivityRepository();
@@ -17,6 +18,7 @@ export class ActivityService {
   private readonly workspaceRepository = new WorkspaceRepository();
 
   private readonly membershipRepository = new MembershipRepository();
+  private readonly socketService = new SocketService();
 
   /**
    * Create Activity
@@ -26,7 +28,11 @@ export class ActivityService {
   async createActivity(dto: CreateActivityDto) {
     const entity = ActivityMapper.toEntity(dto);
 
-    return this.repository.create(entity);
+    const activity = await this.repository.create(entity);
+
+    this.socketService.sendActivityCreated(dto.project, activity);
+
+    return activity;
   }
 
   /**

@@ -395,4 +395,19 @@ export class SocketService {
 
     this.socket.emit('get-online-users');
   }
+  // =========================================
+  // ACTIVITY EVENTS
+  // =========================================
+
+  onActivityCreated(callback: (activity: any) => void): void {
+    this.socket?.off('activity:created');
+
+    this.socket?.on('activity:created', callback);
+  }
+
+  removeActivityListeners(): void {
+    this.socket?.off('activity:created');
+
+    console.log('🧹 Activity socket listeners removed');
+  }
 }

@@ -75,6 +75,12 @@ export const SOCKET_EVENTS = {
   JOIN_WORKSPACE: "join-workspace",
 
   LEAVE_WORKSPACE: "leave-workspace",
+
+  // =========================================
+  // ACTIVITY
+  // =========================================
+
+  ACTIVITY_CREATED: "activity:created",
 } as const;
 
 export type SocketEvent = (typeof SOCKET_EVENTS)[keyof typeof SOCKET_EVENTS];

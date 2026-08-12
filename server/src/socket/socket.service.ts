@@ -213,4 +213,19 @@ export class SocketService {
       console.warn("Socket.IO unavailable. Skipping unread count.", error);
     }
   }
+  // =========================================
+  // ACTIVITY
+  // =========================================
+
+  sendActivityCreated(projectId: string, activity: any): void {
+    try {
+      const io = getIO();
+
+      console.log("📝 Sending activity created:", `project:${projectId}`);
+
+      io.to(`project:${projectId}`).emit("activity:created", activity);
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping activity creation.", error);
+    }
+  }
 }

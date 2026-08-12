@@ -154,6 +154,8 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
     this.socketService.removeCommentListeners();
 
+    this.socketService.removeActivityListeners();
+
     console.log('🧹 Task detail component destroyed');
   }
 
@@ -165,6 +167,27 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     this.socketService.connect();
 
     this.socketService.joinProject(projectId);
+    // =======================================================
+    // Activity Created
+    // =======================================================
+
+    this.socketService.onActivityCreated((activity: Activity) => {
+      if (!activity?._id) {
+        return;
+      }
+
+      console.log('📝 REAL-TIME ACTIVITY CREATED:', activity);
+
+      this.activities.update((items) => {
+        const exists = items.some((item) => item._id === activity._id);
+
+        if (exists) {
+          return items;
+        }
+
+        return [activity, ...items];
+      });
+    });
 
     // =======================================================
     // Task Updated
