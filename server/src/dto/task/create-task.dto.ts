@@ -1,3 +1,5 @@
+import { TASK_PRIORITY } from "../../common/constants/task.constants";
+
 export interface CreateTaskDto {
   project: string;
 
@@ -7,9 +9,9 @@ export interface CreateTaskDto {
 
   status?: string;
 
-  priority?: string;
+  priority?: (typeof TASK_PRIORITY)[number];
 
   assignedTo?: string;
 
-  dueDate?: string;
+  dueDate?: Date;
 }

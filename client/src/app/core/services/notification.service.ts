@@ -25,6 +25,7 @@ export class NotificationService {
   readonly unreadCount = signal(0);
 
   readonly notifications = signal<Notification[]>([]);
+  private realtimeInitialized = false;
 
   // =========================================
   // GET MY NOTIFICATIONS
@@ -87,6 +88,13 @@ export class NotificationService {
   // =========================================
 
   initializeRealtime(): void {
+    if (this.realtimeInitialized) {
+      console.log('🔔 Notification realtime already initialized');
+      return;
+    }
+
+    this.realtimeInitialized = true;
+
     this.socketService.connect();
 
     // =======================================

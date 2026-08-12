@@ -80,8 +80,7 @@ export class TaskService {
       },
     });
 
-    this.socketService.sendTaskUpdate(projectId, task);
-
+    this.socketService.sendTaskCreated(projectId, task);
     return task;
   }
 
@@ -397,8 +396,7 @@ export class TaskService {
       },
     });
 
-    this.socketService.sendTaskUpdate(this.getProjectId(task), task);
-
+    this.socketService.sendTaskStatusChanged(this.getProjectId(task), task);
     return task;
   }
 
@@ -501,8 +499,7 @@ export class TaskService {
       },
     });
 
-    this.socketService.sendTaskUpdate(this.getProjectId(task), task);
-
+    this.socketService.sendTaskAssigned(this.getProjectId(task), task);
     return task;
   }
 

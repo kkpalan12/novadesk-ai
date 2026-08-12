@@ -116,22 +116,17 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     if (!projectId) {
       this.loading.set(false);
-
       this.errorMessage.set('Project is required.');
-
       return;
     }
 
     if (!workspaceId) {
       this.loading.set(false);
-
       this.errorMessage.set('Workspace is required.');
-
       return;
     }
 
     this.projectId.set(projectId);
-
     this.workspaceId.set(workspaceId);
 
     // =========================================
@@ -142,8 +137,70 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     this.socketService.joinProject(projectId);
 
+    // =========================================
+    // TASK CREATED
+    // =========================================
+
+    this.socketService.onTaskCreated((createdTask) => {
+      console.log('🆕 REAL-TIME TASK CREATED:', createdTask);
+
+      const createdProjectId =
+        typeof createdTask?.project === 'string'
+          ? createdTask.project
+          : createdTask?.project?._id;
+
+      // Ignore events from another project
+      if (createdProjectId && createdProjectId !== projectId) {
+        return;
+      }
+
+      // Reload using current filters
+      this.loadTasksWithFilters();
+    });
+
+    // =========================================
+    // TASK UPDATED
+    // =========================================
+
     this.socketService.onTaskUpdated((updatedTask) => {
       console.log('🔄 REAL-TIME TASK UPDATED:', updatedTask);
+
+      const updatedProjectId =
+        typeof updatedTask?.project === 'string'
+          ? updatedTask.project
+          : updatedTask?.project?._id;
+
+      // Ignore another project
+      if (updatedProjectId && updatedProjectId !== projectId) {
+        return;
+      }
+
+      this.loadTasksWithFilters();
+    });
+    // =========================================
+    // TASK ASSIGNED
+    // =========================================
+
+    this.socketService.onTaskAssigned((assignedTask) => {
+      console.log('👤 REAL-TIME TASK ASSIGNED:', assignedTask);
+
+      const assignedProjectId =
+        typeof assignedTask?.project === 'string'
+          ? assignedTask.project
+          : assignedTask?.project?._id;
+
+      if (assignedProjectId && assignedProjectId !== projectId) {
+        return;
+      }
+
+      this.loadTasksWithFilters();
+    });
+    // =========================================
+    // TASK STATUS CHANGED
+    // =========================================
+
+    this.socketService.onTaskStatusChanged((updatedTask) => {
+      console.log('🔄 REAL-TIME TASK STATUS CHANGED:', updatedTask);
 
       const updatedProjectId =
         typeof updatedTask?.project === 'string'
@@ -156,6 +213,9 @@ export class TaskComponent implements OnInit, OnDestroy {
 
       this.loadTasksWithFilters();
     });
+    // =========================================
+    // TASK DELETED
+    // =========================================
 
     this.socketService.onTaskDeleted((data) => {
       console.log('🗑️ REAL-TIME TASK DELETED:', data);
@@ -195,12 +255,10 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     if (!projectId) {
       this.errorMessage.set('Project is required.');
-
       return;
     }
 
     this.loading.set(true);
-
     this.errorMessage.set('');
 
     this.taskService.getTasks(projectId, this.page(), this.limit()).subscribe({
@@ -254,15 +312,10 @@ export class TaskComponent implements OnInit, OnDestroy {
     this.editingTask.set(null);
 
     this.taskTitle = '';
-
     this.taskDescription = '';
-
     this.taskPriority = 'MEDIUM';
-
     this.taskStatus = 'TODO';
-
     this.taskDueDate = '';
-
     this.taskAssignedTo = '';
 
     this.formError.set('');
@@ -322,21 +375,15 @@ export class TaskComponent implements OnInit, OnDestroy {
 
   private resetForm(): void {
     this.taskTitle = '';
-
     this.taskDescription = '';
-
     this.taskPriority = 'MEDIUM';
-
     this.taskStatus = 'TODO';
-
     this.taskDueDate = '';
-
     this.taskAssignedTo = '';
   }
 
   // =========================================
   // SAVE TASK
-  // CREATE OR UPDATE
   // =========================================
 
   saveTask(): void {
@@ -348,18 +395,15 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     if (!projectId) {
       this.formError.set('Project is required.');
-
       return;
     }
 
     if (!title) {
       this.formError.set('Task title is required.');
-
       return;
     }
 
     this.saving.set(true);
-
     this.formError.set('');
 
     const editingTask = this.editingTask();
@@ -372,13 +416,9 @@ export class TaskComponent implements OnInit, OnDestroy {
       this.taskService
         .updateTask(projectId, editingTask._id, {
           title,
-
           description: description || undefined,
-
           status: this.taskStatus,
-
           priority: this.taskPriority,
-
           dueDate: this.taskDueDate || undefined,
         })
         .subscribe({
@@ -462,7 +502,7 @@ export class TaskComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // ASSIGN TASK AFTER CREATE / UPDATE
+  // ASSIGN TASK
   // =========================================
 
   private assignTaskAfterSave(
@@ -472,7 +512,6 @@ export class TaskComponent implements OnInit, OnDestroy {
   ): void {
     if (!this.taskAssignedTo) {
       onSuccess();
-
       return;
     }
 
@@ -518,8 +557,6 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     const previousStatus = task.status;
 
-    // Optimistic UI update
-
     this.tasks.update((items) =>
       items.map((item) =>
         item._id === task._id
@@ -531,34 +568,30 @@ export class TaskComponent implements OnInit, OnDestroy {
       ),
     );
 
-    this.taskService
-      .updateTask(projectId, task._id, {
-        status,
-      })
-      .subscribe({
-        next: () => {
-          this.loadTasks();
-        },
+    this.taskService.updateTaskStatus(projectId, task._id, status).subscribe({
+      next: () => {
+        this.loadTasks();
+      },
 
-        error: (error) => {
-          console.error('Change task status failed:', error);
+      error: (error) => {
+        console.error('Change task status failed:', error);
 
-          this.tasks.update((items) =>
-            items.map((item) =>
-              item._id === task._id
-                ? {
-                    ...item,
-                    status: previousStatus,
-                  }
-                : item,
-            ),
-          );
+        this.tasks.update((items) =>
+          items.map((item) =>
+            item._id === task._id
+              ? {
+                  ...item,
+                  status: previousStatus,
+                }
+              : item,
+          ),
+        );
 
-          this.errorMessage.set(
-            error?.error?.message ?? 'Unable to update task status.',
-          );
-        },
-      });
+        this.errorMessage.set(
+          error?.error?.message ?? 'Unable to update task status.',
+        );
+      },
+    });
   }
 
   // =========================================
@@ -851,8 +884,13 @@ export class TaskComponent implements OnInit, OnDestroy {
       },
     });
   }
+
   // =========================================
   // SOCKET CLEANUP
+  // =========================================
+
+  // =========================================
+  // DESTROY
   // =========================================
 
   ngOnDestroy(): void {
@@ -861,5 +899,9 @@ export class TaskComponent implements OnInit, OnDestroy {
     if (projectId) {
       this.socketService.leaveProject(projectId);
     }
+
+    this.socketService.removeTaskListeners();
+
+    console.log('🧹 Task component destroyed');
   }
 }

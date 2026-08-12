@@ -89,13 +89,24 @@ export class SocketService {
   // =========================================
 
   onNotification(callback: (notification: any) => void): void {
+    this.socket?.off('notification:new');
     this.socket?.on('notification:new', callback);
   }
 
   onUnreadCount(callback: (data: { count: number }) => void): void {
+    this.socket?.off('notification:unread-count');
     this.socket?.on('notification:unread-count', callback);
   }
+  // =========================================
+  // REMOVE NOTIFICATION LISTENERS
+  // =========================================
 
+  removeNotificationListeners(): void {
+    this.socket?.off('notification:new');
+    this.socket?.off('notification:unread-count');
+
+    console.log('🧹 Notification socket listeners removed');
+  }
   // =========================================
   // PROJECT ROOM
   // =========================================
@@ -152,14 +163,25 @@ export class SocketService {
   // TASK EVENTS
   // =========================================
 
-  onTaskUpdated(callback: (task: any) => void): void {
-    this.socket?.on('task:updated', callback);
+  onTaskStatusChanged(callback: (task: any) => void): void {
+    this.socket?.off('task:status-changed');
+
+    this.socket?.on('task:status-changed', callback);
   }
 
-  onTaskDeleted(callback: (data: { taskId: string }) => void): void {
-    this.socket?.on('task:deleted', callback);
-  }
+  // =========================================
+  // REMOVE TASK LISTENERS
+  // =========================================
 
+  removeTaskListeners(): void {
+    this.socket?.off('task:created');
+    this.socket?.off('task:updated');
+    this.socket?.off('task:assigned');
+    this.socket?.off('task:status-changed');
+    this.socket?.off('task:deleted');
+
+    console.log('🧹 Task socket listeners removed');
+  }
   // =========================================
   // DISCONNECT
   // =========================================
@@ -199,5 +221,24 @@ export class SocketService {
     callback: (data: { taskId: string; commentId: string }) => void,
   ): void {
     this.socket?.on('comment:deleted', callback);
+  }
+  onTaskCreated(callback: (task: any) => void): void {
+    this.socket?.off('task:created');
+    this.socket?.on('task:created', callback);
+  }
+
+  onTaskUpdated(callback: (task: any) => void): void {
+    this.socket?.off('task:updated');
+    this.socket?.on('task:updated', callback);
+  }
+
+  onTaskAssigned(callback: (task: any) => void): void {
+    this.socket?.off('task:assigned');
+    this.socket?.on('task:assigned', callback);
+  }
+
+  onTaskDeleted(callback: (data: { taskId: string }) => void): void {
+    this.socket?.off('task:deleted');
+    this.socket?.on('task:deleted', callback);
   }
 }

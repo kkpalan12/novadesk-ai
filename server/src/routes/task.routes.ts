@@ -9,6 +9,7 @@ import {
   assignTaskSchema,
   createTaskSchema,
   updateTaskSchema,
+  updateStatusSchema,
 } from "../validators/task.validator";
 
 const router = Router();
@@ -36,6 +37,12 @@ router.get(
   "/projects/:projectId/tasks/:id",
   authenticate,
   taskController.getTaskById,
+);
+router.patch(
+  "/projects/:projectId/tasks/:id/status",
+  authenticate,
+  validate(updateTaskSchema),
+  taskController.updateTaskStatus,
 );
 
 router.put(

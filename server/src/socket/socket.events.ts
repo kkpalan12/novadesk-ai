@@ -1,29 +1,67 @@
 export const SOCKET_EVENTS = {
+  // =========================================
+  // CONNECTION
+  // =========================================
+
   CONNECTION: "connection",
   DISCONNECT: "disconnect",
+
+  // =========================================
+  // GENERIC
+  // =========================================
 
   JOIN: "join",
   LEAVE: "leave",
 
-  NOTIFICATION: "notification",
-  NOTIFICATION_COUNT: "notification-count",
+  // =========================================
+  // NOTIFICATIONS
+  // =========================================
 
-  TASK_CREATED: "task-created",
-  TASK_UPDATED: "task-updated",
-  TASK_ASSIGNED: "task-assigned",
-  TASK_DELETED: "task-deleted",
-  TASK_STATUS_CHANGED: "task-status-changed",
+  NOTIFICATION: "notification:new",
+  NOTIFICATION_COUNT: "notification:unread-count",
 
-  COMMENT_ADDED: "comment-added",
+  // =========================================
+  // TASKS
+  // =========================================
 
-  PROJECT_CREATED: "project-created",
-  PROJECT_UPDATED: "project-updated",
+  TASK_CREATED: "task:created",
+  TASK_UPDATED: "task:updated",
+  TASK_ASSIGNED: "task:assigned",
+  TASK_DELETED: "task:deleted",
+  TASK_STATUS_CHANGED: "task:status-changed",
 
-  WORKSPACE_UPDATED: "workspace-updated",
+  // =========================================
+  // COMMENTS
+  // =========================================
+
+  COMMENT_CREATED: "comment:created",
+  COMMENT_UPDATED: "comment:updated",
+  COMMENT_DELETED: "comment:deleted",
+
+  // =========================================
+  // PROJECTS
+  // =========================================
+
+  PROJECT_CREATED: "project:created",
+  PROJECT_UPDATED: "project:updated",
+
+  // =========================================
+  // WORKSPACE
+  // =========================================
+
+  WORKSPACE_UPDATED: "workspace:updated",
+
+  // =========================================
+  // PRESENCE
+  // =========================================
 
   USER_ONLINE: "user-online",
   USER_OFFLINE: "user-offline",
   ONLINE_USERS: "online-users",
+
+  // =========================================
+  // PROJECT ROOMS
+  // =========================================
 
   JOIN_PROJECT: "join-project",
   LEAVE_PROJECT: "leave-project",

@@ -2,28 +2,85 @@ import { getIO } from "./index";
 
 export class SocketService {
   // =========================================
-  // TASK
+  // TASK CREATED
+  // =========================================
+
+  sendTaskCreated(projectId: string, task: any) {
+    try {
+      const io = getIO();
+
+      console.log("🆕 Sending task created:", `project:${projectId}`);
+
+      io.to(`project:${projectId}`).emit("task:created", task);
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping task creation.", error);
+    }
+  }
+
+  // =========================================
+  // TASK UPDATED
   // =========================================
 
   sendTaskUpdate(projectId: string, task: any) {
     try {
       const io = getIO();
 
+      console.log("🔄 Sending task updated:", `project:${projectId}`);
+
       io.to(`project:${projectId}`).emit("task:updated", task);
-    } catch {
-      console.warn("Socket.IO unavailable. Skipping task update.");
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping task update.", error);
     }
   }
+  // =========================================
+  // TASK STATUS CHANGED
+  // =========================================
+
+  sendTaskStatusChanged(projectId: string, task: any) {
+    try {
+      const io = getIO();
+
+      console.log("🔄 Sending task status changed:", `project:${projectId}`);
+
+      io.to(`project:${projectId}`).emit("task:status-changed", task);
+    } catch (error) {
+      console.warn(
+        "Socket.IO unavailable. Skipping task status change.",
+        error,
+      );
+    }
+  }
+  // =========================================
+  // TASK ASSIGNED
+  // =========================================
+
+  sendTaskAssigned(projectId: string, task: any) {
+    try {
+      const io = getIO();
+
+      console.log("👤 Sending task assigned:", `project:${projectId}`);
+
+      io.to(`project:${projectId}`).emit("task:assigned", task);
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping task assignment.", error);
+    }
+  }
+
+  // =========================================
+  // TASK DELETED
+  // =========================================
 
   sendTaskDeleted(projectId: string, taskId: string) {
     try {
       const io = getIO();
 
+      console.log("🗑️ Sending task deleted:", `project:${projectId}`);
+
       io.to(`project:${projectId}`).emit("task:deleted", {
         taskId,
       });
-    } catch {
-      console.warn("Socket.IO unavailable. Skipping task deletion.");
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping task deletion.", error);
     }
   }
 

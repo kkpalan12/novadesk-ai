@@ -104,7 +104,22 @@ export class TaskService {
       data,
     );
   }
+  // =========================================
+  // UPDATE TASK STATUS
+  // =========================================
 
+  updateTaskStatus(
+    projectId: string,
+    taskId: string,
+    status: TaskStatus,
+  ): Observable<TaskResponse> {
+    return this.api.patch<TaskResponse>(
+      `/projects/${projectId}/tasks/${taskId}/status`,
+      {
+        status,
+      },
+    );
+  }
   // =========================================
   // DELETE TASK
   // =========================================

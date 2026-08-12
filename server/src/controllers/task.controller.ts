@@ -70,6 +70,25 @@ export class TaskController {
       .status(200)
       .json(new ApiResponse(true, "Task updated successfully", task));
   });
+  // =========================================
+  // UPDATE TASK STATUS
+  // =========================================
+
+  // =========================================
+  // UPDATE TASK STATUS
+  // =========================================
+
+  updateTaskStatus = asyncHandler(async (req: Request, res: Response) => {
+    const task = await this.taskService.updateStatus(
+      req.params.id as string,
+      req.body.status,
+      req.user!.userId,
+    );
+
+    res
+      .status(200)
+      .json(new ApiResponse(true, "Task status updated successfully", task));
+  });
 
   /**
    * Delete Task
