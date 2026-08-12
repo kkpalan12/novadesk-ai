@@ -3,13 +3,16 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 
 import { LoginComponent } from './features/auth/login/login.component';
+import { RegisterComponent } from './features/auth/register/register.component';
+import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 
 import { WorkspaceSelectionComponent } from './features/workspace/workspace-selection.component';
 
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
-import { RegisterComponent } from './features/auth/register/register.component';
-import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
-import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
+
+import { ProfileComponent } from './features/settings/profile/profile.component';
+
 export const routes: Routes = [
   // =========================================
   // AUTH
@@ -19,10 +22,12 @@ export const routes: Routes = [
     path: 'login',
     component: LoginComponent,
   },
+
   {
     path: 'register',
     component: RegisterComponent,
   },
+
   {
     path: 'forgot-password',
     component: ForgotPasswordComponent,
@@ -80,8 +85,6 @@ export const routes: Routes = [
       // =====================================
       // TASKS
       //
-      // Project is supplied through query params:
-      //
       // /tasks?project=PROJECT_ID&workspace=WORKSPACE_ID
       // =====================================
 
@@ -94,7 +97,7 @@ export const routes: Routes = [
       // =====================================
       // TASK DETAIL
       //
-      // /tasks/TASK_ID?project=PROJECT_ID&workspace=WORKSPACE_ID
+      // /tasks/TASK_ID
       // =====================================
 
       {
@@ -127,6 +130,15 @@ export const routes: Routes = [
           import('./features/notification/notification.component').then(
             (m) => m.NotificationComponent,
           ),
+      },
+
+      // =====================================
+      // PROFILE
+      // =====================================
+
+      {
+        path: 'settings/profile',
+        component: ProfileComponent,
       },
 
       // =====================================

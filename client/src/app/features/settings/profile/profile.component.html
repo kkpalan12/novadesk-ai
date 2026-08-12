@@ -1,0 +1,361 @@
+<div class="profile-page">
+
+    <div class="profile-card">
+
+        <!-- HEADER -->
+
+        <div class="profile-header">
+
+            <div class="avatar">
+                @if (user()) {
+                {{ user()!.firstName.charAt(0).toUpperCase() }}
+                } @else {
+                N
+                }
+            </div>
+
+            <div>
+                <h1>Profile Settings</h1>
+
+                <p>
+                    Manage your personal information.
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- LOADING -->
+
+        @if (loading()) {
+
+        <div class="state">
+            Loading profile...
+        </div>
+
+        } @else {
+
+        <!-- PROFILE ERROR -->
+
+        @if (errorMessage()) {
+        <div class="error-message">
+            {{ errorMessage() }}
+        </div>
+        }
+
+
+        <!-- PROFILE SUCCESS -->
+
+        @if (successMessage()) {
+        <div class="success-message">
+            {{ successMessage() }}
+        </div>
+        }
+
+
+        <!-- ======================================
+           PERSONAL INFORMATION
+           ====================================== -->
+
+        <section class="profile-section">
+
+            <div class="section-title">
+                Personal Information
+            </div>
+
+            <form [formGroup]="profileForm" (ngSubmit)="submit()" novalidate>
+
+                <!-- FIRST NAME -->
+
+                <div class="form-group">
+
+                    <label for="firstName">
+                        First name
+                    </label>
+
+                    <input id="firstName" type="text" formControlName="firstName" autocomplete="given-name"
+                        placeholder="Enter your first name" />
+
+                    @if (
+                    firstName.invalid &&
+                    firstName.touched
+                    ) {
+
+                    <small class="field-error">
+
+                        @if (firstName.hasError('required')) {
+                        First name is required.
+                        }
+
+                        @else if (
+                        firstName.hasError('minlength')
+                        ) {
+                        First name must be at least 2 characters.
+                        }
+
+                    </small>
+
+                    }
+
+                </div>
+
+
+                <!-- LAST NAME -->
+
+                <div class="form-group">
+
+                    <label for="lastName">
+                        Last name
+                    </label>
+
+                    <input id="lastName" type="text" formControlName="lastName" autocomplete="family-name"
+                        placeholder="Enter your last name" />
+
+                    @if (
+                    lastName.invalid &&
+                    lastName.touched
+                    ) {
+
+                    <small class="field-error">
+
+                        @if (lastName.hasError('required')) {
+                        Last name is required.
+                        }
+
+                        @else if (
+                        lastName.hasError('minlength')
+                        ) {
+                        Last name must be at least 2 characters.
+                        }
+
+                    </small>
+
+                    }
+
+                </div>
+
+
+                <!-- EMAIL -->
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input id="email" type="email" formControlName="email" readonly />
+
+                    <small class="field-hint">
+                        Email changes require verification.
+                    </small>
+
+                </div>
+
+
+                <!-- ROLE -->
+
+                @if (user()) {
+
+                <div class="form-group">
+
+                    <label>
+                        Role
+                    </label>
+
+                    <div class="role-display">
+                        {{ user()!.role }}
+                    </div>
+
+                </div>
+
+                }
+
+
+                <!-- SAVE -->
+
+                <div class="actions">
+
+                    <button type="submit" [disabled]="saving()">
+
+                        @if (saving()) {
+                        Saving...
+                        } @else {
+                        Save Changes
+                        }
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- ======================================
+           DIVIDER
+           ====================================== -->
+
+        <div class="section-divider"></div>
+
+
+        <!-- ======================================
+           CHANGE PASSWORD
+           ====================================== -->
+
+        <section class="password-section">
+
+            <div class="section-title">
+                Change Password
+            </div>
+
+            <p class="section-description">
+                Update your password to keep your account secure.
+            </p>
+
+
+            <!-- PASSWORD ERROR -->
+
+            @if (passwordErrorMessage()) {
+
+            <div class="error-message">
+                {{ passwordErrorMessage() }}
+            </div>
+
+            }
+
+
+            <!-- PASSWORD SUCCESS -->
+
+            @if (passwordSuccessMessage()) {
+
+            <div class="success-message">
+                {{ passwordSuccessMessage() }}
+            </div>
+
+            }
+
+
+            <!-- PASSWORD FORM -->
+
+            <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate>
+
+                <!-- CURRENT PASSWORD -->
+
+                <div class="form-group">
+
+                    <label for="currentPassword">
+                        Current password
+                    </label>
+
+                    <input id="currentPassword" type="password" formControlName="currentPassword"
+                        autocomplete="current-password" placeholder="Enter current password" />
+
+                    @if (
+                    currentPassword.invalid &&
+                    currentPassword.touched
+                    ) {
+
+                    <small class="field-error">
+                        Current password is required.
+                    </small>
+
+                    }
+
+                </div>
+
+
+                <!-- NEW PASSWORD -->
+
+                <div class="form-group">
+
+                    <label for="newPassword">
+                        New password
+                    </label>
+
+                    <input id="newPassword" type="password" formControlName="newPassword" autocomplete="new-password"
+                        placeholder="Enter new password" />
+
+                    @if (
+                    newPassword.invalid &&
+                    newPassword.touched
+                    ) {
+
+                    <small class="field-error">
+
+                        @if (
+                        newPassword.hasError('required')
+                        ) {
+                        New password is required.
+                        }
+
+                        @else if (
+                        newPassword.hasError('minlength')
+                        ) {
+                        Password must be at least 8 characters.
+                        }
+
+                        @else if (
+                        newPassword.hasError('pattern')
+                        ) {
+                        Password must contain uppercase,
+                        lowercase, number and special character.
+                        }
+
+                    </small>
+
+                    }
+
+                </div>
+
+
+                <!-- CONFIRM PASSWORD -->
+
+                <div class="form-group">
+
+                    <label for="confirmPassword">
+                        Confirm new password
+                    </label>
+
+                    <input id="confirmPassword" type="password" formControlName="confirmPassword"
+                        autocomplete="new-password" placeholder="Confirm new password" />
+
+                    @if (
+                    confirmPassword.invalid &&
+                    confirmPassword.touched
+                    ) {
+
+                    <small class="field-error">
+                        Confirm password is required.
+                    </small>
+
+                    }
+
+                </div>
+
+
+                <!-- CHANGE PASSWORD BUTTON -->
+
+                <div class="password-actions">
+
+                    <button type="submit" [disabled]="changingPassword()">
+
+                        @if (changingPassword()) {
+                        Changing Password...
+                        } @else {
+                        Change Password
+                        }
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+        }
+
+    </div>
+
+</div>

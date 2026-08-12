@@ -190,17 +190,17 @@
 
 
                 <!-- User -->
-<div class="user-avatar" [attr.aria-label]="
+<button type="button" class="user-avatar" [attr.aria-label]="
     user
-      ? 'Current user: ' + user.firstName
-      : 'Current user'
+      ? 'Open profile for ' + user.firstName
+      : 'Open profile'
   " [title]="
     user
       ? user.firstName + ' ' + user.lastName
-      : ''
-  ">
+      : 'Profile'
+  " (click)="goToProfile()">
     {{ userInitial }}
-</div>
+</button>
             </div>
 
         </header>

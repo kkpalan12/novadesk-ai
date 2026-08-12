@@ -12,11 +12,12 @@ import { SearchService } from '../../core/services/search.service';
 import { SearchUser } from '../../core/models/search.model';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-workspace',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
 })
@@ -76,6 +77,21 @@ export class WorkspaceComponent implements OnInit {
   readonly userSearchLoading = signal(false);
 
   readonly selectedUser = signal<SearchUser | null>(null);
+  private readonly fb = inject(FormBuilder);
+
+  readonly showCreateWorkspace = signal(false);
+
+  readonly createWorkspaceLoading = signal(false);
+
+  readonly createWorkspaceError = signal('');
+
+  readonly createWorkspaceSuccess = signal('');
+
+  readonly createWorkspaceForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2)]],
+
+    description: [''],
+  });
 
   // =========================================
   // Lifecycle
@@ -465,5 +481,72 @@ export class WorkspaceComponent implements OnInit {
     }
 
     return workspace.owner._id === member.user._id;
+  }
+  openCreateWorkspace(): void {
+    this.createWorkspaceError.set('');
+    this.createWorkspaceSuccess.set('');
+
+    this.createWorkspaceForm.reset({
+      name: '',
+      description: '',
+    });
+
+    this.showCreateWorkspace.set(true);
+  }
+
+  closeCreateWorkspace(): void {
+    if (this.createWorkspaceLoading()) {
+      return;
+    }
+
+    this.showCreateWorkspace.set(false);
+
+    this.createWorkspaceError.set('');
+  }
+
+  createWorkspace(): void {
+    this.createWorkspaceError.set('');
+    this.createWorkspaceSuccess.set('');
+
+    if (this.createWorkspaceForm.invalid) {
+      this.createWorkspaceForm.markAllAsTouched();
+      return;
+    }
+
+    this.createWorkspaceLoading.set(true);
+
+    const { name, description } = this.createWorkspaceForm.getRawValue();
+
+    this.workspaceService
+      .createWorkspace({
+        name: name.trim(),
+        description: description.trim() || undefined,
+      })
+      .subscribe({
+        next: (response) => {
+          this.createWorkspaceLoading.set(false);
+
+          this.showCreateWorkspace.set(false);
+
+          this.createWorkspaceForm.reset({
+            name: '',
+            description: '',
+          });
+
+          this.createWorkspaceSuccess.set('Workspace created successfully.');
+
+          this.loadWorkspaces();
+        },
+
+        error: (error) => {
+          console.error('Create workspace error:', error);
+
+          this.createWorkspaceLoading.set(false);
+
+          this.createWorkspaceError.set(
+            error?.error?.message ?? 'Unable to create workspace.',
+          );
+        },
+      });
   }
 }

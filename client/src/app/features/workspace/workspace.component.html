@@ -6,21 +6,145 @@
 
     <header class="page-header">
 
-        <div>
-            <span class="eyebrow">
-                WORKSPACE MANAGEMENT
-            </span>
-
-            <h1>
-                Workspaces
-            </h1>
-
-            <p>
-                Manage your NovaDesk workspaces and members.
-            </p>
-        </div>
-
+        
+            <div>
+                <span class="eyebrow">
+                    WORKSPACE MANAGEMENT
+                </span>
+        
+                <h1>
+                    Workspaces
+                </h1>
+        
+                <p>
+                    Manage your NovaDesk workspaces and members.
+                </p>
+            </div>
+        
+            <button type="button" class="primary-button" (click)="openCreateWorkspace()" [disabled]="createWorkspaceLoading()">
+                + Create Workspace
+            </button>
+        
+        
     </header>
+    @if (showCreateWorkspace()) {
+    
+    <div class="modal-backdrop">
+    
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="createWorkspaceTitle">
+    
+            <div class="modal-header">
+    
+                <div>
+                    <span class="section-eyebrow">
+                        NEW WORKSPACE
+                    </span>
+    
+                    <h2 id="createWorkspaceTitle">
+                        Create Workspace
+                    </h2>
+    
+                    <p>
+                        Create a workspace for your team.
+                    </p>
+                </div>
+    
+                <button type="button" class="modal-close" (click)="closeCreateWorkspace()"
+                    [disabled]="createWorkspaceLoading()">
+                    ×
+                </button>
+    
+            </div>
+    
+    
+            @if (createWorkspaceError()) {
+    
+            <div class="member-error">
+                {{ createWorkspaceError() }}
+            </div>
+    
+            }
+    
+    
+            <form [formGroup]="createWorkspaceForm" (ngSubmit)="createWorkspace()" novalidate>
+    
+                <div class="form-group">
+    
+                    <label for="workspaceName">
+                        Workspace Name
+                    </label>
+    
+                    <input id="workspaceName" type="text" formControlName="name" placeholder="e.g. NovaDesk AI"
+                        autocomplete="off" />
+    
+                    @if (
+                    createWorkspaceForm.controls.name.invalid &&
+                    createWorkspaceForm.controls.name.touched
+                    ) {
+    
+                    <small class="field-error">
+    
+                        @if (
+                        createWorkspaceForm.controls.name.hasError(
+                        'required'
+                        )
+                        ) {
+                        Workspace name is required.
+                        }
+    
+                        @else if (
+                        createWorkspaceForm.controls.name.hasError(
+                        'minlength'
+                        )
+                        ) {
+                        Workspace name must be at least 2 characters.
+                        }
+    
+                    </small>
+    
+                    }
+    
+                </div>
+    
+    
+                <div class="form-group">
+    
+                    <label for="workspaceDescription">
+                        Description
+                    </label>
+    
+                    <textarea id="workspaceDescription" rows="4" formControlName="description"
+                        placeholder="Describe your workspace"></textarea>
+    
+                </div>
+    
+    
+                <div class="form-actions">
+    
+                    <button type="button" class="secondary-button" (click)="closeCreateWorkspace()"
+                        [disabled]="createWorkspaceLoading()">
+                        Cancel
+                    </button>
+    
+                    <button type="submit" class="primary-button" [disabled]="createWorkspaceLoading()">
+    
+                        @if (createWorkspaceLoading()) {
+                        Creating...
+                        } @else {
+                        Create Workspace
+                        }
+    
+                    </button>
+    
+                </div>
+    
+            </form>
+    
+        </div>
+    
+    </div>
+    
+    }
 
 
     <!-- =========================================

@@ -1,0 +1,329 @@
+.profile-page {
+    min-height: 100%;
+    padding: 32px;
+    box-sizing: border-box;
+    background: #f5f7fb;
+}
+
+.profile-card {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+}
+
+// =========================================
+// Back
+// =========================================
+
+.profile-back {
+    margin-bottom: 20px;
+
+    button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #2563eb;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+// =========================================
+// Header
+// =========================================
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+
+    h1 {
+        margin: 0 0 6px;
+        color: #111827;
+        font-size: 24px;
+    }
+
+    p {
+        margin: 0;
+        color: #6b7280;
+    }
+}
+
+// =========================================
+// Avatar
+// =========================================
+
+.avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 22px;
+    font-weight: 700;
+}
+
+// =========================================
+// Section
+// =========================================
+
+.section-title {
+    margin-bottom: 18px;
+    color: #111827;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.section-description {
+    margin: -8px 0 22px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.section-divider {
+    height: 1px;
+    margin: 36px 0;
+    background: #e5e7eb;
+}
+
+// =========================================
+// Loading
+// =========================================
+
+.state {
+    padding: 40px;
+    text-align: center;
+    color: #6b7280;
+}
+
+// =========================================
+// Form
+// =========================================
+
+.form-group {
+    margin-bottom: 22px;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+
+    background: #ffffff;
+    color: #111827;
+
+    font-size: 15px;
+
+    outline: none;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+
+    &:focus {
+        border-color: #2563eb;
+
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    &[readonly],
+    &:disabled {
+        background: #f9fafb;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+}
+
+// =========================================
+// Validation
+// =========================================
+
+.field-error {
+    display: block;
+    margin-top: 6px;
+    color: #dc2626;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.field-hint {
+    display: block;
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+// =========================================
+// Role
+// =========================================
+
+.role-display {
+    padding: 12px 14px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+
+    background: #f9fafb;
+    color: #374151;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+// =========================================
+// Messages
+// =========================================
+
+.error-message {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+
+    border: 1px solid #fecaca;
+    border-radius: 7px;
+
+    background: #fef2f2;
+    color: #b91c1c;
+
+    font-size: 14px;
+}
+
+.success-message {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+
+    border: 1px solid #a7f3d0;
+    border-radius: 7px;
+
+    background: #ecfdf5;
+    color: #047857;
+
+    font-size: 14px;
+}
+
+// =========================================
+// Profile Actions
+// =========================================
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 28px;
+
+    button {
+        padding: 12px 20px;
+
+        border: 0;
+        border-radius: 7px;
+
+        background: #2563eb;
+        color: #ffffff;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        &:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// =========================================
+// Password Actions
+// =========================================
+
+.password-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+        padding: 12px 20px;
+
+        border: 0;
+        border-radius: 7px;
+
+        background: #111827;
+        color: #ffffff;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            background: #1f2937;
+        }
+
+        &:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// =========================================
+// Responsive
+// =========================================
+
+@media (max-width: 600px) {
+    .profile-page {
+        padding: 16px;
+    }
+
+    .profile-card {
+        padding: 24px 20px;
+    }
+
+    .profile-header {
+        align-items: flex-start;
+
+        h1 {
+            font-size: 21px;
+        }
+    }
+
+    .actions,
+    .password-actions {
+        button {
+            width: 100%;
+        }
+    }
+}

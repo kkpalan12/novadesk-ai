@@ -124,4 +124,7 @@ export class MainLayoutComponent implements OnInit {
 
     this.router.navigate(['/login']);
   }
+  goToProfile(): void {
+    this.router.navigate(['/settings/profile']);
+  }
 }
