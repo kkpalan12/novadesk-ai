@@ -1,6 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators,
+} from '@angular/forms';
 
 import { WorkspaceService } from '../../core/services/workspace.service';
 import { Workspace } from '../../core/models/workspace.model';
@@ -12,7 +17,6 @@ import { SearchService } from '../../core/services/search.service';
 import { SearchUser } from '../../core/models/search.model';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-workspace',
@@ -29,6 +33,8 @@ export class WorkspaceComponent implements OnInit {
   private readonly searchService = inject(SearchService);
 
   private readonly authService = inject(AuthService);
+
+  private readonly fb = inject(FormBuilder);
 
   // =========================================
   // Current User
@@ -63,6 +69,12 @@ export class WorkspaceComponent implements OnInit {
   readonly showAddMember = signal(false);
 
   // =========================================
+  // Member Roles
+  // =========================================
+
+  readonly memberRoles: MembershipRole[] = ['ADMIN', 'MEMBER'];
+
+  // =========================================
   // Add Member Search
   // =========================================
 
@@ -77,7 +89,10 @@ export class WorkspaceComponent implements OnInit {
   readonly userSearchLoading = signal(false);
 
   readonly selectedUser = signal<SearchUser | null>(null);
-  private readonly fb = inject(FormBuilder);
+
+  // =========================================
+  // Create Workspace
+  // =========================================
 
   readonly showCreateWorkspace = signal(false);
 
@@ -88,6 +103,22 @@ export class WorkspaceComponent implements OnInit {
   readonly createWorkspaceSuccess = signal('');
 
   readonly createWorkspaceForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2)]],
+
+    description: [''],
+  });
+
+  // =========================================
+  // Edit Workspace
+  // =========================================
+
+  readonly showEditWorkspace = signal(false);
+
+  readonly editWorkspaceLoading = signal(false);
+
+  readonly editWorkspaceError = signal('');
+
+  readonly editWorkspaceForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
 
     description: [''],
@@ -119,6 +150,9 @@ export class WorkspaceComponent implements OnInit {
 
         if (workspaces.length > 0) {
           this.selectWorkspace(workspaces[0]);
+        } else {
+          this.selectedWorkspace.set(null);
+          this.members.set([]);
         }
       },
 
@@ -183,6 +217,7 @@ export class WorkspaceComponent implements OnInit {
 
   isCurrentUserWorkspaceOwner(): boolean {
     const workspace = this.selectedWorkspace();
+
     const currentUser = this.currentUser;
 
     if (!workspace || !currentUser) {
@@ -190,6 +225,24 @@ export class WorkspaceComponent implements OnInit {
     }
 
     return workspace.owner._id === currentUser._id;
+  }
+
+  // =========================================
+  // Check If Member Is Workspace Owner
+  // =========================================
+
+  isWorkspaceOwner(member: Membership): boolean {
+    const workspace = this.selectedWorkspace();
+
+    if (!workspace) {
+      return false;
+    }
+
+    if (!member.user) {
+      return false;
+    }
+
+    return workspace.owner._id === member.user._id;
   }
 
   // =========================================
@@ -252,6 +305,7 @@ export class WorkspaceComponent implements OnInit {
     const query = this.userSearchQuery().trim();
 
     this.selectedUser.set(null);
+
     this.userId = '';
 
     if (!query) {
@@ -265,6 +319,7 @@ export class WorkspaceComponent implements OnInit {
     }
 
     this.userSearchLoading.set(true);
+
     this.memberError.set('');
 
     this.searchService.search(query).subscribe({
@@ -377,6 +432,12 @@ export class WorkspaceComponent implements OnInit {
       return;
     }
 
+    if (this.isWorkspaceOwner(member)) {
+      this.memberError.set('Workspace owner cannot be removed.');
+
+      return;
+    }
+
     if (
       !confirm(
         `Remove ${member.user?.firstName ?? 'this member'} from the workspace?`,
@@ -423,6 +484,10 @@ export class WorkspaceComponent implements OnInit {
       return;
     }
 
+    if (this.isWorkspaceOwner(member)) {
+      return;
+    }
+
     if (member.role === role) {
       return;
     }
@@ -466,24 +531,12 @@ export class WorkspaceComponent implements OnInit {
   }
 
   // =========================================
-  // Workspace Owner Check
+  // Create Workspace
   // =========================================
 
-  isWorkspaceOwner(member: Membership): boolean {
-    const workspace = this.selectedWorkspace();
-
-    if (!workspace) {
-      return false;
-    }
-
-    if (!member.user) {
-      return false;
-    }
-
-    return workspace.owner._id === member.user._id;
-  }
   openCreateWorkspace(): void {
     this.createWorkspaceError.set('');
+
     this.createWorkspaceSuccess.set('');
 
     this.createWorkspaceForm.reset({
@@ -506,10 +559,12 @@ export class WorkspaceComponent implements OnInit {
 
   createWorkspace(): void {
     this.createWorkspaceError.set('');
+
     this.createWorkspaceSuccess.set('');
 
     if (this.createWorkspaceForm.invalid) {
       this.createWorkspaceForm.markAllAsTouched();
+
       return;
     }
 
@@ -548,5 +603,130 @@ export class WorkspaceComponent implements OnInit {
           );
         },
       });
+  }
+
+  // =========================================
+  // Edit Workspace
+  // =========================================
+
+  openEditWorkspace(): void {
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
+    const workspace = this.selectedWorkspace();
+
+    if (!workspace) {
+      return;
+    }
+
+    this.editWorkspaceError.set('');
+
+    this.editWorkspaceForm.reset({
+      name: workspace.name,
+      description: workspace.description ?? '',
+    });
+
+    this.showEditWorkspace.set(true);
+  }
+
+  closeEditWorkspace(): void {
+    if (this.editWorkspaceLoading()) {
+      return;
+    }
+
+    this.showEditWorkspace.set(false);
+
+    this.editWorkspaceError.set('');
+  }
+
+  updateWorkspace(): void {
+    this.editWorkspaceError.set('');
+
+    if (this.editWorkspaceForm.invalid) {
+      this.editWorkspaceForm.markAllAsTouched();
+
+      return;
+    }
+
+    const workspace = this.selectedWorkspace();
+
+    if (!workspace) {
+      return;
+    }
+
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      this.editWorkspaceError.set(
+        'Only the workspace owner can update this workspace.',
+      );
+
+      return;
+    }
+
+    this.editWorkspaceLoading.set(true);
+
+    const { name, description } = this.editWorkspaceForm.getRawValue();
+
+    this.workspaceService
+      .updateWorkspace(workspace._id, {
+        name: name.trim(),
+        description: description.trim() || undefined,
+      })
+      .subscribe({
+        next: (response) => {
+          this.editWorkspaceLoading.set(false);
+
+          this.showEditWorkspace.set(false);
+
+          this.selectedWorkspace.set(response.data);
+
+          this.loadWorkspaces();
+        },
+
+        error: (error) => {
+          console.error('Update workspace failed:', error);
+
+          this.editWorkspaceLoading.set(false);
+
+          this.editWorkspaceError.set(
+            error?.error?.message ?? 'Unable to update workspace.',
+          );
+        },
+      });
+  }
+  deleteWorkspace(): void {
+    const workspace = this.selectedWorkspace();
+
+    if (!workspace) {
+      return;
+    }
+
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
+    const confirmed = confirm(
+      `Delete "${workspace.name}"? This action cannot be undone.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.workspaceService.deleteWorkspace(workspace._id).subscribe({
+      next: () => {
+        this.selectedWorkspace.set(null);
+        this.members.set([]);
+        this.loadWorkspaces();
+      },
+
+      error: (error) => {
+        console.error('Delete workspace failed:', error);
+
+        this.errorMessage.set(
+          error?.error?.message ?? 'Unable to delete workspace.',
+        );
+      },
+    });
   }
 }

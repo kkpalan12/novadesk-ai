@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { TaskService } from '../../core/services/task.service';
 import { MembershipService } from '../../core/services/membership.service';
+import { SocketService } from '../../core/services/socket.service';
 
 import { Task, TaskPriority, TaskStatus } from '../../core/models/task.model';
 
@@ -19,6 +20,10 @@ import { Membership } from '../../core/models/membership.model';
   styleUrl: './task.component.scss',
 })
 export class TaskComponent implements OnInit {
+  // =========================================
+  // SERVICES
+  // =========================================
+
   private readonly route = inject(ActivatedRoute);
 
   private readonly router = inject(Router);
@@ -26,6 +31,8 @@ export class TaskComponent implements OnInit {
   private readonly taskService = inject(TaskService);
 
   private readonly membershipService = inject(MembershipService);
+
+  private readonly socketService = inject(SocketService);
 
   // =========================================
   // PROJECT / WORKSPACE
@@ -127,6 +134,53 @@ export class TaskComponent implements OnInit {
     this.projectId.set(projectId);
 
     this.workspaceId.set(workspaceId);
+
+    // =========================================
+    // SOCKET
+    // =========================================
+
+    this.socketService.connect();
+
+    this.socketService.joinProject(projectId);
+
+    this.socketService.onTaskUpdated((updatedTask) => {
+      console.log('🔄 REAL-TIME TASK UPDATED:', updatedTask);
+
+      const updatedProjectId =
+        typeof updatedTask?.project === 'string'
+          ? updatedTask.project
+          : updatedTask?.project?._id;
+
+      if (updatedProjectId && updatedProjectId !== projectId) {
+        return;
+      }
+
+      this.loadTasksWithFilters();
+    });
+
+    this.socketService.onTaskDeleted((data) => {
+      console.log('🗑️ REAL-TIME TASK DELETED:', data);
+
+      if (!data?.taskId) {
+        return;
+      }
+
+      const taskExists = this.tasks().some((task) => task._id === data.taskId);
+
+      if (!taskExists) {
+        return;
+      }
+
+      this.tasks.update((items) =>
+        items.filter((task) => task._id !== data.taskId),
+      );
+
+      this.total.update((value) => Math.max(0, value - 1));
+    });
+
+    // =========================================
+    // INITIAL DATA
+    // =========================================
 
     this.loadTasks();
 
@@ -489,8 +543,6 @@ export class TaskComponent implements OnInit {
 
         error: (error) => {
           console.error('Change task status failed:', error);
-
-          // Restore previous state
 
           this.tasks.update((items) =>
             items.map((item) =>

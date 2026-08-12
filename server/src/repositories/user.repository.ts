@@ -73,4 +73,7 @@ export class UserRepository {
   async findActiveById(id: string) {
     return User.findById(id).select("-password");
   }
+  async findByIdWithPassword(id: string) {
+    return User.findById(id).select("+password +refreshToken");
+  }
 }

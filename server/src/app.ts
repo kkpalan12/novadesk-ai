@@ -9,6 +9,7 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import { loggerMiddleware } from "./common/logger";
+import userRoutes from "./routes/user.routes";
 const app = express();
 
 app.use(helmet());
@@ -22,6 +23,7 @@ app.use(loggerMiddleware);
 app.use(morgan("dev"));
 
 app.use("/api/v1", routes);
+app.use("/api/v1/users", userRoutes);
 
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 

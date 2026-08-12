@@ -1,11 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
-
 import { Router, RouterOutlet } from '@angular/router';
 
 import { WorkspaceContextService } from '../../core/services/workspace-context.service';
-
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -20,22 +17,44 @@ import { NotificationService } from '../../core/services/notification.service';
   styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent implements OnInit {
+  // =========================================
+  // Services
+  // =========================================
+
   readonly workspaceContext = inject(WorkspaceContextService);
 
   private readonly router = inject(Router);
 
   private readonly authService = inject(AuthService);
 
-  readonly user = this.authService.getCurrentUser();
   private readonly notificationService = inject(NotificationService);
 
+  // =========================================
+  // Current User
+  // =========================================
+
+  readonly user = this.authService.getCurrentUser();
+
+  // =========================================
+  // Notification State
+  // =========================================
+
   readonly unreadNotificationCount = this.notificationService.unreadCount;
+
+  // =========================================
+  // Init
+  // =========================================
 
   ngOnInit(): void {
     this.workspaceContext.loadWorkspaces();
 
-    this.notificationService.refreshUnreadCount();
+    // Initialize real-time notifications
+    this.notificationService.initializeRealtime();
   }
+
+  // =========================================
+  // User Initial
+  // =========================================
 
   get userInitial(): string {
     const currentUser = this.user;
@@ -46,6 +65,10 @@ export class MainLayoutComponent implements OnInit {
 
     return currentUser.firstName?.charAt(0)?.toUpperCase() ?? 'U';
   }
+
+  // =========================================
+  // Dashboard
+  // =========================================
 
   goToDashboard(): void {
     const workspace = this.workspaceContext.activeWorkspace();
@@ -63,6 +86,10 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
+  // =========================================
+  // Projects
+  // =========================================
+
   goToProjects(): void {
     const workspace = this.workspaceContext.activeWorkspace();
 
@@ -78,6 +105,10 @@ export class MainLayoutComponent implements OnInit {
       },
     });
   }
+
+  // =========================================
+  // Workspace
+  // =========================================
 
   goToWorkspace(): void {
     const workspace = this.workspaceContext.activeWorkspace();
@@ -95,9 +126,17 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
+  // =========================================
+  // Notifications
+  // =========================================
+
   goToNotifications(): void {
     this.router.navigate(['/notifications']);
   }
+
+  // =========================================
+  // Select Workspace
+  // =========================================
 
   selectWorkspace(workspaceId: string): void {
     const workspace = this.workspaceContext
@@ -117,14 +156,25 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
+  // =========================================
+  // Profile
+  // =========================================
+
+  goToProfile(): void {
+    this.router.navigate(['/settings/profile']);
+  }
+
+  // =========================================
+  // Logout
+  // =========================================
+
   logout(): void {
     this.workspaceContext.clearWorkspace();
+
+    this.notificationService.clear();
 
     this.authService.logout();
 
     this.router.navigate(['/login']);
-  }
-  goToProfile(): void {
-    this.router.navigate(['/settings/profile']);
   }
 }

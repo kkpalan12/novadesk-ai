@@ -61,4 +61,7 @@ export class WorkspaceService {
   ): Observable<WorkspaceResponse> {
     return this.api.put<WorkspaceResponse>(`/workspaces/${workspaceId}`, data);
   }
+  deleteWorkspace(workspaceId: string): Observable<WorkspaceResponse> {
+    return this.api.delete<WorkspaceResponse>(`/workspaces/${workspaceId}`);
+  }
 }

@@ -26,65 +26,23 @@ export const initializeSocket = (server: http.Server) => {
   io.on(SOCKET_EVENTS.CONNECTION, (socket: AuthenticatedSocket) => {
     const userId = socket.user!.userId;
 
-    /**
-     * Join personal room
-     */
-    socket.join(userId);
+    // =========================================
+    // Personal User Room
+    // =========================================
 
-    /**
-     * Track presence
-     */
+    socket.join(`user:${userId}`);
+
+    console.log(`👤 User ${userId} joined room user:${userId}`);
+
+    // =========================================
+    // Presence
+    // =========================================
+
     presenceService.userConnected(userId, socket.id);
 
     console.log(`✅ User ${userId} connected (${socket.id})`);
 
-    /**
-     * Broadcast user online
-     */
-    io.emit(SOCKET_EVENTS.USER_ONLINE, {
-      userId,
-    });
-
-    /**
-     * Broadcast online users list
-     */
-    io.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
-
-    /**
-     * Join Project Room
-     *
-     * Angular will emit:
-     * socket.emit("join-project", projectId);
-     */
-    socket.on(SOCKET_EVENTS.JOIN_PROJECT, (projectId: string) => {
-      socket.join(`project:${projectId}`);
-
-      console.log(`📁 User ${userId} joined project ${projectId}`);
-    });
-
-    /**
-     * Leave Project Room
-     */
-    socket.on(SOCKET_EVENTS.LEAVE_PROJECT, (projectId: string) => {
-      socket.leave(`project:${projectId}`);
-
-      console.log(`📁 User ${userId} left project ${projectId}`);
-    });
-
-    /**
-     * Disconnect
-     */
-    socket.on(SOCKET_EVENTS.DISCONNECT, () => {
-      presenceService.userDisconnected(userId);
-
-      console.log(`❌ User ${userId} disconnected`);
-
-      io.emit(SOCKET_EVENTS.USER_OFFLINE, {
-        userId,
-      });
-
-      io.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
-    });
+    // ...rest of your existing code
   });
 
   return io;

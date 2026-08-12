@@ -38,8 +38,7 @@
             "scripts": []
           },
           "configurations": {
-            "production": {
-    
+         "production": {
   "fileReplacements": [
     {
       "replace": "src/environments/environment.ts",
@@ -47,20 +46,27 @@
     }
   ],
 
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "10kB",
-                  "maximumError": "12kB"
-                }
-              ],
-              "outputHashing": "all"
-            },
+  "optimization": {
+    "scripts": true,
+    "styles": true,
+    "fonts": false
+  },
+
+  "budgets": [
+    {
+      "type": "initial",
+      "maximumWarning": "500kB",
+      "maximumError": "1MB"
+    },
+    {
+      "type": "anyComponentStyle",
+      "maximumWarning": "10kB",
+      "maximumError": "12kB"
+    }
+  ],
+
+  "outputHashing": "all"
+},
             "development": {
               "optimization": false,
               "extractLicenses": false,

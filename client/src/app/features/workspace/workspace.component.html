@@ -1,150 +1,29 @@
 <div class="workspace-page">
 
     <!-- =========================================
-       HEADER
+       PAGE HEADER
        ========================================= -->
 
     <header class="page-header">
 
-        
-            <div>
-                <span class="eyebrow">
-                    WORKSPACE MANAGEMENT
-                </span>
-        
-                <h1>
-                    Workspaces
-                </h1>
-        
-                <p>
-                    Manage your NovaDesk workspaces and members.
-                </p>
-            </div>
-        
-            <button type="button" class="primary-button" (click)="openCreateWorkspace()" [disabled]="createWorkspaceLoading()">
-                + Create Workspace
-            </button>
-        
-        
-    </header>
-    @if (showCreateWorkspace()) {
-    
-    <div class="modal-backdrop">
-    
-        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="createWorkspaceTitle">
-    
-            <div class="modal-header">
-    
-                <div>
-                    <span class="section-eyebrow">
-                        NEW WORKSPACE
-                    </span>
-    
-                    <h2 id="createWorkspaceTitle">
-                        Create Workspace
-                    </h2>
-    
-                    <p>
-                        Create a workspace for your team.
-                    </p>
-                </div>
-    
-                <button type="button" class="modal-close" (click)="closeCreateWorkspace()"
-                    [disabled]="createWorkspaceLoading()">
-                    ×
-                </button>
-    
-            </div>
-    
-    
-            @if (createWorkspaceError()) {
-    
-            <div class="member-error">
-                {{ createWorkspaceError() }}
-            </div>
-    
-            }
-    
-    
-            <form [formGroup]="createWorkspaceForm" (ngSubmit)="createWorkspace()" novalidate>
-    
-                <div class="form-group">
-    
-                    <label for="workspaceName">
-                        Workspace Name
-                    </label>
-    
-                    <input id="workspaceName" type="text" formControlName="name" placeholder="e.g. NovaDesk AI"
-                        autocomplete="off" />
-    
-                    @if (
-                    createWorkspaceForm.controls.name.invalid &&
-                    createWorkspaceForm.controls.name.touched
-                    ) {
-    
-                    <small class="field-error">
-    
-                        @if (
-                        createWorkspaceForm.controls.name.hasError(
-                        'required'
-                        )
-                        ) {
-                        Workspace name is required.
-                        }
-    
-                        @else if (
-                        createWorkspaceForm.controls.name.hasError(
-                        'minlength'
-                        )
-                        ) {
-                        Workspace name must be at least 2 characters.
-                        }
-    
-                    </small>
-    
-                    }
-    
-                </div>
-    
-    
-                <div class="form-group">
-    
-                    <label for="workspaceDescription">
-                        Description
-                    </label>
-    
-                    <textarea id="workspaceDescription" rows="4" formControlName="description"
-                        placeholder="Describe your workspace"></textarea>
-    
-                </div>
-    
-    
-                <div class="form-actions">
-    
-                    <button type="button" class="secondary-button" (click)="closeCreateWorkspace()"
-                        [disabled]="createWorkspaceLoading()">
-                        Cancel
-                    </button>
-    
-                    <button type="submit" class="primary-button" [disabled]="createWorkspaceLoading()">
-    
-                        @if (createWorkspaceLoading()) {
-                        Creating...
-                        } @else {
-                        Create Workspace
-                        }
-    
-                    </button>
-    
-                </div>
-    
-            </form>
-    
+        <div>
+            <span class="eyebrow">
+                WORKSPACE MANAGEMENT
+            </span>
+
+            <h1>Workspaces</h1>
+
+            <p>
+                Manage your workspaces and team members.
+            </p>
         </div>
-    
-    </div>
-    
-    }
+
+        <button type="button" class="primary-button" (click)="openCreateWorkspace()"
+            [disabled]="createWorkspaceLoading()">
+            + Create Workspace
+        </button>
+
+    </header>
 
 
     <!-- =========================================
@@ -153,7 +32,7 @@
 
     @if (errorMessage()) {
 
-    <div class="error">
+    <div class="member-error">
         {{ errorMessage() }}
     </div>
 
@@ -161,42 +40,13 @@
 
 
     <!-- =========================================
-       LOADING
+       CREATE SUCCESS
        ========================================= -->
 
-    @if (loading()) {
+    @if (createWorkspaceSuccess()) {
 
-    <div class="state">
-        Loading workspaces...
-    </div>
-
-    }
-
-
-    <!-- =========================================
-       EMPTY WORKSPACES
-       ========================================= -->
-
-    @if (
-    !loading() &&
-    !errorMessage() &&
-    workspaces().length === 0
-    ) {
-
-    <div class="empty">
-
-        <div class="empty-icon">
-            N
-        </div>
-
-        <h2>
-            No workspaces yet
-        </h2>
-
-        <p>
-            Create your first workspace to get started.
-        </p>
-
+    <div class="success-message">
+        {{ createWorkspaceSuccess() }}
     </div>
 
     }
@@ -206,36 +56,58 @@
        WORKSPACE CONTENT
        ========================================= -->
 
-    @if (
-    !loading() &&
-    !errorMessage() &&
-    workspaces().length > 0
-    ) {
-
     <div class="workspace-layout">
 
-        <!-- =====================================
-           WORKSPACE LIST
-           ===================================== -->
+        <!-- =======================================
+         WORKSPACE LIST
+         ======================================= -->
 
-        <section class="workspace-panel">
+        <section class="workspace-list-card">
 
             <div class="section-header">
 
                 <div>
-
                     <span class="section-eyebrow">
                         YOUR WORKSPACES
                     </span>
 
-                    <h2>
-                        Workspaces
-                    </h2>
-
+                    <h2>Workspaces</h2>
                 </div>
+
+                <span class="workspace-count">
+                    {{ workspaces().length }}
+                </span>
 
             </div>
 
+
+            @if (loading()) {
+
+            <div class="empty-state">
+                Loading workspaces...
+            </div>
+
+            }
+
+            @else if (workspaces().length === 0) {
+
+            <div class="empty-state">
+
+                <h3>No workspaces yet</h3>
+
+                <p>
+                    Create your first workspace to get started.
+                </p>
+
+                <button type="button" class="primary-button" (click)="openCreateWorkspace()">
+                    Create Workspace
+                </button>
+
+            </div>
+
+            }
+
+            @else {
 
             <div class="workspace-list">
 
@@ -244,214 +116,289 @@
                 track workspace._id
                 ) {
 
-                <button type="button" class="workspace-card" [class.active]="
-                        selectedWorkspace()?._id === workspace._id
-                    " (click)="selectWorkspace(workspace)">
+                <button type="button" class="workspace-item" [class.active]="
+                selectedWorkspace()?._id === workspace._id
+              " (click)="selectWorkspace(workspace)">
 
-                    <div class="workspace-icon">
-                        {{
-                        workspace.name
-                        .charAt(0)
-                        .toUpperCase()
-                        }}
+                    <div class="workspace-item-icon">
+                        {{ workspace.name.charAt(0).toUpperCase() }}
                     </div>
 
+                    <div class="workspace-item-content">
 
-                    <div class="workspace-info">
-
-                        <h3>
+                        <strong>
                             {{ workspace.name }}
-                        </h3>
+                        </strong>
 
-                        <p>
-                            {{
-                            workspace.description ||
-                            'No description'
-                            }}
-                        </p>
+                        @if (workspace.description) {
+
+                        <span>
+                            {{ workspace.description }}
+                        </span>
+
+                        }
 
                     </div>
-
-
-                    @if (
-                    selectedWorkspace()?._id === workspace._id
-                    ) {
-
-                    <span class="selected-indicator">
-                        ✓
-                    </span>
-
-                    }
 
                 </button>
 
                 }
 
             </div>
+
+            }
 
         </section>
 
 
-        <!-- =====================================
-           MEMBERS PANEL
-           ===================================== -->
+        <!-- =======================================
+         SELECTED WORKSPACE
+         ======================================= -->
 
-        @if (selectedWorkspace()) {
+        <section class="workspace-details-card">
 
-        <section class="members-panel">
+            @if (selectedWorkspace()) {
 
-            <!-- =================================
-               MEMBERS HEADER
-               ================================= -->
+            <!-- =====================================
+             WORKSPACE HEADER
+             ===================================== -->
 
-            <header class="members-header">
+            <div class="workspace-details-header">
 
-                <div>
+                <div class="workspace-title">
 
-                    <span class="section-eyebrow">
-                        MEMBERS
-                    </span>
-
-                    <h2>
-                        {{ selectedWorkspace()?.name }}
-                    </h2>
-
-                    <p>
-                        Manage people who have access
-                        to this workspace.
-                    </p>
-
-                </div>
-
-
-                @if (isCurrentUserWorkspaceOwner()) {
-
-                <button type="button" class="primary-button" (click)="openAddMember()"
-                    [disabled]="memberActionLoading()">
-                    + Add Member
-                </button>
-
-                }
-
-            </header>
-
-
-            <!-- =================================
-               MEMBER ERROR
-               ================================= -->
-
-            @if (memberError()) {
-
-            <div class="member-error">
-                {{ memberError() }}
-            </div>
-
-            }
-
-
-            <!-- =================================
-               ADD MEMBER FORM
-               ================================= -->
-
-            @if (
-            showAddMember() &&
-            isCurrentUserWorkspaceOwner()
-            ) {
-
-            <div class="add-member-form">
-
-                <div class="form-header">
+                    <div class="workspace-large-icon">
+                        {{
+                        selectedWorkspace()!.name
+                        .charAt(0)
+                        .toUpperCase()
+                        }}
+                    </div>
 
                     <div>
 
-                        <h3>
-                            Add Member
-                        </h3>
+                        <span class="section-eyebrow">
+                            ACTIVE WORKSPACE
+                        </span>
+
+                        <h2>
+                            {{ selectedWorkspace()!.name }}
+                        </h2>
+
+                        @if (
+                        selectedWorkspace()!.description
+                        ) {
 
                         <p>
-                            Search for a user and add them
-                            to this workspace.
+                            {{ selectedWorkspace()!.description }}
                         </p>
+
+                        }
 
                     </div>
 
                 </div>
 
 
-                <!-- ===============================
-                   USER SEARCH
-                   =============================== -->
+                <!-- EDIT WORKSPACE -->
 
-                <div class="form-group">
+                @if (isCurrentUserWorkspaceOwner()) {
+                
+                <div class="workspace-header-actions">
+                
+                    <button type="button" class="secondary-button" (click)="openEditWorkspace()">
+                        Edit Workspace
+                    </button>
+                
+                    <button type="button" class="danger-button" (click)="deleteWorkspace()">
+                        Delete Workspace
+                    </button>
+                
+                </div>
+                
+                }
 
-                    <label for="userSearch">
-                        Search User
-                    </label>
+            </div>
 
-                    <input id="userSearch" type="text" [ngModel]="userSearchQuery()" (ngModelChange)="
-                            userSearchQuery.set($event);
-                            searchUsers()
-                        " placeholder="Search by name or email" autocomplete="off"
-                        [disabled]="memberActionLoading()" />
+
+            <!-- =====================================
+             MEMBERS
+             ===================================== -->
+
+            <div class="members-section">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <span class="section-eyebrow">
+                            TEAM
+                        </span>
+
+                        <h2>Workspace Members</h2>
+
+                    </div>
+
+
+                    @if (isCurrentUserWorkspaceOwner()) {
+
+                    <button type="button" class="primary-button" (click)="openAddMember()">
+                        + Add Member
+                    </button>
+
+                    }
 
                 </div>
 
 
-                <!-- ===============================
-                   SEARCH LOADING
-                   =============================== -->
+                <!-- MEMBER ERROR -->
 
-                @if (userSearchLoading()) {
+                @if (memberError()) {
 
-                <div class="user-search-state">
-                    Searching users...
+                <div class="member-error">
+                    {{ memberError() }}
                 </div>
 
                 }
 
 
-                <!-- ===============================
-                   SEARCH RESULTS
-                   =============================== -->
+                <!-- MEMBERS -->
 
-                @if (
-                !userSearchLoading() &&
-                userSearchResults().length > 0
-                ) {
+                @if (membersLoading()) {
 
-                <div class="user-search-results">
+                <div class="empty-state">
+                    Loading members...
+                </div>
+
+                }
+
+                @else if (members().length === 0) {
+
+                <div class="empty-state">
+
+                    <h3>No members</h3>
+
+                    <p>
+                        Add team members to this workspace.
+                    </p>
+
+                </div>
+
+                }
+
+                @else {
+
+                <div class="members-list">
 
                     @for (
-                    user of userSearchResults();
-                    track user._id
+                    member of members();
+                    track member._id
                     ) {
 
-                    <button type="button" class="user-search-result" (click)="selectUser(user)"
-                        [disabled]="memberActionLoading()">
+                    <div class="member-row">
 
-                        <div class="search-user-avatar">
-                            {{
-                            user.firstName
-                            .charAt(0)
-                            .toUpperCase()
-                            }}
+                        <!-- USER -->
+
+                        <div class="member-info">
+
+                            <div class="member-avatar">
+                                {{
+                                member.user.firstName
+                                .charAt(0)
+                                .toUpperCase()
+                                }}
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    {{ member.user.firstName }}
+                                    {{ member.user.lastName }}
+                                </strong>
+
+                                <span>
+                                    {{ member.user.email }}
+                                </span>
+
+                            </div>
+
                         </div>
 
 
-                        <div class="search-user-info">
+                        <!-- ROLE -->
 
-                            <strong>
-                                {{ user.firstName }}
-                                {{ user.lastName }}
-                            </strong>
+                        <div class="member-role">
 
-                            <span>
-                                {{ user.email }}
+                            @if (
+                            isCurrentUserWorkspaceOwner() &&
+                            !isWorkspaceOwner(member)
+                            ) {
+
+                            <select [value]="member.role" (change)="
+                          updateMemberRole(
+                            member,
+                            $any($event.target).value
+                          )
+                        ">
+
+                                @for (
+                                role of memberRoles;
+                                track role
+                                ) {
+
+                                <option [value]="role">
+                                    {{ role }}
+                                </option>
+
+                                }
+
+                            </select>
+
+                            }
+
+                            @else {
+
+                            <span class="role-badge">
+                                {{ member.role }}
+                            </span>
+
+                            }
+
+                        </div>
+
+
+                        <!-- STATUS -->
+
+                        <div class="member-status">
+
+                            <span class="status-badge" [class.active-status]="
+                        member.status === 'ACTIVE'
+                      ">
+                                {{ member.status }}
                             </span>
 
                         </div>
 
-                    </button>
+
+                        <!-- ACTIONS -->
+
+                        @if (
+                        isCurrentUserWorkspaceOwner() &&
+                        !isWorkspaceOwner(member)
+                        ) {
+
+                        <div class="member-actions">
+
+                            <button type="button" class="danger-button" (click)="removeMember(member)"
+                                [disabled]="memberActionLoading()">
+                                Remove
+                            </button>
+
+                        </div>
+
+                        }
+
+                    </div>
 
                     }
 
@@ -459,270 +406,281 @@
 
                 }
 
-
-                <!-- ===============================
-                   SELECTED USER
-                   =============================== -->
-
-                @if (selectedUser(); as user) {
-
-                <div class="selected-user">
-
-                    <div class="selected-user-avatar">
-                        {{
-                        user.firstName
-                        .charAt(0)
-                        .toUpperCase()
-                        }}
-                    </div>
-
-
-                    <div class="selected-user-info">
-
-                        <strong>
-                            {{ user.firstName }}
-                            {{ user.lastName }}
-                        </strong>
-
-                        <span>
-                            {{ user.email }}
-                        </span>
-
-                    </div>
-
-
-                    <span class="selected-user-check">
-                        ✓
-                    </span>
-
-                </div>
-
-                }
-
-
-                <!-- ===============================
-                   ROLE
-                   =============================== -->
-
-                <div class="form-group">
-
-                    <label for="memberRole">
-                        Role
-                    </label>
-
-                    <select id="memberRole" class="role-select" [ngModel]="memberRole()"
-                        (ngModelChange)="memberRole.set($event)" [disabled]="memberActionLoading()">
-
-                        <option value="MEMBER">
-                            MEMBER
-                        </option>
-
-                        <option value="ADMIN">
-                            ADMIN
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- ===============================
-                   ACTIONS
-                   =============================== -->
-
-                <div class="form-actions">
-
-                    <button type="button" class="secondary-button" (click)="closeAddMember()"
-                        [disabled]="memberActionLoading()">
-                        Cancel
-                    </button>
-
-
-                    <button type="button" class="primary-button" (click)="addMember()" [disabled]="
-                            memberActionLoading() ||
-                            !selectedUser()
-                        ">
-
-                        @if (memberActionLoading()) {
-                        Adding...
-                        } @else {
-                        Add Member
-                        }
-
-                    </button>
-
-                </div>
-
             </div>
 
             }
 
+            @else {
 
-            <!-- =================================
-               MEMBERS LOADING
-               ================================= -->
+            <div class="empty-state workspace-empty">
 
-            @if (membersLoading()) {
-
-            <div class="member-state">
-                Loading members...
-            </div>
-
-            }
-
-
-            <!-- =================================
-               NO MEMBERS
-               ================================= -->
-
-            @if (
-            !membersLoading() &&
-            members().length === 0
-            ) {
-
-            <div class="no-members">
-
-                <div class="no-members-icon">
-                    👤
+                <div class="workspace-empty-icon">
+                    ◫
                 </div>
 
-                <h3>
-                    No members found
-                </h3>
+                <h2>
+                    Select a workspace
+                </h2>
 
                 <p>
-                    Add a member to this workspace
-                    to get started.
+                    Choose a workspace from the list to manage
+                    members and settings.
                 </p>
 
             </div>
 
             }
 
+        </section>
 
-            <!-- =================================
-               MEMBER LIST
-               ================================= -->
-
-            @if (
-            !membersLoading() &&
-            members().length > 0
-            ) {
-
-            <div class="member-list">
-
-                @for (
-                member of members();
-                track member._id
-                ) {
-
-                <article class="member-card">
-
-                    <!-- =========================
-                       AVATAR
-                       ========================= -->
-
-                    <div class="member-avatar">
-
-                        {{
-                        member.user.firstName
-                        .charAt(0)
-                        .toUpperCase()
-                        }}
-
-                    </div>
+    </div>
 
 
-                    <!-- =========================
-                       MEMBER INFORMATION
-                       ========================= -->
+    <!-- =========================================
+       CREATE WORKSPACE MODAL
+       ========================================= -->
 
-                    <div class="member-info">
+    @if (showCreateWorkspace()) {
 
-                        <h3>
-                            {{ member.user.firstName }}
-                            {{ member.user.lastName }}
-                        </h3>
+    <div class="modal-backdrop">
 
-                        <p>
-                            {{ member.user.email }}
-                        </p>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="createWorkspaceTitle">
 
-                    </div>
+            <div class="modal-header">
 
+                <div>
 
-                    <!-- =========================
-                       MEMBER ACTIONS
-                       ========================= -->
+                    <span class="section-eyebrow">
+                        NEW WORKSPACE
+                    </span>
 
-                    <div class="member-meta">
+                    <h2 id="createWorkspaceTitle">
+                        Create Workspace
+                    </h2>
 
-                        @if (isWorkspaceOwner(member)) {
+                    <p>
+                        Create a workspace for your team.
+                    </p>
 
-                        <!-- OWNER -->
+                </div>
 
-                        <span class="role-badge owner">
-                            OWNER
-                        </span>
+                <button type="button" class="modal-close" (click)="closeCreateWorkspace()"
+                    [disabled]="createWorkspaceLoading()">
+                    ×
+                </button>
 
-                        <span class="owner-label">
-                            Workspace Owner
-                        </span>
-
-                        } @else {
-
-                        @if (isCurrentUserWorkspaceOwner()) {
-
-                        <!-- OWNER CAN MANAGE MEMBER -->
-
-                        <select class="role-select" [value]="member.role" [disabled]="memberActionLoading()" (change)="
-                                updateMemberRole(
-                                    member,
-                                    $any($event.target).value
-                                )
-                            ">
-
-                            <option value="MEMBER">
-                                MEMBER
-                            </option>
-
-                            <option value="ADMIN">
-                                ADMIN
-                            </option>
-
-                        </select>
+            </div>
 
 
-                        <button type="button" class="remove-button" [disabled]="memberActionLoading()"
-                            (click)="removeMember(member)">
-                            Remove
-                        </button>
+            @if (createWorkspaceError()) {
 
-                        } @else {
-
-                        <!-- REGULAR MEMBER -->
-
-                        <span class="role-badge" [class.admin]="member.role === 'ADMIN'">
-                            {{ member.role }}
-                        </span>
-
-                        }
-
-                        }
-
-                    </div>
-
-                </article>
-
-                }
-
+            <div class="member-error">
+                {{ createWorkspaceError() }}
             </div>
 
             }
 
-        </section>
 
-        }
+            <form [formGroup]="createWorkspaceForm" (ngSubmit)="createWorkspace()" novalidate>
+
+                <div class="form-group">
+
+                    <label for="workspaceName">
+                        Workspace Name
+                    </label>
+
+                    <input id="workspaceName" type="text" formControlName="name" placeholder="e.g. NovaDesk AI"
+                        autocomplete="off" />
+
+                    @if (
+                    createWorkspaceForm.controls.name.invalid &&
+                    createWorkspaceForm.controls.name.touched
+                    ) {
+
+                    <small class="field-error">
+
+                        @if (
+                        createWorkspaceForm.controls.name.hasError(
+                        'required'
+                        )
+                        ) {
+                        Workspace name is required.
+                        }
+
+                        @else if (
+                        createWorkspaceForm.controls.name.hasError(
+                        'minlength'
+                        )
+                        ) {
+                        Workspace name must be at least 2 characters.
+                        }
+
+                    </small>
+
+                    }
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="workspaceDescription">
+                        Description
+                    </label>
+
+                    <textarea id="workspaceDescription" rows="4" formControlName="description"
+                        placeholder="Describe your workspace"></textarea>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button type="button" class="secondary-button" (click)="closeCreateWorkspace()"
+                        [disabled]="createWorkspaceLoading()">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="primary-button" [disabled]="createWorkspaceLoading()">
+
+                        @if (createWorkspaceLoading()) {
+                        Creating...
+                        } @else {
+                        Create Workspace
+                        }
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    }
+
+
+    <!-- =========================================
+       EDIT WORKSPACE MODAL
+       ========================================= -->
+
+    @if (showEditWorkspace()) {
+
+    <div class="modal-backdrop">
+
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="editWorkspaceTitle">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        WORKSPACE SETTINGS
+                    </span>
+
+                    <h2 id="editWorkspaceTitle">
+                        Edit Workspace
+                    </h2>
+
+                    <p>
+                        Update your workspace information.
+                    </p>
+
+                </div>
+
+                <button type="button" class="modal-close" (click)="closeEditWorkspace()"
+                    [disabled]="editWorkspaceLoading()">
+                    ×
+                </button>
+
+            </div>
+
+
+            @if (editWorkspaceError()) {
+
+            <div class="member-error">
+                {{ editWorkspaceError() }}
+            </div>
+
+            }
+
+
+            <form [formGroup]="editWorkspaceForm" (ngSubmit)="updateWorkspace()" novalidate>
+
+                <div class="form-group">
+
+                    <label for="editWorkspaceName">
+                        Workspace Name
+                    </label>
+
+                    <input id="editWorkspaceName" type="text" formControlName="name" autocomplete="off" />
+
+                    @if (
+                    editWorkspaceForm.controls.name.invalid &&
+                    editWorkspaceForm.controls.name.touched
+                    ) {
+
+                    <small class="field-error">
+
+                        @if (
+                        editWorkspaceForm.controls.name.hasError(
+                        'required'
+                        )
+                        ) {
+                        Workspace name is required.
+                        }
+
+                        @else if (
+                        editWorkspaceForm.controls.name.hasError(
+                        'minlength'
+                        )
+                        ) {
+                        Workspace name must be at least 2 characters.
+                        }
+
+                    </small>
+
+                    }
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="editWorkspaceDescription">
+                        Description
+                    </label>
+
+                    <textarea id="editWorkspaceDescription" rows="4" formControlName="description"
+                        placeholder="Describe your workspace"></textarea>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button type="button" class="secondary-button" (click)="closeEditWorkspace()"
+                        [disabled]="editWorkspaceLoading()">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="primary-button" [disabled]="editWorkspaceLoading()">
+
+                        @if (editWorkspaceLoading()) {
+                        Saving...
+                        } @else {
+                        Save Changes
+                        }
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
 
     </div>
 

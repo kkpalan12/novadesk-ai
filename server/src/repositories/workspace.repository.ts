@@ -1,6 +1,7 @@
 import { Workspace } from "../models/workspace.model";
 import { WorkspaceEntity } from "../entities/workspace.entity";
 import { UpdateWorkspaceDto } from "../dto/workspace/update-workspace.dto";
+import { Membership } from "../models/membership.model";
 
 export class WorkspaceRepository {
   /**
@@ -40,7 +41,6 @@ export class WorkspaceRepository {
 
     const query: Record<string, any> = {
       isDeleted: { $ne: true },
-
       $or: [{ owner: userId }, { members: userId }],
     };
 
@@ -115,8 +115,6 @@ export class WorkspaceRepository {
 
   /**
    * Add Member
-   *
-   * Only owner should be allowed by service layer.
    */
   async addMember(workspaceId: string, userId: string) {
     return Workspace.findOneAndUpdate(
@@ -154,6 +152,10 @@ export class WorkspaceRepository {
       },
     );
   }
+
+  /**
+   * Check Workspace Owner
+   */
   async isOwner(workspaceId: string, userId: string): Promise<boolean> {
     const workspace = await Workspace.exists({
       _id: workspaceId,
@@ -163,17 +165,54 @@ export class WorkspaceRepository {
 
     return !!workspace;
   }
-  async findAccessibleWorkspaceIds(userId: string) {
-    const workspaces = await Workspace.find(
-      {
-        isDeleted: { $ne: true },
-        $or: [{ owner: userId }, { members: userId }],
-      },
-      { _id: 1 },
-    ).lean();
 
-    return workspaces.map((workspace) => String(workspace._id));
+  /**
+   * Find Accessible Workspace IDs
+   *
+   * Access comes from:
+   *
+   * 1. Workspace owner
+   * 2. Workspace.members[]
+   * 3. Active Membership record
+   *
+   * Membership is included as a fallback because
+   * Workspace.members[] is a denormalized field.
+   */
+  async findAccessibleWorkspaceIds(userId: string) {
+    const [workspaceMemberships, memberships] = await Promise.all([
+      Workspace.find(
+        {
+          isDeleted: { $ne: true },
+          $or: [{ owner: userId }, { members: userId }],
+        },
+        { _id: 1 },
+      ).lean(),
+
+      Membership.find(
+        {
+          user: userId,
+          status: "ACTIVE",
+        },
+        { workspace: 1 },
+      ).lean(),
+    ]);
+
+    const workspaceIds = new Set<string>();
+
+    for (const workspace of workspaceMemberships) {
+      workspaceIds.add(String(workspace._id));
+    }
+
+    for (const membership of memberships) {
+      workspaceIds.add(String(membership.workspace));
+    }
+
+    return Array.from(workspaceIds);
   }
+
+  /**
+   * Find Workspace Owner
+   */
   async findOwner(workspaceId: string) {
     return Workspace.findOne({
       _id: workspaceId,

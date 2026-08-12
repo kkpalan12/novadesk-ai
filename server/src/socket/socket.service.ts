@@ -27,9 +27,13 @@ export class SocketService {
     try {
       const io = getIO();
 
+      console.log("🔔 Sending notification to:", `user:${userId}`);
+
       io.to(`user:${userId}`).emit("notification:new", notification);
-    } catch {
-      console.warn("Socket.IO unavailable. Skipping notification.");
+
+      console.log("✅ notification:new emitted");
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping notification.", error);
     }
   }
 
@@ -37,11 +41,20 @@ export class SocketService {
     try {
       const io = getIO();
 
+      console.log(
+        "🔔 Sending unread count to:",
+        `user:${userId}`,
+        "count:",
+        count,
+      );
+
       io.to(`user:${userId}`).emit("notification:unread-count", {
         count,
       });
-    } catch {
-      console.warn("Socket.IO unavailable. Skipping unread count.");
+
+      console.log("✅ notification:unread-count emitted");
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping unread count.", error);
     }
   }
 }

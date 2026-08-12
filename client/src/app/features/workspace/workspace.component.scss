@@ -1,1053 +1,81 @@
 // =========================================
-// PAGE
+// WORKSPACE PAGE
 // =========================================
 
 .workspace-page {
-    min-height: 100%;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
     padding: 32px;
-    background: #f6f8fb;
     box-sizing: border-box;
 }
 
-
 // =========================================
-// HEADER
+// PAGE HEADER
 // =========================================
 
 .page-header {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: space-between;
-
     gap: 24px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
+
+    h1 {
+        margin: 6px 0 8px;
+        color: #111827;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
 }
 
-.eyebrow {
+.eyebrow,
+.section-eyebrow {
     display: block;
-
-    margin-bottom: 7px;
-
-    color: #94a3b8;
-
-    font-size: 10px;
+    color: #6b7280;
+    font-size: 11px;
     font-weight: 700;
-
-    letter-spacing: 0.12em;
+    letter-spacing: 0.08em;
 }
-
-.page-header h1 {
-    margin: 0;
-
-    color: #0f172a;
-
-    font-size: 32px;
-    line-height: 1.15;
-    font-weight: 700;
-}
-
-.page-header p {
-    margin: 8px 0 0;
-
-    color: #64748b;
-
-    font-size: 14px;
-}
-
 
 // =========================================
-// GENERAL BUTTONS
+// BUTTONS
 // =========================================
 
 .primary-button,
-.secondary-button {
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    gap: 8px;
-
-    min-height: 42px;
-
+.secondary-button,
+.danger-button {
+    min-height: 40px;
     padding: 0 16px;
 
-    border-radius: 8px;
+    border-radius: 7px;
 
     font-family: inherit;
-
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
 
     cursor: pointer;
 
-    box-sizing: border-box;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        opacity 0.15s ease;
 }
 
 .primary-button {
-    border: 0;
-
+    border: 1px solid #2563eb;
     background: #2563eb;
     color: #ffffff;
 
-    transition:
-        background 0.15s ease,
-        transform 0.15s ease;
-}
-
-.primary-button:hover:not(:disabled) {
-    background: #1d4ed8;
-
-    transform: translateY(-1px);
-}
-
-.primary-button:disabled {
-    opacity: 0.5;
-
-    cursor: not-allowed;
-}
-
-.secondary-button {
-    border: 1px solid #dbe2ea;
-
-    background: #ffffff;
-
-    color: #475569;
-}
-
-.secondary-button:hover:not(:disabled) {
-    background: #f8fafc;
-}
-
-.secondary-button:disabled {
-    opacity: 0.5;
-
-    cursor: not-allowed;
-}
-
-
-// =========================================
-// ERROR
-// =========================================
-
-.error {
-    margin-bottom: 24px;
-
-    padding: 14px 16px;
-
-    border: 1px solid #fecaca;
-
-    border-radius: 8px;
-
-    background: #fef2f2;
-
-    color: #b91c1c;
-
-    font-size: 14px;
-}
-
-.member-error {
-    margin-top: 20px;
-
-    padding: 12px 14px;
-
-    border: 1px solid #fecaca;
-
-    border-radius: 8px;
-
-    background: #fef2f2;
-
-    color: #b91c1c;
-
-    font-size: 13px;
-}
-
-
-// =========================================
-// STATES
-// =========================================
-
-.state {
-    padding: 24px;
-
-    background: #ffffff;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 10px;
-
-    color: #64748b;
-
-    font-size: 14px;
-}
-
-.empty {
-    padding: 56px 24px;
-
-    text-align: center;
-
-    background: #ffffff;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 10px;
-}
-
-.empty-icon {
-    width: 46px;
-    height: 46px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    margin: 0 auto 14px;
-
-    border-radius: 50%;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.empty h2 {
-    margin: 0 0 7px;
-
-    color: #0f172a;
-
-    font-size: 18px;
-}
-
-.empty p {
-    margin: 0;
-
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-
-// =========================================
-// MAIN WORKSPACE LAYOUT
-// =========================================
-
-.workspace-layout {
-    display: grid;
-
-    grid-template-columns:
-        minmax(280px, 350px) minmax(0, 1fr);
-
-    gap: 22px;
-
-    align-items: start;
-}
-
-
-// =========================================
-// WORKSPACE PANEL
-// =========================================
-
-.workspace-panel {
-    padding: 22px;
-
-    background: #ffffff;
-
-    border: 1px solid #dbe2ea;
-
-    border-radius: 10px;
-
-    box-sizing: border-box;
-}
-
-.section-header {
-    margin-bottom: 16px;
-}
-
-.section-eyebrow {
-    display: block;
-
-    margin-bottom: 5px;
-
-    color: #94a3b8;
-
-    font-size: 10px;
-
-    font-weight: 700;
-
-    letter-spacing: 0.1em;
-}
-
-.section-header h2 {
-    margin: 0;
-
-    color: #0f172a;
-
-    font-size: 19px;
-}
-
-
-// =========================================
-// WORKSPACE LIST
-// =========================================
-
-.workspace-list {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-}
-
-.workspace-card {
-    width: 100%;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-
-    position: relative;
-
-    padding: 14px;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 9px;
-
-    background: #ffffff;
-
-    text-align: left;
-
-    font-family: inherit;
-
-    cursor: pointer;
-
-    transition:
-        border-color 0.15s ease,
-        background 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-.workspace-card:hover {
-    border-color: #bfdbfe;
-
-    background: #f8fbff;
-}
-
-.workspace-card.active {
-    border-color: #93c5fd;
-
-    background: #eff6ff;
-
-    box-shadow:
-        0 0 0 1px rgba(37, 99, 235, 0.05);
-}
-
-.workspace-icon {
-    width: 42px;
-    height: 42px;
-
-    min-width: 42px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 9px;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    font-size: 17px;
-
-    font-weight: 700;
-}
-
-.workspace-card.active .workspace-icon {
-    background: #dbeafe;
-}
-
-.workspace-info {
-    min-width: 0;
-
-    flex: 1;
-}
-
-.workspace-info h3 {
-    margin: 0 0 5px;
-
-    color: #0f172a;
-
-    font-size: 15px;
-
-    font-weight: 650;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-.workspace-info p {
-    margin: 0;
-
-    color: #64748b;
-
-    font-size: 12px;
-
-    line-height: 1.5;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-.selected-indicator {
-    color: #2563eb;
-
-    font-size: 17px;
-
-    font-weight: 700;
-}
-
-
-// =========================================
-// MEMBERS PANEL
-// =========================================
-
-.members-panel {
-    min-width: 0;
-
-    padding: 24px;
-
-    background: #ffffff;
-
-    border: 1px solid #dbe2ea;
-
-    border-radius: 10px;
-
-    box-sizing: border-box;
-}
-
-.members-header {
-    display: flex;
-
-    align-items: flex-start;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
-    padding-bottom: 20px;
-
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.members-header h2 {
-    margin: 0;
-
-    color: #0f172a;
-
-    font-size: 22px;
-
-    line-height: 1.2;
-}
-
-.members-header p {
-    margin: 7px 0 0;
-
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-
-// =========================================
-// ADD MEMBER FORM
-// =========================================
-
-.add-member-form {
-    margin-top: 20px;
-
-    padding: 22px;
-
-    background: #f8fafc;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 9px;
-}
-
-.form-header {
-    margin-bottom: 20px;
-}
-
-.form-header h3 {
-    margin: 0;
-
-    color: #0f172a;
-
-    font-size: 17px;
-}
-
-.form-header p {
-    margin: 6px 0 0;
-
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-
-// =========================================
-// FORM
-// =========================================
-
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-
-    margin-bottom: 7px;
-
-    color: #334155;
-
-    font-size: 13px;
-
-    font-weight: 600;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-
-    box-sizing: border-box;
-
-    padding: 11px 12px;
-
-    border: 1px solid #dbe2ea;
-
-    border-radius: 7px;
-
-    background: #ffffff;
-
-    color: #0f172a;
-
-    font-family: inherit;
-
-    font-size: 14px;
-
-    outline: none;
-
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-.form-group input {
-    height: 42px;
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    border-color: #2563eb;
-
-    box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.form-group input:disabled,
-.form-group textarea:disabled,
-.form-group select:disabled {
-    background: #f1f5f9;
-
-    cursor: not-allowed;
-}
-
-.form-role-select {
-    width: 100%;
-}
-
-
-// =========================================
-// FORM ACTIONS
-// =========================================
-
-.form-actions {
-    display: flex;
-
-    justify-content: flex-end;
-
-    gap: 10px;
-
-    padding-top: 4px;
-}
-
-
-// =========================================
-// MEMBER STATE
-// =========================================
-
-.member-state {
-    padding: 30px 10px;
-
-    text-align: center;
-
-    color: #64748b;
-
-    font-size: 14px;
-}
-
-
-// =========================================
-// NO MEMBERS
-// =========================================
-
-.no-members {
-    padding: 48px 20px;
-
-    text-align: center;
-}
-
-.no-members-icon {
-    width: 46px;
-    height: 46px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    margin: 0 auto 14px;
-
-    border-radius: 50%;
-
-    background: #eff6ff;
-
-    font-size: 20px;
-}
-
-.no-members h3 {
-    margin: 0 0 7px;
-
-    color: #0f172a;
-
-    font-size: 17px;
-}
-
-.no-members p {
-    margin: 0;
-
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-
-// =========================================
-// MEMBER LIST
-// =========================================
-
-.member-list {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-
-    margin-top: 20px;
-}
-
-
-// =========================================
-// MEMBER CARD
-// =========================================
-
-.member-card {
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-
-    min-width: 0;
-
-    padding: 14px 16px;
-
-    background: #ffffff;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 9px;
-
-    box-sizing: border-box;
-
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-.member-card:hover {
-    border-color: #cbd5e1;
-
-    box-shadow:
-        0 3px 10px rgba(15, 23, 42, 0.04);
-}
-
-
-// =========================================
-// MEMBER AVATAR
-// =========================================
-
-.member-avatar {
-    width: 44px;
-    height: 44px;
-
-    min-width: 44px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    font-size: 16px;
-
-    font-weight: 700;
-}
-
-
-// =========================================
-// MEMBER INFO
-// =========================================
-
-.member-info {
-    min-width: 0;
-
-    flex: 1;
-}
-
-.member-info h3 {
-    margin: 0 0 5px;
-
-    color: #0f172a;
-
-    font-size: 14px;
-
-    font-weight: 650;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-.member-info p {
-    margin: 0;
-
-    color: #64748b;
-
-    font-size: 12px;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-
-// =========================================
-// MEMBER META
-// =========================================
-
-.member-meta {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: flex-end;
-
-    gap: 10px;
-
-    margin-left: auto;
-
-    flex-shrink: 0;
-}
-
-
-// =========================================
-// ROLE SELECT
-// =========================================
-
-.role-select {
-    min-width: 110px;
-
-    height: 36px;
-
-    padding: 0 10px;
-
-    border: 1px solid #dbe2ea;
-
-    border-radius: 7px;
-
-    background: #ffffff;
-
-    color: #334155;
-
-    font-family: inherit;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    outline: none;
-}
-
-.role-select:focus {
-    border-color: #2563eb;
-
-    box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.role-select:disabled {
-    opacity: 0.5;
-
-    cursor: not-allowed;
-}
-
-
-// =========================================
-// ROLE BADGE
-// =========================================
-
-.role-badge {
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    min-height: 28px;
-
-    padding: 0 10px;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 6px;
-
-    background: #f8fafc;
-
-    color: #475569;
-
-    font-size: 11px;
-
-    font-weight: 700;
-
-    letter-spacing: 0.04em;
-}
-
-
-// =========================================
-// OWNER BADGE
-// =========================================
-
-.role-badge.owner {
-    border-color: #fde68a;
-
-    background: #fef3c7;
-
-    color: #92400e;
-}
-
-.owner-label {
-    color: #94a3b8;
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-    white-space: nowrap;
-}
-
-
-// =========================================
-// REMOVE BUTTON
-// =========================================
-
-.remove-button {
-    min-height: 36px;
-
-    padding: 0 12px;
-
-    border: 1px solid #fecaca;
-
-    border-radius: 7px;
-
-    background: #ffffff;
-
-    color: #dc2626;
-
-    font-family: inherit;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    white-space: nowrap;
-}
-
-.remove-button:hover:not(:disabled) {
-    background: #fef2f2;
-}
-
-.remove-button:disabled {
-    opacity: 0.5;
-
-    cursor: not-allowed;
-}
-
-
-// =========================================
-// RESPONSIVE
-// =========================================
-
-@media (max-width: 1000px) {
-
-    .workspace-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .workspace-list {
-        display: grid;
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-}
-
-
-@media (max-width: 700px) {
-
-    .workspace-page {
-        padding: 20px;
-    }
-
-    .members-header {
-        flex-direction: column;
-    }
-
-    .members-header .primary-button {
-        width: 100%;
-    }
-
-    .workspace-list {
-        grid-template-columns: 1fr;
-    }
-
-    .member-card {
-        flex-wrap: wrap;
-    }
-
-    .member-info {
-        flex: 1;
-
-        min-width: 150px;
-    }
-
-    .member-meta {
-        width: 100%;
-
-        margin-left: 0;
-
-        justify-content: flex-start;
-    }
-
-    .add-member-form {
-        padding: 18px;
-    }
-
-    .form-actions {
-        flex-direction: column-reverse;
-    }
-
-    .form-actions button {
-        width: 100%;
-    }
-}
-// =========================================
-// USER SEARCH
-// =========================================
-
-.user-search-state {
-    padding: 12px;
-
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-.user-search-results {
-    margin-top: -10px;
-    margin-bottom: 18px;
-
-    border: 1px solid #dbe2ea;
-    border-radius: 8px;
-
-    background: #fff;
-
-    overflow: hidden;
-}
-
-.user-search-result {
-    width: 100%;
-
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
-
-    padding: 12px;
-
-    border: 0;
-    border-bottom: 1px solid #f1f5f9;
-
-    background: #fff;
-
-    text-align: left;
-
-    cursor: pointer;
-
-    &:last-child {
-        border-bottom: 0;
-    }
-
     &:hover {
-        background: #f8fafc;
+        background: #1d4ed8;
+        border-color: #1d4ed8;
     }
 
     &:disabled {
@@ -1056,141 +84,474 @@
     }
 }
 
-.search-user-avatar,
-.selected-user-avatar {
-    width: 38px;
-    height: 38px;
+.secondary-button {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #374151;
 
-    flex-shrink: 0;
+    &:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
 
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.danger-button {
+    min-height: 34px;
+    padding: 0 12px;
+
+    border: 1px solid #fecaca;
+    background: #ffffff;
+    color: #dc2626;
+
+    &:hover {
+        background: #fef2f2;
+        border-color: #fca5a5;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// =========================================
+// WORKSPACE LAYOUT
+// =========================================
+
+.workspace-layout {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+// =========================================
+// CARDS
+// =========================================
+
+.workspace-list-card,
+.workspace-details-card {
+    min-width: 0;
+
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.workspace-list-card {
+    overflow: hidden;
+}
+
+.workspace-details-card {
+    min-height: 520px;
+}
+
+// =========================================
+// SECTION HEADER
+// =========================================
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+
+    h2 {
+        margin: 5px 0 0;
+
+        color: #111827;
+        font-size: 17px;
+        font-weight: 650;
+    }
+}
+
+.workspace-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+
+    border-radius: 14px;
+
+    background: #f3f4f6;
+    color: #4b5563;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+// =========================================
+// WORKSPACE LIST
+// =========================================
+
+.workspace-list {
+    padding: 8px;
+}
+
+.workspace-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    padding: 12px;
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    background: transparent;
+    color: inherit;
+
+    text-align: left;
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+
+    &:hover {
+        background: #f9fafb;
+    }
+
+    &.active {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+    }
+}
+
+.workspace-item-icon,
+.workspace-large-icon {
     display: flex;
     align-items: center;
     justify-content: center;
 
-    border-radius: 50%;
+    flex: 0 0 auto;
+
+    border-radius: 8px;
 
     background: #eff6ff;
     color: #2563eb;
 
-    font-size: 14px;
     font-weight: 700;
 }
 
-.search-user-info,
-.selected-user-info {
+.workspace-item-icon {
+    width: 38px;
+    height: 38px;
+    margin-right: 12px;
+
+    font-size: 14px;
+}
+
+.workspace-item-content {
     min-width: 0;
 
-    display: flex;
-    flex-direction: column;
-
-    gap: 3px;
-
-    strong {
-        color: #0f172a;
-
-        font-size: 13px;
-        font-weight: 600;
-    }
-
+    strong,
     span {
-        color: #64748b;
-
-        font-size: 12px;
+        display: block;
 
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    strong {
+        color: #111827;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    span {
+        margin-top: 3px;
+
+        color: #9ca3af;
+        font-size: 11px;
+    }
 }
 
 // =========================================
-// SELECTED USER
+// SELECTED WORKSPACE
 // =========================================
 
-.selected-user {
+.workspace-details-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+
+    padding: 24px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.workspace-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+}
+
+.workspace-large-icon {
+    width: 52px;
+    height: 52px;
+
+    font-size: 18px;
+}
+
+.workspace-title>div:last-child {
+    min-width: 0;
+}
+
+.workspace-title h2 {
+    margin: 6px 0;
+
+    color: #111827;
+    font-size: 22px;
+    font-weight: 700;
+
+    word-break: break-word;
+}
+
+.workspace-title p {
+    margin: 0;
+
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+// =========================================
+// MEMBERS
+// =========================================
+
+.members-section {
+    padding-bottom: 20px;
+}
+
+.members-list {
+    padding: 8px 20px;
+}
+
+.member-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 130px 100px auto;
+    align-items: center;
+    gap: 16px;
+
+    padding: 14px 0;
+
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+}
+
+.member-info {
     display: flex;
     align-items: center;
-
     gap: 12px;
-
-    margin-bottom: 18px;
-    padding: 12px;
-
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-
-    background: #eff6ff;
+    min-width: 0;
 }
 
-.selected-user-info {
-    flex: 1;
-}
-
-.selected-user-check {
-    width: 24px;
-    height: 24px;
-
+.member-avatar {
     display: flex;
     align-items: center;
     justify-content: center;
 
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+
     border-radius: 50%;
 
-    background: #2563eb;
-    color: #fff;
+    background: #f3f4f6;
+    color: #374151;
 
     font-size: 13px;
     font-weight: 700;
 }
 
-// =========================================
-// ROLE SELECT
-// =========================================
+.member-info>div:last-child {
+    min-width: 0;
+}
 
-.role-select {
+.member-info strong,
+.member-info span {
+    display: block;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-info strong {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.member-info span {
+    margin-top: 3px;
+
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.member-role select {
     width: 100%;
-    box-sizing: border-box;
 
-    padding: 11px 12px;
+    padding: 8px 10px;
 
-    border: 1px solid #dbe2ea;
-    border-radius: 7px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
 
-    background: #fff;
-    color: #0f172a;
+    background: #ffffff;
+    color: #374151;
 
     font-family: inherit;
-    font-size: 14px;
+    font-size: 12px;
 
     outline: none;
 
-    cursor: pointer;
-
     &:focus {
         border-color: #2563eb;
-
-        box-shadow:
-            0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    &:disabled {
-        background: #f8fafc;
-        cursor: not-allowed;
     }
 }
-// =========================================
-// Page Header
-// =========================================
 
-.page-header {
+.role-badge,
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 28px;
+    padding: 0 9px;
+
+    border-radius: 14px;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.role-badge {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.status-badge {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.status-badge.active-status {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.member-actions {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
+    justify-content: flex-end;
 }
 
 // =========================================
-// Modal
+// EMPTY STATE
+// =========================================
+
+.empty-state {
+    padding: 48px 24px;
+
+    text-align: center;
+
+    h2,
+    h3 {
+        margin: 0 0 8px;
+
+        color: #374151;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    h3 {
+        font-size: 15px;
+    }
+
+    p {
+        max-width: 420px;
+        margin: 0 auto 18px;
+
+        color: #9ca3af;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+}
+
+.workspace-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 420px;
+}
+
+.workspace-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 54px;
+    height: 54px;
+    margin-bottom: 16px;
+
+    border-radius: 12px;
+
+    background: #f3f4f6;
+    color: #6b7280;
+
+    font-size: 24px;
+}
+
+// =========================================
+// MESSAGES
+// =========================================
+
+.member-error,
+.success-message {
+    margin: 16px 20px;
+    padding: 11px 13px;
+
+    border-radius: 7px;
+
+    font-size: 13px;
+}
+
+.member-error {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.success-message {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+// =========================================
+// MODAL
 // =========================================
 
 .modal-backdrop {
@@ -1210,11 +571,18 @@
 .modal-card {
     width: 100%;
     max-width: 520px;
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
 
     padding: 28px;
 
-    background: #ffffff;
+    box-sizing: border-box;
+
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
+
+    background: #ffffff;
 
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.18);
@@ -1222,6 +590,7 @@
 
 .modal-header {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 20px;
 
@@ -1231,20 +600,27 @@
         margin: 6px 0;
 
         color: #111827;
-        font-size: 22px;
+        font-size: 21px;
+        font-weight: 700;
     }
 
     p {
         margin: 0;
 
         color: #6b7280;
-        font-size: 14px;
+        font-size: 13px;
+        line-height: 1.5;
     }
 }
 
 .modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     width: 32px;
     height: 32px;
+    flex: 0 0 32px;
 
     border: 0;
     border-radius: 6px;
@@ -1269,58 +645,110 @@
 }
 
 // =========================================
-// Modal Form
+// FORM
 // =========================================
 
-.modal-card {
+.form-group {
+    margin-bottom: 20px;
+}
 
-    .form-group {
-        margin-bottom: 20px;
-    }
+.form-group label {
+    display: block;
 
-    label {
-        display: block;
+    margin-bottom: 7px;
 
-        margin-bottom: 7px;
+    color: #374151;
 
-        color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+}
 
-        font-size: 14px;
-        font-weight: 600;
-    }
+.form-group input,
+.form-group textarea {
+    display: block;
 
-    input,
-    textarea {
-        width: 100%;
-        box-sizing: border-box;
+    width: 100%;
 
-        padding: 12px 14px;
+    box-sizing: border-box;
 
-        border: 1px solid #d1d5db;
-        border-radius: 7px;
+    padding: 11px 13px;
 
-        background: #ffffff;
-        color: #111827;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
 
-        font-family: inherit;
-        font-size: 14px;
+    background: #ffffff;
+    color: #111827;
 
-        outline: none;
+    font-family: inherit;
+    font-size: 13px;
 
-        &:focus {
-            border-color: #2563eb;
+    outline: none;
 
-            box-shadow:
-                0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-    }
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 
-    textarea {
-        resize: vertical;
+    &:focus {
+        border-color: #2563eb;
+
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 }
 
-@media (max-width: 600px) {
+.form-group textarea {
+    min-height: 100px;
+
+    resize: vertical;
+}
+
+.field-error {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #dc2626;
+
+    font-size: 11px;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+
+    padding-top: 4px;
+}
+
+// =========================================
+// RESPONSIVE
+// =========================================
+
+@media (max-width: 1000px) {
+
+    .workspace-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .workspace-list-card {
+        order: 1;
+    }
+
+    .workspace-details-card {
+        order: 2;
+    }
+
+    .member-row {
+        grid-template-columns: minmax(200px, 1fr) 120px 90px auto;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .workspace-page {
+        padding: 20px 16px;
+    }
 
     .page-header {
         flex-direction: column;
@@ -1330,7 +758,90 @@
         width: 100%;
     }
 
+    .workspace-details-header {
+        flex-direction: column;
+    }
+
+    .workspace-details-header .secondary-button {
+        width: 100%;
+    }
+
+    .member-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+
+        padding: 16px 0;
+    }
+
+    .member-role,
+    .member-status,
+    .member-actions {
+        width: 100%;
+    }
+
+    .member-role select {
+        max-width: 180px;
+    }
+
+    .member-actions {
+        justify-content: flex-start;
+    }
+
     .modal-card {
         padding: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .workspace-page {
+        padding: 16px 12px;
+    }
+
+    .workspace-details-header,
+    .section-header {
+        padding: 16px;
+    }
+
+    .members-list {
+        padding: 8px 16px;
+    }
+
+    .workspace-title {
+        gap: 10px;
+    }
+
+    .workspace-large-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .workspace-title h2 {
+        font-size: 18px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+
+        button {
+            width: 100%;
+        }
+    }
+}
+.workspace-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+    .workspace-header-actions {
+        width: 100%;
+        flex-direction: column;
+
+        button {
+            width: 100%;
+        }
     }
 }
