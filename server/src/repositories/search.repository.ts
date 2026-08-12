@@ -3,6 +3,7 @@ import { Membership } from "../models/membership.model";
 import { Project } from "../models/project.model";
 import { Task } from "../models/task.model";
 import { Comment } from "../models/comment.model";
+import { User } from "../models/user.model";
 
 import { GlobalSearchResult } from "../interfaces/search.interface";
 
@@ -14,7 +15,33 @@ export class SearchRepository {
     };
 
     /**
-     * 1. Find ALL workspaces accessible to the user.
+     * 1. Search users.
+     *
+     * Used by the Add Member UI.
+     *
+     * Search by:
+     * - first name
+     * - last name
+     * - email
+     */
+    const users = await User.find({
+      $or: [
+        {
+          firstName: searchRegex,
+        },
+        {
+          lastName: searchRegex,
+        },
+        {
+          email: searchRegex,
+        },
+      ],
+    })
+      .select("_id firstName lastName email")
+      .limit(20);
+
+    /**
+     * 2. Find ALL workspaces accessible to the user.
      *
      * Owner OR active member.
      */
@@ -37,12 +64,13 @@ export class SearchRepository {
     const accessibleWorkspaceIds = [
       ...new Set([
         ...ownedWorkspaces.map((workspace) => workspace._id.toString()),
+
         ...memberWorkspaceIds.map((workspaceId) => workspaceId.toString()),
       ]),
     ];
 
     /**
-     * 2. Search workspaces.
+     * 3. Search workspaces.
      */
     const workspaces =
       accessibleWorkspaceIds.length > 0
@@ -50,7 +78,9 @@ export class SearchRepository {
             _id: {
               $in: accessibleWorkspaceIds,
             },
+
             isDeleted: { $ne: true },
+
             $or: [
               {
                 name: searchRegex,
@@ -63,7 +93,7 @@ export class SearchRepository {
         : [];
 
     /**
-     * 3. Search projects inside accessible workspaces.
+     * 4. Search projects inside accessible workspaces.
      */
     const projects =
       accessibleWorkspaceIds.length > 0
@@ -71,7 +101,9 @@ export class SearchRepository {
             workspace: {
               $in: accessibleWorkspaceIds,
             },
+
             isDeleted: { $ne: true },
+
             $or: [
               {
                 name: searchRegex,
@@ -87,10 +119,9 @@ export class SearchRepository {
         : [];
 
     /**
-     * 4. Find ALL accessible projects.
+     * 5. Find ALL accessible projects.
      *
-     * Needed for task/comment search even when
-     * the project name itself doesn't match.
+     * Needed for task/comment search.
      */
     const accessibleProjects =
       accessibleWorkspaceIds.length > 0
@@ -98,6 +129,7 @@ export class SearchRepository {
             workspace: {
               $in: accessibleWorkspaceIds,
             },
+
             isDeleted: { $ne: true },
           }).select("_id")
         : [];
@@ -107,7 +139,7 @@ export class SearchRepository {
     );
 
     /**
-     * 5. Search tasks inside accessible projects.
+     * 6. Search tasks inside accessible projects.
      */
     const tasks =
       accessibleProjectIds.length > 0
@@ -115,7 +147,9 @@ export class SearchRepository {
             project: {
               $in: accessibleProjectIds,
             },
+
             isDeleted: false,
+
             $or: [
               {
                 title: searchRegex,
@@ -132,7 +166,7 @@ export class SearchRepository {
         : [];
 
     /**
-     * 6. Find ALL accessible tasks.
+     * 7. Find ALL accessible tasks.
      *
      * Needed for comment search.
      */
@@ -142,6 +176,7 @@ export class SearchRepository {
             project: {
               $in: accessibleProjectIds,
             },
+
             isDeleted: false,
           }).select("_id")
         : [];
@@ -149,7 +184,7 @@ export class SearchRepository {
     const accessibleTaskIds = accessibleTasks.map((task) => task._id);
 
     /**
-     * 7. Search comments belonging to
+     * 8. Search comments belonging to
      *    accessible tasks.
      */
     const comments =
@@ -158,7 +193,9 @@ export class SearchRepository {
             task: {
               $in: accessibleTaskIds,
             },
+
             isDeleted: false,
+
             content: searchRegex,
           })
             .populate("createdBy", "firstName lastName email")
@@ -166,8 +203,16 @@ export class SearchRepository {
             .limit(20)
         : [];
 
+    /**
+     * 9. Return global search result.
+     */
     return {
       query,
+
+      users: {
+        items: users,
+        total: users.length,
+      },
 
       workspaces: {
         items: workspaces,
@@ -190,7 +235,11 @@ export class SearchRepository {
       },
 
       total:
-        workspaces.length + projects.length + tasks.length + comments.length,
+        users.length +
+        workspaces.length +
+        projects.length +
+        tasks.length +
+        comments.length,
     };
   }
 }

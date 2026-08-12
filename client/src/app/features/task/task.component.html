@@ -1,56 +1,81 @@
-<div class="task-page">
+<div class="tasks-page">
 
-    <!-- ==============================
-       PAGE HEADER
-       ============================== -->
+    <!-- ========================================= -->
+    <!-- HEADER -->
+    <!-- ========================================= -->
 
     <header class="page-header">
 
-        <div>
-            <h1>Tasks</h1>
+        <div class="header-content">
+
+            <button type="button" class="back-button" (click)="backToProjects()">
+                ← Projects
+            </button>
+
+            <span class="eyebrow">
+                PROJECT
+            </span>
+
+            <h1>
+                Tasks
+            </h1>
 
             <p>
-                Manage project tasks
+                Create and manage tasks for this project.
             </p>
+
         </div>
 
         <button type="button" class="primary-button" (click)="openCreateForm()" [disabled]="showCreateForm()">
-            + New Task
+            <span>+</span>
+            New Task
         </button>
 
     </header>
 
 
-    <!-- ==============================
-       GENERAL ERROR
-       ============================== -->
+    <!-- ========================================= -->
+    <!-- ERROR -->
+    <!-- ========================================= -->
 
     @if (errorMessage()) {
 
-    <div class="error-message">
+    <div class="error-banner">
         {{ errorMessage() }}
     </div>
 
     }
 
 
-    <!-- ==============================
-       CREATE TASK FORM
-       ============================== -->
+    <!-- ========================================= -->
+    <!-- CREATE / EDIT FORM -->
+    <!-- ========================================= -->
 
     @if (showCreateForm()) {
 
-    <section class="create-form">
+    <section class="create-card">
 
-        <div class="form-header">
+        <div class="create-header">
 
-            <h2>
-                Create Task
-            </h2>
+            <div>
 
-            <p>
-                Create a task for this project.
-            </p>
+                <span class="section-eyebrow">
+                    {{ editingTask() ? 'EDIT TASK' : 'NEW TASK' }}
+                </span>
+
+                <h2>
+                    {{ editingTask() ? 'Edit Task' : 'Create Task' }}
+                </h2>
+
+                <p>
+                    {{
+                    editingTask()
+                    ? 'Update task details.'
+                    : 'Add a new task to this project.'
+                    }}
+                </p>
+
+            </div>
 
         </div>
 
@@ -64,8 +89,6 @@
         }
 
 
-        <!-- Title -->
-
         <div class="form-group">
 
             <label for="taskTitle">
@@ -78,21 +101,17 @@
         </div>
 
 
-        <!-- Description -->
-
         <div class="form-group">
 
             <label for="taskDescription">
                 Description
             </label>
 
-            <textarea id="taskDescription" rows="4" [(ngModel)]="taskDescription" placeholder="Enter task description"
+            <textarea id="taskDescription" rows="4" [(ngModel)]="taskDescription" placeholder="Describe this task"
                 [disabled]="saving()"></textarea>
 
         </div>
 
-
-        <!-- Priority + Status -->
 
         <div class="form-row">
 
@@ -104,21 +123,28 @@
 
                 <select id="taskPriority" [(ngModel)]="taskPriority" [disabled]="saving()">
 
-                    @for (
-                    priority of priorities;
-                    track priority
-                    ) {
-
-                    <option [value]="priority">
-                        {{ priority }}
+                    <option value="LOW">
+                        Low
                     </option>
 
-                    }
+                    <option value="MEDIUM">
+                        Medium
+                    </option>
+
+                    <option value="HIGH">
+                        High
+                    </option>
+
+                    <option value="CRITICAL">
+                        Critical
+                    </option>
 
                 </select>
 
             </div>
 
+
+            @if (editingTask()) {
 
             <div class="form-group">
 
@@ -128,25 +154,41 @@
 
                 <select id="taskStatus" [(ngModel)]="taskStatus" [disabled]="saving()">
 
-                    @for (
-                    status of statuses;
-                    track status
-                    ) {
-
-                    <option [value]="status">
-                        {{ status.replace('_', ' ') }}
+                    <option value="TODO">
+                        To Do
                     </option>
 
-                    }
+                    <option value="IN_PROGRESS">
+                        In Progress
+                    </option>
+
+                    <option value="REVIEW">
+                        Review
+                    </option>
+
+                    <option value="DONE">
+                        Done
+                    </option>
 
                 </select>
 
             </div>
 
+            }
+
+
+            <div class="form-group">
+
+                <label for="taskDueDate">
+                    Due Date
+                </label>
+
+                <input id="taskDueDate" type="date" [(ngModel)]="taskDueDate" [disabled]="saving()" />
+
+            </div>
+
         </div>
 
-
-        <!-- Form Actions -->
 
         <div class="form-actions">
 
@@ -154,13 +196,12 @@
                 Cancel
             </button>
 
-
-            <button type="button" class="primary-button" (click)="createTask()" [disabled]="saving()">
+            <button type="button" class="primary-button" (click)="saveTask()" [disabled]="saving()">
 
                 @if (saving()) {
-                Creating...
+                Saving...
                 } @else {
-                Create Task
+                {{ editingTask() ? 'Update Task' : 'Create Task' }}
                 }
 
             </button>
@@ -172,13 +213,94 @@
     }
 
 
-    <!-- ==============================
-       LOADING
-       ============================== -->
+    <!-- ========================================= -->
+    <!-- FILTERS -->
+    <!-- ========================================= -->
+
+    @if (!showCreateForm()) {
+
+    <section class="filters-card">
+
+        <div class="search-box">
+
+            <input type="text" [(ngModel)]="search" placeholder="Search tasks..." (keyup.enter)="applyFilters()" />
+
+        </div>
+
+
+        <select [(ngModel)]="selectedStatus" (change)="applyFilters()">
+
+            <option value="">
+                All Statuses
+            </option>
+
+            <option value="TODO">
+                To Do
+            </option>
+
+            <option value="IN_PROGRESS">
+                In Progress
+            </option>
+
+            <option value="REVIEW">
+                Review
+            </option>
+
+            <option value="DONE">
+                Done
+            </option>
+
+        </select>
+
+
+        <select [(ngModel)]="selectedPriority" (change)="applyFilters()">
+
+            <option value="">
+                All Priorities
+            </option>
+
+            <option value="LOW">
+                Low
+            </option>
+
+            <option value="MEDIUM">
+                Medium
+            </option>
+
+            <option value="HIGH">
+                High
+            </option>
+
+            <option value="CRITICAL">
+                Critical
+            </option>
+
+        </select>
+
+
+        <button type="button" class="secondary-button" (click)="applyFilters()">
+            Search
+        </button>
+
+
+        <button type="button" class="clear-button" (click)="clearFilters()">
+            Clear
+        </button>
+
+    </section>
+
+    }
+
+
+    <!-- ========================================= -->
+    <!-- LOADING -->
+    <!-- ========================================= -->
 
     @if (loading()) {
 
-    <div class="state">
+    <div class="loading-state">
+
+        <div class="loading-spinner"></div>
 
         <p>
             Loading tasks...
@@ -189,9 +311,9 @@
     }
 
 
-    <!-- ==============================
-       EMPTY STATE
-       ============================== -->
+    <!-- ========================================= -->
+    <!-- EMPTY -->
+    <!-- ========================================= -->
 
     @if (
     !loading() &&
@@ -199,10 +321,10 @@
     tasks().length === 0
     ) {
 
-    <section class="empty">
+    <section class="empty-state">
 
         <div class="empty-icon">
-            +
+            ✓
         </div>
 
         <h2>
@@ -210,11 +332,11 @@
         </h2>
 
         <p>
-            Create your first task for this project.
+            Create your first task to start working on this project.
         </p>
 
         <button type="button" class="primary-button" (click)="openCreateForm()">
-            Create Task
+            + Create Task
         </button>
 
     </section>
@@ -222,136 +344,188 @@
     }
 
 
-    <!-- ==============================
-       TASK LIST
-       ============================== -->
+    <!-- ========================================= -->
+    <!-- TASK LIST -->
+    <!-- ========================================= -->
 
     @if (
     !loading() &&
     tasks().length > 0
     ) {
 
-    <section class="task-list">
+    <section class="tasks-section">
 
-        @for (
-        task of tasks();
-        track task._id
-        ) {
+        <div class="section-header">
 
-        <article class="task-card">
+            <div>
 
+                <span class="section-eyebrow">
+                    TASKS
+                </span>
 
-            <!-- Task Information -->
-
-            <div class="task-main">
-
-                <h2 class="task-title" (click)="openTask(task._id)" (keydown.enter)="openTask(task._id)" role="button"
-                    tabindex="0">
-                    {{ task.title }}
+                <h2>
+                    Project Tasks
                 </h2>
 
                 <p>
-                    {{
-                    task.description ||
-                    'No description'
-                    }}
+                    {{ total() }}
+                    {{ total() === 1 ? 'task' : 'tasks' }}
                 </p>
 
             </div>
 
-
-            <!-- Status + Priority -->
-
-            <div class="task-meta">
-
-                <select class="status-select" [ngModel]="task.status" (ngModelChange)="
-                updateTaskStatus(
-                  task,
-                  $event
-                )
-              ">
-
-                    @for (
-                    status of statuses;
-                    track status
-                    ) {
-
-                    <option [value]="status">
-                        {{ status.replace('_', ' ') }}
-                    </option>
-
-                    }
-
-                </select>
+        </div>
 
 
-                <span class="priority">
-                    {{ task.priority }}
-                </span>
+        <div class="task-list">
 
-            </div>
+            @for (
+            task of tasks();
+            track task._id
+            ) {
 
+            <article class="task-card">
 
-            <!-- Assignment -->
+                <!-- Task Main -->
 
-            <div class="task-assignment">
+                <div class="task-main">
 
-                <label [for]="'assign-' + task._id">
-                    Assigned to
-                </label>
+                    <div class="task-title-row">
 
+                        <h3>
+                            {{ task.title }}
+                        </h3>
 
-                <select [id]="'assign-' + task._id" [disabled]="
-                assigning() === task._id
-              " [ngModel]="
-                getAssignedUserId(task)
-              " (ngModelChange)="
-                assignTask(
-                  task,
-                  $event
-                )
-              ">
+                        <span class="priority-badge" [class.priority-low]="task.priority === 'LOW'"
+                            [class.priority-medium]="task.priority === 'MEDIUM'"
+                            [class.priority-high]="task.priority === 'HIGH'"
+                            [class.priority-critical]="task.priority === 'CRITICAL'">
+                            {{ getPriorityLabel(task.priority) }}
+                        </span>
 
-                    <option value="">
-                        Unassigned
-                    </option>
+                    </div>
 
 
-                    @for (
-                    member of members();
-                    track member._id
-                    ) {
+                    @if (task.description) {
 
-                    <option [value]="member.user._id">
-                        {{ member.user.firstName }}
-                        {{ member.user.lastName }}
-                    </option>
+                    <p class="task-description">
+                        {{ task.description }}
+                    </p>
 
                     }
 
-                </select>
+
+                    <div class="task-meta">
+
+                        <span class="status-badge" [class.status-todo]="task.status === 'TODO'"
+                            [class.status-progress]="task.status === 'IN_PROGRESS'"
+                            [class.status-review]="task.status === 'REVIEW'"
+                            [class.status-done]="task.status === 'DONE'">
+                            {{ getStatusLabel(task.status) }}
+                        </span>
 
 
-                @if (
-                assigning() === task._id
-                ) {
+                        @if (task.assignedTo) {
 
-                <small>
-                    Updating...
-                </small>
+                        <span class="assigned-user">
+                            {{ getUserName(task.assignedTo) }}
+                        </span>
 
-                }
+                        } @else {
 
-            </div>
+                        <span class="assigned-user">
+                            Unassigned
+                        </span>
+
+                        }
 
 
-            <!-- Open Details -->
+                        @if (task.dueDate) {
 
-            <button type="button" class="task-details-button" (click)="openTask(task._id)">
-                View Details →
+                        <span class="due-date">
+                            Due:
+                            {{ task.dueDate | date:'mediumDate' }}
+                        </span>
+
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Task Actions -->
+
+                <div class="task-actions">
+
+                    <select [value]="task.status" (change)="
+                  changeStatus(
+                    task,
+                    $any($event.target).value
+                  )
+                ">
+
+                        <option value="TODO">
+                            To Do
+                        </option>
+
+                        <option value="IN_PROGRESS">
+                            In Progress
+                        </option>
+
+                        <option value="REVIEW">
+                            Review
+                        </option>
+
+                        <option value="DONE">
+                            Done
+                        </option>
+
+                    </select>
+
+
+<button type="button" class="view-button" (click)="openTaskDetail(task)">
+    View
+</button>
+
+<button type="button" class="edit-button" (click)="openEditForm(task)">
+    Edit
+</button>
+
+<button type="button" class="delete-button" (click)="deleteTask(task)" [disabled]="deleting()">
+    Delete
+</button>
+
+                </div>
+
+            </article>
+
+            }
+
+        </div>
+
+
+        <!-- ========================================= -->
+        <!-- PAGINATION -->
+        <!-- ========================================= -->
+
+        @if (totalPages() > 1) {
+
+        <div class="pagination">
+
+            <button type="button" class="secondary-button" (click)="previousPage()" [disabled]="page() === 1">
+                ← Previous
             </button>
 
-        </article>
+            <span>
+                Page {{ page() }} of {{ totalPages() }}
+            </span>
+
+            <button type="button" class="secondary-button" (click)="nextPage()" [disabled]="page() === totalPages()">
+                Next →
+            </button>
+
+        </div>
 
         }
 

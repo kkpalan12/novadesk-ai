@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-
 import { Router } from '@angular/router';
 
-import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { WorkspaceContextService } from '../../../core/services/workspace-context.service';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +20,8 @@ export class LoginComponent {
 
   private readonly router = inject(Router);
 
+  private readonly workspaceContext = inject(WorkspaceContextService);
+
   // =========================================
   // State
   // =========================================
@@ -30,7 +31,7 @@ export class LoginComponent {
   readonly errorMessage = signal('');
 
   // =========================================
-  // Form
+  // Login Form
   // =========================================
 
   readonly loginForm = this.fb.nonNullable.group({
@@ -58,28 +59,63 @@ export class LoginComponent {
   submit(): void {
     this.errorMessage.set('');
 
+    // -----------------------------------------
+    // Validate form
+    // -----------------------------------------
+
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
 
       return;
     }
 
+    // -----------------------------------------
+    // Start loading
+    // -----------------------------------------
+
     this.loading.set(true);
 
+    // -----------------------------------------
+    // Login
+    // -----------------------------------------
+
     this.authService.login(this.loginForm.getRawValue()).subscribe({
+      // =====================================
+      // SUCCESS
+      // =====================================
+
       next: () => {
         this.loading.set(false);
 
         /*
-         * Do NOT go directly to Dashboard.
+         * IMPORTANT
          *
-         * User must select a workspace first.
+         * Clear the workspace selected by the
+         * previous login/session.
+         *
+         * This prevents Deepak from inheriting
+         * Karthik's previous workspace selection.
          */
 
-        this.router.navigate(['/workspaces']);
+        this.workspaceContext.clearWorkspace();
+
+        /*
+         * Do NOT go directly to dashboard.
+         *
+         * Every login must first select a
+         * workspace.
+         */
+
+        this.router.navigate(['/workspace/select']);
       },
 
+      // =====================================
+      // ERROR
+      // =====================================
+
       error: (error) => {
+        console.error('Login failed:', error);
+
         this.loading.set(false);
 
         this.errorMessage.set(

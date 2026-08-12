@@ -1,74 +1,569 @@
 <div class="workspace-page">
 
+    <!-- =========================================
+       HEADER
+       ========================================= -->
+
     <header class="page-header">
+
         <div>
-            <h1>Workspaces</h1>
-            <p>Manage your NovaDesk workspaces</p>
+            <span class="eyebrow">
+                WORKSPACE MANAGEMENT
+            </span>
+
+            <h1>
+                Workspaces
+            </h1>
+
+            <p>
+                Manage your NovaDesk workspaces and members.
+            </p>
         </div>
 
-        <button type="button">
-            + New Workspace
-        </button>
     </header>
 
-    @if (loading()) {
-    <div class="state">
-        Loading workspaces...
-    </div>
-    }
+
+    <!-- =========================================
+       GENERAL ERROR
+       ========================================= -->
 
     @if (errorMessage()) {
+
     <div class="error">
         {{ errorMessage() }}
     </div>
+
     }
 
-    @if (!loading() && !errorMessage()) {
 
-    @if (workspaces().length === 0) {
+    <!-- =========================================
+       LOADING
+       ========================================= -->
 
-    <div class="empty">
-        <h2>No workspaces yet</h2>
-        <p>Create your first workspace to get started.</p>
+    @if (loading()) {
+
+    <div class="state">
+        Loading workspaces...
     </div>
 
-    } @else {
+    }
 
-    <div class="workspace-grid">
 
-        @for (
-        workspace of workspaces();
-        track workspace._id
-        ) {
+    <!-- =========================================
+       EMPTY WORKSPACES
+       ========================================= -->
 
-        <article class="workspace-card">
+    @if (
+    !loading() &&
+    !errorMessage() &&
+    workspaces().length === 0
+    ) {
 
-            <div class="workspace-icon">
-                {{ workspace.name.charAt(0).toUpperCase() }}
+    <div class="empty">
+
+        <div class="empty-icon">
+            N
+        </div>
+
+        <h2>
+            No workspaces yet
+        </h2>
+
+        <p>
+            Create your first workspace to get started.
+        </p>
+
+    </div>
+
+    }
+
+
+    <!-- =========================================
+       WORKSPACE CONTENT
+       ========================================= -->
+
+    @if (
+    !loading() &&
+    !errorMessage() &&
+    workspaces().length > 0
+    ) {
+
+    <div class="workspace-layout">
+
+        <!-- =====================================
+           WORKSPACE LIST
+           ===================================== -->
+
+        <section class="workspace-panel">
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        YOUR WORKSPACES
+                    </span>
+
+                    <h2>
+                        Workspaces
+                    </h2>
+
+                </div>
+
             </div>
 
-            <div class="workspace-info">
 
-                <h2>
-                    {{ workspace.name }}
-                </h2>
+            <div class="workspace-list">
+
+                @for (
+                workspace of workspaces();
+                track workspace._id
+                ) {
+
+                <button type="button" class="workspace-card" [class.active]="
+                selectedWorkspace()?._id === workspace._id
+              " (click)="selectWorkspace(workspace)">
+
+                    <div class="workspace-icon">
+                        {{
+                        workspace.name
+                        .charAt(0)
+                        .toUpperCase()
+                        }}
+                    </div>
+
+
+                    <div class="workspace-info">
+
+                        <h3>
+                            {{ workspace.name }}
+                        </h3>
+
+                        <p>
+                            {{
+                            workspace.description ||
+                            'No description'
+                            }}
+                        </p>
+
+                    </div>
+
+
+                    @if (
+                    selectedWorkspace()?._id === workspace._id
+                    ) {
+
+                    <span class="selected-indicator">
+                        ✓
+                    </span>
+
+                    }
+
+                </button>
+
+                }
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================
+           MEMBERS PANEL
+           ===================================== -->
+
+        @if (selectedWorkspace()) {
+
+        <section class="members-panel">
+
+            <!-- =================================
+               MEMBERS HEADER
+               ================================= -->
+
+            <header class="members-header">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        MEMBERS
+                    </span>
+
+                    <h2>
+                        {{ selectedWorkspace()?.name }}
+                    </h2>
+
+                    <p>
+                        Manage people who have access
+                        to this workspace.
+                    </p>
+
+                </div>
+
+
+                <button type="button" class="primary-button" (click)="openAddMember()"
+                    [disabled]="memberActionLoading()">
+                    + Add Member
+                </button>
+
+            </header>
+
+
+            <!-- =================================
+               MEMBER ERROR
+               ================================= -->
+
+            @if (memberError()) {
+
+            <div class="member-error">
+                {{ memberError() }}
+            </div>
+
+            }
+
+
+            <!-- =================================
+               ADD MEMBER FORM
+               ================================= -->
+
+            @if (showAddMember()) {
+            <div class="add-member-form">
+            
+                <div class="form-header">
+                    <div>
+                        <h3>Add Member</h3>
+            
+                        <p>
+                            Search for a user and add them to this workspace.
+                        </p>
+                    </div>
+                </div>
+            
+                @if (memberError()) {
+                <div class="member-error">
+                    {{ memberError() }}
+                </div>
+                }
+            
+                <!-- =============================== -->
+                <!-- USER SEARCH -->
+                <!-- =============================== -->
+            
+                <div class="form-group">
+            
+                    <label for="userSearch">
+                        Search User
+                    </label>
+            
+                    <input id="userSearch" type="text" [ngModel]="userSearchQuery()"
+                        (ngModelChange)="userSearchQuery.set($event); searchUsers()" placeholder="Search by name or email"
+                        autocomplete="off" [disabled]="memberActionLoading()" />
+            
+                </div>
+            
+                <!-- =============================== -->
+                <!-- SEARCH LOADING -->
+                <!-- =============================== -->
+            
+                @if (userSearchLoading()) {
+                <div class="user-search-state">
+                    Searching users...
+                </div>
+                }
+            
+                <!-- =============================== -->
+                <!-- SEARCH RESULTS -->
+                <!-- =============================== -->
+            
+                @if (
+                !userSearchLoading() &&
+                userSearchResults().length > 0
+                ) {
+            
+                <div class="user-search-results">
+            
+                    @for (
+                    user of userSearchResults();
+                    track user._id
+                    ) {
+            
+                    <button type="button" class="user-search-result" (click)="selectUser(user)" [disabled]="memberActionLoading()">
+            
+                        <div class="search-user-avatar">
+                            {{
+                            user.firstName
+                            .charAt(0)
+                            .toUpperCase()
+                            }}
+                        </div>
+            
+                        <div class="search-user-info">
+            
+                            <strong>
+                                {{ user.firstName }}
+                                {{ user.lastName }}
+                            </strong>
+            
+                            <span>
+                                {{ user.email }}
+                            </span>
+            
+                        </div>
+            
+                    </button>
+            
+                    }
+            
+                </div>
+                }
+            
+                <!-- =============================== -->
+                <!-- SELECTED USER -->
+                <!-- =============================== -->
+            
+                @if (selectedUser(); as user) {
+            
+                <div class="selected-user">
+            
+                    <div class="selected-user-avatar">
+                        {{
+                        user.firstName
+                        .charAt(0)
+                        .toUpperCase()
+                        }}
+                    </div>
+            
+                    <div class="selected-user-info">
+            
+                        <strong>
+                            {{ user.firstName }}
+                            {{ user.lastName }}
+                        </strong>
+            
+                        <span>
+                            {{ user.email }}
+                        </span>
+            
+                    </div>
+            
+                    <span class="selected-user-check">
+                        ✓
+                    </span>
+            
+                </div>
+            
+                }
+            
+                <!-- =============================== -->
+                <!-- ROLE -->
+                <!-- =============================== -->
+            
+                <div class="form-group">
+            
+                    <label for="memberRole">
+                        Role
+                    </label>
+            
+                    <select id="memberRole" class="role-select" [ngModel]="memberRole()" (ngModelChange)="memberRole.set($event)"
+                        [disabled]="memberActionLoading()">
+            
+                        <option value="MEMBER">
+                            MEMBER
+                        </option>
+            
+                        <option value="ADMIN">
+                            ADMIN
+                        </option>
+            
+                    </select>
+            
+                </div>
+            
+                <!-- =============================== -->
+                <!-- ACTIONS -->
+                <!-- =============================== -->
+            
+                <div class="form-actions">
+            
+                    <button type="button" class="secondary-button" (click)="closeAddMember()" [disabled]="memberActionLoading()">
+                        Cancel
+                    </button>
+            
+                    <button type="button" class="primary-button" (click)="addMember()" [disabled]="
+                      memberActionLoading() ||
+                      !selectedUser()
+                    ">
+            
+                        @if (memberActionLoading()) {
+                        Adding...
+                        } @else {
+                        Add Member
+                        }
+            
+                    </button>
+            
+                </div>
+            
+            </div>
+            }
+
+
+            <!-- =================================
+               MEMBERS LOADING
+               ================================= -->
+
+            @if (membersLoading()) {
+
+            <div class="member-state">
+                Loading members...
+            </div>
+
+            }
+
+
+            <!-- =================================
+               NO MEMBERS
+               ================================= -->
+
+            @if (
+            !membersLoading() &&
+            members().length === 0
+            ) {
+
+            <div class="no-members">
+
+                <div class="no-members-icon">
+                    👤
+                </div>
+
+                <h3>
+                    No members found
+                </h3>
 
                 <p>
-                    {{
-                    workspace.description ||
-                    'No description'
-                    }}
+                    Add a member to this workspace
+                    to get started.
                 </p>
 
             </div>
 
-        </article>
+            }
+
+
+            <!-- =================================
+               MEMBER LIST
+               ================================= -->
+
+            @if (
+            !membersLoading() &&
+            members().length > 0
+            ) {
+
+            <div class="member-list">
+
+                @for (
+                member of members();
+                track member._id
+                ) {
+
+                <article class="member-card">
+
+                    <!-- =========================
+                       AVATAR
+                       ========================= -->
+
+                    <div class="member-avatar">
+
+                        {{
+                        member.user.firstName
+                        .charAt(0)
+                        .toUpperCase()
+                        }}
+
+                    </div>
+
+
+                    <!-- =========================
+                       MEMBER INFORMATION
+                       ========================= -->
+
+                    <div class="member-info">
+
+                        <h3>
+                            {{ member.user.firstName }}
+                            {{ member.user.lastName }}
+                        </h3>
+
+                        <p>
+                            {{ member.user.email }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- =========================
+                       MEMBER ACTIONS
+                       ========================= -->
+
+                    <div class="member-meta">
+
+                        @if (isWorkspaceOwner(member)) {
+
+                        <!-- OWNER -->
+
+                        <span class="role-badge owner">
+                            OWNER
+                        </span>
+
+                        <span class="owner-label">
+                            Workspace Owner
+                        </span>
+
+                        } @else {
+
+                        <!-- MEMBER ROLE -->
+
+                        <select class="role-select" [value]="member.role" [disabled]="memberActionLoading()" (change)="
+                          updateMemberRole(
+                            member,
+                            $any($event.target).value
+                          )
+                        ">
+
+                            <option value="MEMBER">
+                                MEMBER
+                            </option>
+
+                            <option value="ADMIN">
+                                ADMIN
+                            </option>
+
+                        </select>
+
+
+                        <!-- REMOVE MEMBER -->
+
+                        <button type="button" class="remove-button" [disabled]="memberActionLoading()"
+                            (click)="removeMember(member)">
+                            Remove
+                        </button>
+
+                        }
+
+                    </div>
+
+                </article>
+
+                }
+
+            </div>
+
+            }
+
+        </section>
 
         }
 
     </div>
-
-    }
 
     }
 

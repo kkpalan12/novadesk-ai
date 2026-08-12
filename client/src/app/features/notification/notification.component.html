@@ -1,5 +1,9 @@
 <div class="notification-page">
 
+    <!-- =========================================
+       HEADER
+       ========================================= -->
+
     <header class="page-header">
 
         <div>
@@ -11,22 +15,34 @@
         </div>
 
         <button type="button" class="secondary-button" (click)="markAllAsRead()" [disabled]="actionLoading() === 'all'">
+
             @if (actionLoading() === 'all') {
             Updating...
             } @else {
             Mark all as read
             }
+
         </button>
 
     </header>
 
 
+    <!-- =========================================
+       ERROR
+       ========================================= -->
+
     @if (errorMessage()) {
+
     <div class="error-message">
         {{ errorMessage() }}
     </div>
+
     }
 
+
+    <!-- =========================================
+       LOADING
+       ========================================= -->
 
     @if (loading()) {
 
@@ -36,6 +52,10 @@
 
     }
 
+
+    <!-- =========================================
+       EMPTY
+       ========================================= -->
 
     @if (
     !loading() &&
@@ -61,6 +81,10 @@
     }
 
 
+    <!-- =========================================
+       NOTIFICATION LIST
+       ========================================= -->
+
     @if (
     !loading() &&
     notifications().length > 0
@@ -74,6 +98,8 @@
         ) {
 
         <article class="notification-card" [class.unread]="!notification.isRead">
+
+            <!-- Notification content -->
 
             <button type="button" class="notification-content" (click)="openNotification(notification)">
 
@@ -90,7 +116,9 @@
                         </strong>
 
                         @if (!notification.isRead) {
+
                         <span class="unread-dot"></span>
+
                         }
 
                     </div>
@@ -115,6 +143,8 @@
 
             </button>
 
+
+            <!-- Actions -->
 
             <div class="notification-actions">
 

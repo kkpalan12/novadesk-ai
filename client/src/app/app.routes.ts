@@ -1,24 +1,21 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from '../core/auth/auth.guard';
-import { workspaceGuard } from '../core/workspace/workspace.guard';
+import { authGuard } from './core/auth/auth.guard';
 
-import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { LoginComponent } from './features/auth/login/login.component';
 
 import { WorkspaceSelectionComponent } from './features/workspace/workspace-selection.component';
 
+import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+
 export const routes: Routes = [
   // =========================================
-  // LOGIN
+  // AUTH
   // =========================================
 
   {
     path: 'login',
-
-    loadComponent: () =>
-      import('./features/auth/login/login.component').then(
-        (m) => m.LoginComponent,
-      ),
+    component: LoginComponent,
   },
 
   // =========================================
@@ -26,119 +23,115 @@ export const routes: Routes = [
   // =========================================
 
   {
-    path: 'workspaces',
-
+    path: 'workspace/select',
     component: WorkspaceSelectionComponent,
-
     canActivate: [authGuard],
   },
 
   // =========================================
-  // MAIN APPLICATION
+  // APPLICATION
   // =========================================
 
   {
     path: '',
-
     component: MainLayoutComponent,
-
     canActivate: [authGuard],
 
     children: [
-      // ---------------------------------------
-      // Root
-      // ---------------------------------------
-
-      {
-        path: '',
-
-        redirectTo: 'workspaces',
-
-        pathMatch: 'full',
-      },
-
-      // ---------------------------------------
-      // Dashboard
-      // ---------------------------------------
+      // =====================================
+      // DASHBOARD
+      // =====================================
 
       {
         path: 'dashboard',
-
-        canActivate: [workspaceGuard],
-
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent,
           ),
       },
 
-      // ---------------------------------------
-      // Projects
-      // ---------------------------------------
+      // =====================================
+      // PROJECTS
+      // =====================================
 
       {
         path: 'projects',
-
-        canActivate: [workspaceGuard],
-
         loadComponent: () =>
           import('./features/project/project.component').then(
             (m) => m.ProjectComponent,
           ),
       },
 
-      // ---------------------------------------
-      // Tasks
-      // ---------------------------------------
+      // =====================================
+      // TASKS
+      //
+      // Project is supplied through query params:
+      //
+      // /tasks?project=PROJECT_ID&workspace=WORKSPACE_ID
+      // =====================================
 
       {
         path: 'tasks',
-
-        canActivate: [workspaceGuard],
-
         loadComponent: () =>
           import('./features/task/task.component').then((m) => m.TaskComponent),
       },
 
-      // ---------------------------------------
-      // Task Detail
-      // ---------------------------------------
+      // =====================================
+      // TASK DETAIL
+      //
+      // /tasks/TASK_ID?project=PROJECT_ID&workspace=WORKSPACE_ID
+      // =====================================
 
       {
-        path: 'tasks/:taskId',
-
-        canActivate: [workspaceGuard],
-
+        path: 'tasks/:id',
         loadComponent: () =>
           import('./features/task/task-detail.component').then(
             (m) => m.TaskDetailComponent,
           ),
       },
 
-      // ---------------------------------------
-      // Notifications
-      // ---------------------------------------
+      // =====================================
+      // WORKSPACE MANAGEMENT
+      // =====================================
+
+      {
+        path: 'workspace/manage',
+        loadComponent: () =>
+          import('./features/workspace/workspace.component').then(
+            (m) => m.WorkspaceComponent,
+          ),
+      },
+
+      // =====================================
+      // NOTIFICATIONS
+      // =====================================
 
       {
         path: 'notifications',
-
-        canActivate: [workspaceGuard],
-
         loadComponent: () =>
           import('./features/notification/notification.component').then(
             (m) => m.NotificationComponent,
           ),
       },
+
+      // =====================================
+      // DEFAULT
+      // =====================================
+
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard',
+      },
     ],
   },
 
   // =========================================
-  // UNKNOWN ROUTE
+  // FALLBACK
   // =========================================
 
   {
     path: '**',
-
-    redirectTo: 'workspaces',
+    redirectTo: 'login',
   },
 ];

@@ -1,21 +1,49 @@
 import { WorkspaceRepository } from "../repositories/workspace.repository";
 import { WorkspaceMapper } from "../mappers/workspace.mapper";
 
+import { MembershipRepository } from "../repositories/membership.repository";
+import { MembershipMapper } from "../mappers/membership.mapper";
+
 import { CreateWorkspaceDto } from "../dto/workspace/create-workspace.dto";
 import { UpdateWorkspaceDto } from "../dto/workspace/update-workspace.dto";
 
+import { MembershipRole } from "../interfaces/membership.interface";
+
 import { NotFoundError } from "../common/errors/NotFoundError";
-import { ForbiddenError } from "../common/errors/ForbiddenError";
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
 
 export class WorkspaceService {
   private readonly workspaceRepository = new WorkspaceRepository();
 
+  private readonly membershipRepository = new MembershipRepository();
+
+  // =========================================
+  // Create Workspace
+  // =========================================
+
   async createWorkspace(dto: CreateWorkspaceDto, owner: string) {
     const entity = WorkspaceMapper.toEntity(dto, owner);
 
-    return this.workspaceRepository.create(entity);
+    const workspace = await this.workspaceRepository.create(entity);
+
+    // =========================================
+    // Create Owner Membership
+    // =========================================
+
+    const membershipEntity = MembershipMapper.toEntity({
+      workspace: String(workspace._id),
+      user: owner,
+      role: MembershipRole.ADMIN,
+    });
+
+    await this.membershipRepository.create(membershipEntity);
+
+    return workspace;
   }
+
+  // =========================================
+  // Get All Workspaces
+  // =========================================
 
   async getAllWorkspaces(query: any, userId: string) {
     return this.workspaceRepository.findAll({
@@ -29,6 +57,10 @@ export class WorkspaceService {
     });
   }
 
+  // =========================================
+  // Get Workspace By ID
+  // =========================================
+
   async getWorkspaceById(id: string, userId: string) {
     const workspace = await this.workspaceRepository.findById(id, userId);
 
@@ -38,6 +70,10 @@ export class WorkspaceService {
 
     return workspace;
   }
+
+  // =========================================
+  // Update Workspace
+  // =========================================
 
   async updateWorkspace(id: string, dto: UpdateWorkspaceDto, userId: string) {
     const workspace = await this.workspaceRepository.update(id, userId, dto);
@@ -49,6 +85,10 @@ export class WorkspaceService {
     return workspace;
   }
 
+  // =========================================
+  // Delete Workspace
+  // =========================================
+
   async deleteWorkspace(id: string, userId: string) {
     const workspace = await this.workspaceRepository.softDelete(id, userId);
 
@@ -58,6 +98,10 @@ export class WorkspaceService {
 
     return workspace;
   }
+
+  // =========================================
+  // Add Member
+  // =========================================
 
   async addMember(workspaceId: string, userId: string) {
     const workspace = await this.workspaceRepository.addMember(
@@ -71,6 +115,10 @@ export class WorkspaceService {
 
     return workspace;
   }
+
+  // =========================================
+  // Remove Member
+  // =========================================
 
   async removeMember(workspaceId: string, userId: string) {
     const workspace = await this.workspaceRepository.removeMember(

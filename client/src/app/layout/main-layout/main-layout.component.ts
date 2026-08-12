@@ -1,37 +1,58 @@
 import { Component, OnInit, inject } from '@angular/core';
 
+import { CommonModule } from '@angular/common';
+
 import { Router, RouterOutlet } from '@angular/router';
 
-import { WorkspaceContextService } from '../../../core/services/workspace-context.service';
+import { WorkspaceContextService } from '../../core/services/workspace-context.service';
+
+import { AuthService } from '../../core/auth/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet],
+
+  imports: [CommonModule, RouterOutlet],
+
   templateUrl: './main-layout.component.html',
+
   styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent implements OnInit {
-  private readonly router = inject(Router);
-
   readonly workspaceContext = inject(WorkspaceContextService);
 
-  // =========================================
-  // Lifecycle
-  // =========================================
+  private readonly router = inject(Router);
+
+  private readonly authService = inject(AuthService);
+
+  readonly user = this.authService.getCurrentUser();
+  private readonly notificationService = inject(NotificationService);
+
+  readonly unreadNotificationCount = this.notificationService.unreadCount;
 
   ngOnInit(): void {
     this.workspaceContext.loadWorkspaces();
+
+    this.notificationService.refreshUnreadCount();
   }
 
-  // =========================================
-  // Dashboard
-  // =========================================
+  get userInitial(): string {
+    const currentUser = this.user;
+
+    if (!currentUser) {
+      return 'U';
+    }
+
+    return currentUser.firstName?.charAt(0)?.toUpperCase() ?? 'U';
+  }
 
   goToDashboard(): void {
     const workspace = this.workspaceContext.activeWorkspace();
 
     if (!workspace) {
+      this.router.navigate(['/workspace/select']);
+
       return;
     }
 
@@ -42,14 +63,12 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
-  // =========================================
-  // Projects
-  // =========================================
-
   goToProjects(): void {
     const workspace = this.workspaceContext.activeWorkspace();
 
     if (!workspace) {
+      this.router.navigate(['/workspace/select']);
+
       return;
     }
 
@@ -60,39 +79,25 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
-  // =========================================
-  // Tasks
-  // =========================================
-
-  goToTasks(): void {
-    const project = this.getQueryParam('project');
-
+  goToWorkspace(): void {
     const workspace = this.workspaceContext.activeWorkspace();
 
-    if (!project || !workspace) {
+    if (!workspace) {
+      this.router.navigate(['/workspace/select']);
+
       return;
     }
 
-    this.router.navigate(['/tasks'], {
+    this.router.navigate(['/workspace/manage'], {
       queryParams: {
-        project,
-
         workspace: workspace._id,
       },
     });
   }
 
-  // =========================================
-  // Notifications
-  // =========================================
-
   goToNotifications(): void {
     this.router.navigate(['/notifications']);
   }
-
-  // =========================================
-  // Workspace Selection
-  // =========================================
 
   selectWorkspace(workspaceId: string): void {
     const workspace = this.workspaceContext
@@ -104,37 +109,19 @@ export class MainLayoutComponent implements OnInit {
     }
 
     this.workspaceContext.selectWorkspace(workspace);
-  }
 
-  // =========================================
-  // Logout
-  // =========================================
+    this.router.navigate(['/dashboard'], {
+      queryParams: {
+        workspace: workspace._id,
+      },
+    });
+  }
 
   logout(): void {
-    localStorage.removeItem('accessToken');
+    this.workspaceContext.clearWorkspace();
 
-    localStorage.removeItem('refreshToken');
+    this.authService.logout();
 
     this.router.navigate(['/login']);
-  }
-
-  // =========================================
-  // Query Param
-  // =========================================
-
-  private getQueryParam(name: string): string | null {
-    const url = this.router.url;
-
-    const questionMark = url.indexOf('?');
-
-    if (questionMark === -1) {
-      return null;
-    }
-
-    const queryString = url.substring(questionMark + 1);
-
-    const params = new URLSearchParams(queryString);
-
-    return params.get(name);
   }
 }

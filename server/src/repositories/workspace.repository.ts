@@ -174,4 +174,10 @@ export class WorkspaceRepository {
 
     return workspaces.map((workspace) => String(workspace._id));
   }
+  async findOwner(workspaceId: string) {
+    return Workspace.findOne({
+      _id: workspaceId,
+      isDeleted: { $ne: true },
+    }).populate("owner", "firstName lastName email");
+  }
 }

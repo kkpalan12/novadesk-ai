@@ -17,8 +17,18 @@ export class MembershipService {
    * Add Member
    *
    * Only workspace owner can add members.
+   *
+   * Keeps:
+   * - Membership collection
+   * - Workspace.members[]
+   *
+   * synchronized.
    */
   async createMembership(dto: CreateMembershipDto, actorUserId: string) {
+    // =========================================
+    // Verify Workspace Owner
+    // =========================================
+
     const isOwner = await this.workspaceRepository.isOwner(
       dto.workspace,
       actorUserId,
@@ -28,18 +38,46 @@ export class MembershipService {
       throw new NotFoundError("Workspace not found");
     }
 
+    // =========================================
+    // Check Existing Membership
+    // =========================================
+
     const existing = await this.membershipRepository.findByWorkspaceAndUser(
       dto.workspace,
       dto.user,
     );
 
-    if (existing) {
+    if (existing && existing.status === "ACTIVE") {
       throw new ConflictError("User is already a member of this workspace");
     }
 
+    // =========================================
+    // Create Membership
+    // =========================================
+
     const entity = MembershipMapper.toEntity(dto);
 
-    return this.membershipRepository.create(entity);
+    const membership = await this.membershipRepository.create(entity);
+
+    // =========================================
+    // Sync Workspace.members[]
+    // =========================================
+
+    const workspace = await this.workspaceRepository.addMember(
+      dto.workspace,
+      dto.user,
+    );
+
+    if (!workspace) {
+      // Membership was created but workspace
+      // could not be updated.
+      //
+      // This should normally never happen
+      // after the owner validation above.
+      throw new NotFoundError("Workspace not found");
+    }
+
+    return membership;
   }
 
   /**
@@ -113,8 +151,12 @@ export class MembershipService {
       throw new NotFoundError("Membership not found");
     }
 
+    const workspaceId = String(membership.workspace);
+
+    const userId = String(membership.user);
+
     const isOwner = await this.workspaceRepository.isOwner(
-      String(membership.workspace),
+      workspaceId,
       actorUserId,
     );
 
@@ -127,6 +169,12 @@ export class MembershipService {
     if (!removed) {
       throw new NotFoundError("Membership not found");
     }
+
+    // =========================================
+    // Sync Workspace.members[]
+    // =========================================
+
+    await this.workspaceRepository.removeMember(workspaceId, userId);
 
     return removed;
   }

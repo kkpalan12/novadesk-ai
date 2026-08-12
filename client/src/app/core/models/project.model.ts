@@ -1,23 +1,24 @@
+export interface ProjectWorkspace {
+  _id: string;
+  name: string;
+}
+
+export interface ProjectOwner {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export interface Project {
   _id: string;
 
-  workspace:
-    | string
-    | {
-        _id: string;
-        name: string;
-      };
+  workspace: string | ProjectWorkspace;
 
-  owner:
-    | string
-    | {
-        _id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-      };
+  owner: string | ProjectOwner;
 
   name: string;
+
   description?: string;
 
   status: 'ACTIVE' | 'ARCHIVED';
@@ -25,8 +26,33 @@ export interface Project {
   isDeleted: boolean;
 
   createdAt?: string;
+
   updatedAt?: string;
 }
+
+// =========================================
+// Create
+// =========================================
+
+export interface CreateProjectRequest {
+  workspace: string;
+  name: string;
+  description?: string;
+}
+
+// =========================================
+// Update
+// =========================================
+
+export interface UpdateProjectRequest {
+  name?: string;
+  description?: string;
+  status?: 'ACTIVE' | 'ARCHIVED';
+}
+
+// =========================================
+// Responses
+// =========================================
 
 export interface ProjectResponse {
   success: boolean;
@@ -37,6 +63,7 @@ export interface ProjectResponse {
 export interface ProjectsResponse {
   success: boolean;
   message: string;
+
   data: {
     projects: Project[];
     total: number;
@@ -44,10 +71,4 @@ export interface ProjectsResponse {
     limit: number;
     totalPages: number;
   };
-}
-
-export interface CreateProjectRequest {
-  workspace: string;
-  name: string;
-  description?: string;
 }

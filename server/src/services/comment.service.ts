@@ -7,6 +7,7 @@ import { NotFoundError } from "../common/errors/NotFoundError";
 import { ForbiddenError } from "../common/errors/ForbiddenError";
 
 import { NotificationService } from "./notification.service";
+import { ActivityService } from "./activity.service";
 
 import { TaskRepository } from "../repositories/task.repository";
 import { ProjectRepository } from "../repositories/project.repository";
@@ -18,11 +19,13 @@ import { UserRepository } from "../repositories/user.repository";
 import { MembershipRole } from "../interfaces/membership.interface";
 
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
+import { ACTIVITY_ACTIONS } from "../common/constants/activity.constants";
 
 export class CommentService {
   private readonly repository = new CommentRepository();
 
   private readonly notificationService = new NotificationService();
+  private readonly activityService = new ActivityService();
 
   private readonly taskRepository = new TaskRepository();
 
@@ -37,6 +40,9 @@ export class CommentService {
   /**
    * Create Comment
    */
+  /**
+   * Create Comment
+   */
   async createComment(dto: CreateCommentDto) {
     /**
      * Verify task access BEFORE creating
@@ -45,6 +51,21 @@ export class CommentService {
     const task = await this.getAuthorizedTask(dto.task, dto.createdBy);
 
     const comment = await this.repository.create(dto);
+
+    /**
+     * Record project activity.
+     */
+    await this.activityService.createActivity({
+      project: this.getObjectId(task.project),
+      user: dto.createdBy,
+      action: ACTIVITY_ACTIONS.COMMENT_ADDED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Commented on "${task.title}"`,
+      metadata: {
+        commentId: comment._id.toString(),
+      },
+    });
 
     /**
      * Notify assigned user.
@@ -76,7 +97,6 @@ export class CommentService {
 
     return comment;
   }
-
   /**
    * Get Comments
    */
@@ -109,10 +129,29 @@ export class CommentService {
      */
     await this.getAuthorizedTask(this.getObjectId(comment.task), userId);
 
-    return this.repository.update(id, {
+    const updatedComment = await this.repository.update(id, {
       ...dto,
       isEdited: true,
     });
+
+    const task = await this.getAuthorizedTask(
+      this.getObjectId(comment.task),
+      userId,
+    );
+
+    await this.activityService.createActivity({
+      project: this.getObjectId(task.project),
+      user: userId,
+      action: ACTIVITY_ACTIONS.COMMENT_UPDATED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Updated a comment on "${task.title}"`,
+      metadata: {
+        commentId: id,
+      },
+    });
+
+    return updatedComment;
   }
 
   /**
@@ -137,7 +176,26 @@ export class CommentService {
      */
     await this.getAuthorizedTask(this.getObjectId(comment.task), userId);
 
-    return this.repository.softDelete(id);
+    const deletedComment = await this.repository.softDelete(id);
+
+    const task = await this.getAuthorizedTask(
+      this.getObjectId(comment.task),
+      userId,
+    );
+
+    await this.activityService.createActivity({
+      project: this.getObjectId(task.project),
+      user: userId,
+      action: ACTIVITY_ACTIONS.COMMENT_DELETED,
+      entityType: ENTITY_TYPES.TASK,
+      entityId: task._id.toString(),
+      description: `Deleted a comment from "${task.title}"`,
+      metadata: {
+        commentId: id,
+      },
+    });
+
+    return deletedComment;
   }
 
   /**
