@@ -1,5 +1,4 @@
 import { Injectable, inject } from '@angular/core';
-
 import { Observable } from 'rxjs';
 
 import { ApiService } from './api.service';
@@ -8,6 +7,13 @@ import {
   WorkspaceListResponse,
   WorkspaceResponse,
 } from '../models/workspace.model';
+
+export interface CreateWorkspaceRequest {
+  name: string;
+  description?: string;
+  logo?: string;
+  members?: string[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -29,5 +35,13 @@ export class WorkspaceService {
 
   getWorkspace(workspaceId: string): Observable<WorkspaceResponse> {
     return this.api.get<WorkspaceResponse>(`/workspaces/${workspaceId}`);
+  }
+
+  // =========================================
+  // Create Workspace
+  // =========================================
+
+  createWorkspace(data: CreateWorkspaceRequest): Observable<WorkspaceResponse> {
+    return this.api.post<WorkspaceResponse>('/workspaces', data);
   }
 }

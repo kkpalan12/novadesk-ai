@@ -1,10 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
-
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { Router } from '@angular/router';
 
 import { WorkspaceContextService } from '../../core/services/workspace-context.service';
+import { WorkspaceService } from '../../core/services/workspace.service';
 
 @Component({
   selector: 'app-workspace-selection',
@@ -19,11 +18,11 @@ import { WorkspaceContextService } from '../../core/services/workspace-context.s
 export class WorkspaceSelectionComponent implements OnInit {
   readonly workspaceContext = inject(WorkspaceContextService);
 
+  private readonly workspaceService = inject(WorkspaceService);
+
   private readonly router = inject(Router);
 
-  // =========================================
-  // Lifecycle
-  // =========================================
+  readonly creating = signal(false);
 
   ngOnInit(): void {
     this.workspaceContext.loadWorkspaces();
@@ -34,11 +33,8 @@ export class WorkspaceSelectionComponent implements OnInit {
   // =========================================
 
   selectWorkspace(workspaceId: string): void {
-    console.log('Workspace selected:', workspaceId);
-
     if (!workspaceId) {
       console.error('Workspace ID is missing.');
-
       return;
     }
 
@@ -48,23 +44,56 @@ export class WorkspaceSelectionComponent implements OnInit {
 
     if (!workspace) {
       console.error('Workspace not found:', workspaceId);
-
       return;
     }
 
-    // Save active workspace
-
     this.workspaceContext.selectWorkspace(workspace);
-
-    console.log('Navigating to dashboard:', workspace._id);
-
-    // Navigate with workspace context
 
     this.router.navigate(['/dashboard'], {
       queryParams: {
         workspace: workspace._id,
       },
     });
+  }
+
+  // =========================================
+  // Create Workspace
+  // =========================================
+
+  createWorkspace(): void {
+    const name = window.prompt('Enter workspace name');
+
+    if (!name?.trim()) {
+      return;
+    }
+
+    this.creating.set(true);
+
+    this.workspaceService
+      .createWorkspace({
+        name: name.trim(),
+      })
+      .subscribe({
+        next: (response) => {
+          const workspace = response.data;
+
+          this.workspaceContext.selectWorkspace(workspace);
+
+          this.creating.set(false);
+
+          this.router.navigate(['/dashboard'], {
+            queryParams: {
+              workspace: workspace._id,
+            },
+          });
+        },
+
+        error: (error) => {
+          console.error('Create workspace error:', error);
+
+          this.creating.set(false);
+        },
+      });
   }
 
   // =========================================

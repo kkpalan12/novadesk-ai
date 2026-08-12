@@ -40,9 +40,7 @@
 
         <!-- Error -->
 
-        @else if (
-        workspaceContext.errorMessage()
-        ) {
+        @else if (workspaceContext.errorMessage()) {
 
         <div class="error-state">
 
@@ -61,19 +59,32 @@
 
         <!-- No Workspaces -->
 
-        @else if (
-        workspaceContext.workspaces().length === 0
-        ) {
+        @else if (workspaceContext.workspaces().length === 0) {
 
         <div class="empty-state">
 
+            <div class="empty-icon">
+                +
+            </div>
+
             <h2>
-                No workspaces found
+                Create your first workspace
             </h2>
 
             <p>
                 You don't have access to any workspace yet.
+                Create one to start using NovaDesk AI.
             </p>
+
+            <button type="button" class="primary-button" (click)="createWorkspace()" [disabled]="creating()">
+
+                @if (creating()) {
+                Creating...
+                } @else {
+                Create Workspace
+                }
+
+            </button>
 
         </div>
 
