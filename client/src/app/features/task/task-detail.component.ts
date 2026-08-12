@@ -151,6 +151,10 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     if (projectId) {
       this.socketService.leaveProject(projectId);
     }
+
+    this.socketService.removeCommentListeners();
+
+    console.log('🧹 Task detail component destroyed');
   }
 
   // =========================================================

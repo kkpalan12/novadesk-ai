@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -17,6 +17,7 @@ import { SearchService } from '../../core/services/search.service';
 import { SearchUser } from '../../core/models/search.model';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { SocketService } from '../../core/services/socket.service';
 
 @Component({
   selector: 'app-workspace',
@@ -25,7 +26,7 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
 })
-export class WorkspaceComponent implements OnInit {
+export class WorkspaceComponent implements OnInit, OnDestroy {
   private readonly workspaceService = inject(WorkspaceService);
 
   private readonly membershipService = inject(MembershipService);
@@ -33,6 +34,7 @@ export class WorkspaceComponent implements OnInit {
   private readonly searchService = inject(SearchService);
 
   private readonly authService = inject(AuthService);
+  private readonly socketService = inject(SocketService);
 
   private readonly fb = inject(FormBuilder);
 
@@ -123,13 +125,25 @@ export class WorkspaceComponent implements OnInit {
 
     description: [''],
   });
+  // =========================================
+  // PRESENCE
+  // =========================================
+
+  readonly onlineUsers = signal<Set<string>>(new Set());
 
   // =========================================
   // Lifecycle
   // =========================================
 
   ngOnInit(): void {
+    this.socketService.connect();
+
+    this.initializeWorkspaceRealtime();
+
+    this.initializePresenceRealtime();
+
     this.loadWorkspaces();
+    this.socketService.requestOnlineUsers();
   }
 
   // =========================================
@@ -145,6 +159,9 @@ export class WorkspaceComponent implements OnInit {
         const workspaces = response?.data?.workspaces ?? [];
 
         this.workspaces.set(workspaces);
+        workspaces.forEach((workspace) => {
+          this.socketService.joinWorkspace(workspace._id);
+        });
 
         this.loading.set(false);
 
@@ -728,5 +745,122 @@ export class WorkspaceComponent implements OnInit {
         );
       },
     });
+  }
+  // =========================================
+  // WORKSPACE REALTIME
+  // =========================================
+
+  private initializeWorkspaceRealtime(): void {
+    this.socketService.onWorkspaceUpdated((updatedWorkspace) => {
+      console.log('🏢 REAL-TIME WORKSPACE UPDATED:', updatedWorkspace);
+
+      if (!updatedWorkspace?._id) {
+        return;
+      }
+
+      this.workspaces.update((items) =>
+        items.map((workspace) =>
+          workspace._id === updatedWorkspace._id ? updatedWorkspace : workspace,
+        ),
+      );
+
+      const selected = this.selectedWorkspace();
+
+      if (selected?._id === updatedWorkspace._id) {
+        this.selectedWorkspace.set(updatedWorkspace);
+      }
+    });
+  }
+  // =========================================
+  // PRESENCE REALTIME
+  // =========================================
+
+  private initializePresenceRealtime(): void {
+    // =========================================
+    // CLEAN EXISTING LISTENERS
+    // =========================================
+
+    this.socketService.removePresenceListeners();
+    // =========================================
+    // Initial Online Users
+    // =========================================
+
+    this.socketService.onOnlineUsers((userIds) => {
+      console.log('🟢 REAL-TIME ONLINE USERS:', userIds);
+
+      this.onlineUsers.set(new Set(userIds));
+    });
+
+    // =========================================
+    // User Online
+    // =========================================
+
+    this.socketService.onUserOnline((data) => {
+      if (!data?.userId) {
+        return;
+      }
+
+      console.log('🟢 REAL-TIME USER ONLINE:', data.userId);
+
+      this.onlineUsers.update((users) => {
+        const updated = new Set(users);
+
+        updated.add(data.userId);
+
+        return updated;
+      });
+    });
+
+    // =========================================
+    // User Offline
+    // =========================================
+
+    this.socketService.onUserOffline((data) => {
+      if (!data?.userId) {
+        return;
+      }
+
+      console.log('🔴 REAL-TIME USER OFFLINE:', data.userId);
+
+      this.onlineUsers.update((users) => {
+        const updated = new Set(users);
+
+        updated.delete(data.userId);
+
+        return updated;
+      });
+    });
+  }
+  // =========================================
+  // CHECK USER ONLINE
+  // =========================================
+
+  isUserOnline(userId: string | undefined): boolean {
+    if (!userId) {
+      return false;
+    }
+
+    const online = this.onlineUsers().has(userId);
+
+    console.log('👤 PRESENCE CHECK:', {
+      userId,
+      online,
+      onlineUsers: Array.from(this.onlineUsers()),
+    });
+
+    return online;
+  }
+  // =========================================
+  // DESTROY
+  // =========================================
+
+  ngOnDestroy(): void {
+    this.socketService.removeWorkspaceListeners();
+
+    this.socketService.removePresenceListeners();
+
+    console.log('🧹 Workspace socket listeners removed');
+
+    console.log('🧹 Presence socket listeners removed');
   }
 }

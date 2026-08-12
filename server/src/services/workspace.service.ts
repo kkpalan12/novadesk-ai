@@ -11,11 +11,13 @@ import { MembershipRole } from "../interfaces/membership.interface";
 
 import { NotFoundError } from "../common/errors/NotFoundError";
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
+import { SocketService } from "../socket/socket.service";
 
 export class WorkspaceService {
   private readonly workspaceRepository = new WorkspaceRepository();
 
   private readonly membershipRepository = new MembershipRepository();
+  private readonly socketService = new SocketService();
 
   // =========================================
   // Create Workspace
@@ -75,12 +77,22 @@ export class WorkspaceService {
   // Update Workspace
   // =========================================
 
+  // =========================================
+  // Update Workspace
+  // =========================================
+
   async updateWorkspace(id: string, dto: UpdateWorkspaceDto, userId: string) {
     const workspace = await this.workspaceRepository.update(id, userId, dto);
 
     if (!workspace) {
       throw new NotFoundError("Workspace not found or access denied");
     }
+
+    // =========================================
+    // REAL-TIME WORKSPACE UPDATE
+    // =========================================
+
+    this.socketService.sendWorkspaceUpdated(id, workspace);
 
     return workspace;
   }

@@ -5,6 +5,7 @@ import { Router, RouterOutlet } from '@angular/router';
 import { WorkspaceContextService } from '../../core/services/workspace-context.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { SocketService } from '../../core/services/socket.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -28,6 +29,7 @@ export class MainLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   private readonly notificationService = inject(NotificationService);
+  private readonly socketService = inject(SocketService);
 
   // =========================================
   // Current User
@@ -173,6 +175,10 @@ export class MainLayoutComponent implements OnInit {
 
     this.notificationService.clear();
 
+    // Disconnect realtime socket
+    this.socketService.disconnect();
+
+    // Clear authentication
     this.authService.logout();
 
     this.router.navigate(['/login']);

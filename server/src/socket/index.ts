@@ -2,23 +2,25 @@ import http from "http";
 import { Server } from "socket.io";
 
 import { SOCKET_EVENTS } from "./socket.events";
-
 import { socketAuth, AuthenticatedSocket } from "./socket.middleware";
 
 import { presenceService } from "./presence.service";
 
 let io: Server;
 
+/**
+ * Initialize Socket.IO
+ */
 export const initializeSocket = (server: http.Server) => {
   io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: "*", // Change in production
       credentials: true,
     },
   });
 
   // =========================================
-  // SOCKET AUTH
+  // SOCKET AUTHENTICATION
   // =========================================
 
   io.use(socketAuth);
@@ -30,35 +32,57 @@ export const initializeSocket = (server: http.Server) => {
   io.on(SOCKET_EVENTS.CONNECTION, (socket: AuthenticatedSocket) => {
     const userId = socket.user!.userId;
 
+    console.log(`🔌 Socket connection received: ${socket.id}`);
+
     // =========================================
     // PERSONAL USER ROOM
     // =========================================
 
-    socket.join(`user:${userId}`);
+    const userRoom = `user:${userId}`;
 
-    console.log(`👤 User ${userId} joined room user:${userId}`);
+    socket.join(userRoom);
+
+    console.log(`👤 User ${userId} joined room ${userRoom}`);
 
     // =========================================
-    // PRESENCE
+    // PRESENCE - CONNECTED
     // =========================================
 
-    presenceService.userConnected(userId, socket.id);
+    const becameOnline = presenceService.userConnected(userId, socket.id);
 
     console.log(`✅ User ${userId} connected (${socket.id})`);
+
+    // =========================================
+    // CURRENT ONLINE USERS
+    // =========================================
+
+    socket.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
 
     // =========================================
     // USER ONLINE
     // =========================================
 
-    io.emit(SOCKET_EVENTS.USER_ONLINE, {
-      userId,
+    if (becameOnline) {
+      io.emit(SOCKET_EVENTS.USER_ONLINE, {
+        userId,
+      });
+
+      console.log(`🟢 User ${userId} is online`);
+    }
+    // =========================================
+    // REQUEST CURRENT ONLINE USERS
+    // =========================================
+    //
+    // Used when Angular component is recreated
+    // after the socket is already connected.
+    //
+    // =========================================
+
+    socket.on("get-online-users", () => {
+      console.log(`🟢 Sending online users to ${userId}`);
+
+      socket.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
     });
-
-    // =========================================
-    // ONLINE USERS
-    // =========================================
-
-    io.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
 
     // =========================================
     // JOIN PROJECT ROOM
@@ -95,29 +119,70 @@ export const initializeSocket = (server: http.Server) => {
     });
 
     // =========================================
+    // JOIN WORKSPACE ROOM
+    // =========================================
+
+    socket.on(SOCKET_EVENTS.JOIN_WORKSPACE, (workspaceId: string) => {
+      if (!workspaceId) {
+        console.warn(
+          `⚠️ User ${userId} attempted to join empty workspace room`,
+        );
+
+        return;
+      }
+
+      const roomName = `workspace:${workspaceId}`;
+
+      socket.join(roomName);
+
+      console.log(`🏢 User ${userId} joined workspace room ${roomName}`);
+    });
+
+    // =========================================
+    // LEAVE WORKSPACE ROOM
+    // =========================================
+
+    socket.on(SOCKET_EVENTS.LEAVE_WORKSPACE, (workspaceId: string) => {
+      if (!workspaceId) {
+        return;
+      }
+
+      const roomName = `workspace:${workspaceId}`;
+
+      socket.leave(roomName);
+
+      console.log(`🏢 User ${userId} left workspace room ${roomName}`);
+    });
+
+    // =========================================
     // DISCONNECT
     // =========================================
 
-    socket.on(SOCKET_EVENTS.DISCONNECT, () => {
-      presenceService.userDisconnected(userId);
+    socket.on(SOCKET_EVENTS.DISCONNECT, (reason) => {
+      console.warn(`⚠️ User ${userId} disconnected:`, reason);
 
-      console.log(`❌ User ${userId} disconnected`);
+      const becameOffline = presenceService.userDisconnected(userId, socket.id);
 
-      io.emit(SOCKET_EVENTS.USER_OFFLINE, {
-        userId,
-      });
+      if (becameOffline) {
+        io.emit(SOCKET_EVENTS.USER_OFFLINE, {
+          userId,
+        });
 
-      io.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
+        console.log(`🔴 User ${userId} is offline`);
+      } else {
+        console.log(
+          `🟡 User ${userId} disconnected socket ${socket.id}, but user is still online`,
+        );
+      }
     });
   });
 
   return io;
 };
 
-// =========================================
-// GET SOCKET INSTANCE
-// =========================================
-
+/**
+ * Get Socket.IO Instance
+ */
 export const getIO = (): Server => {
   if (!io) {
     throw new Error("Socket.IO has not been initialized.");

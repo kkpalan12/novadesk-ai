@@ -10,6 +10,7 @@ import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
 import { WorkspaceRepository } from "../repositories/workspace.repository";
 import { MembershipRepository } from "../repositories/membership.repository";
 import { MembershipRole } from "../interfaces/membership.interface";
+import { SocketService } from "../socket/socket.service";
 
 export class ProjectService {
   private readonly projectRepository = new ProjectRepository();
@@ -17,6 +18,7 @@ export class ProjectService {
   private readonly workspaceRepository = new WorkspaceRepository();
 
   private readonly membershipRepository = new MembershipRepository();
+  private readonly socketService = new SocketService();
 
   async createProject(dto: CreateProjectDto, userId: string) {
     const isOwner = await this.workspaceRepository.isOwner(
@@ -37,7 +39,11 @@ export class ProjectService {
 
     const entity = ProjectMapper.toEntity(dto, userId);
 
-    return this.projectRepository.create(entity);
+    const project = await this.projectRepository.create(entity);
+
+    this.socketService.sendProjectCreated(dto.workspace, project);
+
+    return project;
   }
 
   async getAllProjects(query: any, userId: string) {
@@ -98,6 +104,7 @@ export class ProjectService {
     if (!updated) {
       throw new NotFoundError("Project not found");
     }
+    this.socketService.sendProjectUpdated(workspaceId, updated);
 
     return updated;
   }

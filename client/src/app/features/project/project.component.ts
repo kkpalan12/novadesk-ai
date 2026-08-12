@@ -1,5 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
@@ -9,6 +8,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../core/services/project.service';
 
 import { Project, UpdateProjectRequest } from '../../core/models/project.model';
+import { SocketService } from '../../core/services/socket.service';
 
 @Component({
   selector: 'app-project',
@@ -21,12 +21,13 @@ import { Project, UpdateProjectRequest } from '../../core/models/project.model';
 
   styleUrl: './project.component.scss',
 })
-export class ProjectComponent implements OnInit {
+export class ProjectComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
 
   private readonly router = inject(Router);
 
   private readonly projectService = inject(ProjectService);
+  private readonly socketService = inject(SocketService);
 
   // =========================================
   // State
@@ -86,6 +87,49 @@ export class ProjectComponent implements OnInit {
     }
 
     this.workspaceId.set(workspaceId);
+
+    this.socketService.connect();
+
+    this.socketService.joinWorkspace(workspaceId);
+    // =========================================
+    // PROJECT CREATED
+    // =========================================
+
+    this.socketService.onProjectCreated((project) => {
+      console.log('📁 REAL-TIME PROJECT CREATED:', project);
+
+      const projectWorkspaceId =
+        typeof project?.workspace === 'string'
+          ? project.workspace
+          : project?.workspace?._id;
+
+      if (projectWorkspaceId && projectWorkspaceId !== workspaceId) {
+        return;
+      }
+
+      this.loadProjects(workspaceId);
+    });
+
+    // =========================================
+    // PROJECT UPDATED
+    // =========================================
+
+    this.socketService.onProjectUpdated((project) => {
+      console.log('📁 REAL-TIME PROJECT UPDATED:', project);
+
+      const projectWorkspaceId =
+        typeof project?.workspace === 'string'
+          ? project.workspace
+          : project?.workspace?._id;
+
+      if (projectWorkspaceId && projectWorkspaceId !== workspaceId) {
+        return;
+      }
+
+      this.projects.update((items) =>
+        items.map((item) => (item._id === project._id ? project : item)),
+      );
+    });
 
     this.loadProjects(workspaceId);
   }
@@ -362,5 +406,16 @@ export class ProjectComponent implements OnInit {
         );
       },
     });
+  }
+  ngOnDestroy(): void {
+    const workspaceId = this.workspaceId();
+
+    if (workspaceId) {
+      this.socketService.leaveWorkspace(workspaceId);
+    }
+
+    this.socketService.removeProjectListeners();
+
+    console.log('🧹 Project component destroyed');
   }
 }

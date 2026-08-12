@@ -17,32 +17,31 @@ export const SOCKET_EVENTS = {
   // NOTIFICATIONS
   // =========================================
 
-  NOTIFICATION: "notification:new",
-  NOTIFICATION_COUNT: "notification:unread-count",
+  NOTIFICATION: "notification",
+  NOTIFICATION_COUNT: "notification-count",
 
   // =========================================
   // TASKS
   // =========================================
 
-  TASK_CREATED: "task:created",
-  TASK_UPDATED: "task:updated",
-  TASK_ASSIGNED: "task:assigned",
-  TASK_DELETED: "task:deleted",
-  TASK_STATUS_CHANGED: "task:status-changed",
+  TASK_CREATED: "task-created",
+  TASK_UPDATED: "task-updated",
+  TASK_ASSIGNED: "task-assigned",
+  TASK_DELETED: "task-deleted",
+  TASK_STATUS_CHANGED: "task-status-changed",
 
   // =========================================
   // COMMENTS
   // =========================================
 
-  COMMENT_CREATED: "comment:created",
-  COMMENT_UPDATED: "comment:updated",
-  COMMENT_DELETED: "comment:deleted",
+  COMMENT_ADDED: "comment-added",
 
   // =========================================
   // PROJECTS
   // =========================================
 
   PROJECT_CREATED: "project:created",
+
   PROJECT_UPDATED: "project:updated",
 
   // =========================================
@@ -56,7 +55,9 @@ export const SOCKET_EVENTS = {
   // =========================================
 
   USER_ONLINE: "user-online",
+
   USER_OFFLINE: "user-offline",
+
   ONLINE_USERS: "online-users",
 
   // =========================================
@@ -64,7 +65,16 @@ export const SOCKET_EVENTS = {
   // =========================================
 
   JOIN_PROJECT: "join-project",
+
   LEAVE_PROJECT: "leave-project",
+
+  // =========================================
+  // WORKSPACE ROOMS
+  // =========================================
+
+  JOIN_WORKSPACE: "join-workspace",
+
+  LEAVE_WORKSPACE: "leave-workspace",
 } as const;
 
 export type SocketEvent = (typeof SOCKET_EVENTS)[keyof typeof SOCKET_EVENTS];

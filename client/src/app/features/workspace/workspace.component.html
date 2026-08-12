@@ -300,7 +300,7 @@
                         <!-- USER -->
 
                         <div class="member-info">
-
+                        
                             <div class="member-avatar">
                                 {{
                                 member.user.firstName
@@ -308,20 +308,30 @@
                                 .toUpperCase()
                                 }}
                             </div>
-
-                            <div>
-
+                        
+                            <div class="member-details">
+                        
                                 <strong>
                                     {{ member.user.firstName }}
                                     {{ member.user.lastName }}
                                 </strong>
-
+                        
                                 <span>
                                     {{ member.user.email }}
                                 </span>
-
+                        
+                            <span class="presence-status" [class.online]="isUserOnline(member.user._id)">
+                                <span class="presence-dot"></span>
+                            
+                                {{
+                                isUserOnline(member.user._id)
+                                ? 'Online'
+                                : 'Offline'
+                                }}
+                            </span>
+                        
                             </div>
-
+                        
                         </div>
 
 

@@ -1,23 +1,71 @@
 export class PresenceService {
-  private readonly onlineUsers = new Map<string, string>();
+  private readonly onlineUsers = new Map<string, Set<string>>();
 
-  userConnected(userId: string, socketId: string) {
-    this.onlineUsers.set(userId, socketId);
+  // =========================================
+  // USER CONNECTED
+  // =========================================
+
+  userConnected(userId: string, socketId: string): boolean {
+    const existingSockets = this.onlineUsers.get(userId);
+
+    // User already has another active socket
+    if (existingSockets) {
+      existingSockets.add(socketId);
+
+      return false;
+    }
+
+    // First socket for this user
+    this.onlineUsers.set(userId, new Set([socketId]));
+
+    return true;
   }
 
-  userDisconnected(userId: string) {
+  // =========================================
+  // USER DISCONNECTED
+  // =========================================
+
+  userDisconnected(userId: string, socketId: string): boolean {
+    const sockets = this.onlineUsers.get(userId);
+
+    if (!sockets) {
+      return false;
+    }
+
+    sockets.delete(socketId);
+
+    // User still has another active socket
+    if (sockets.size > 0) {
+      return false;
+    }
+
+    // No sockets remain
     this.onlineUsers.delete(userId);
+
+    return true;
   }
 
-  isOnline(userId: string) {
+  // =========================================
+  // IS ONLINE
+  // =========================================
+
+  isOnline(userId: string): boolean {
     return this.onlineUsers.has(userId);
   }
 
-  getOnlineUsers() {
+  // =========================================
+  // GET ONLINE USERS
+  // =========================================
+
+  getOnlineUsers(): string[] {
     return Array.from(this.onlineUsers.keys());
   }
 
-  getOnlineCount() {
+  // =========================================
+  // GET ONLINE COUNT
+  // =========================================
+
+  getOnlineCount(): number {
     return this.onlineUsers.size;
   }
 }

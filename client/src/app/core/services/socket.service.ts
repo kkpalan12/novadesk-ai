@@ -22,11 +22,27 @@ export class SocketService {
   // =========================================
 
   connect(): void {
-    if (this.socket?.connected) {
-      console.log('🔌 Socket already connected');
+    // =========================================
+    // SOCKET ALREADY EXISTS
+    // =========================================
+
+    if (this.socket) {
+      if (this.socket.connected) {
+        console.log('🔌 Socket already connected');
+
+        return;
+      }
+
+      console.log('🔄 Socket exists but is disconnected. Reconnecting...');
+
+      this.socket.connect();
 
       return;
     }
+
+    // =========================================
+    // ACCESS TOKEN
+    // =========================================
 
     const token = this.authService.getToken();
 
@@ -38,8 +54,13 @@ export class SocketService {
 
     const socketUrl = new URL(environment.apiUrl).origin;
 
-    console.log('🔌 Connecting Socket.IO...');
+    console.log('🔌 Creating Socket.IO connection...');
+
     console.log('Socket URL:', socketUrl);
+
+    // =========================================
+    // CREATE SOCKET ONLY ONCE
+    // =========================================
 
     this.socket = io(socketUrl, {
       auth: {
@@ -58,8 +79,10 @@ export class SocketService {
     this.socket.on('connect', () => {
       console.log('✅ Socket connected:', this.socket?.id);
 
-      // Join projects requested while socket
-      // was still connecting.
+      // =========================================
+      // JOIN PENDING PROJECT ROOMS
+      // =========================================
+
       this.pendingProjectRooms.forEach((projectId) => {
         this.joinProjectRoom(projectId);
       });
@@ -204,23 +227,43 @@ export class SocketService {
   // =========================================
   // COMMENT EVENTS
   // =========================================
+  // =========================================
+  // COMMENT EVENTS
+  // =========================================
 
   onCommentCreated(
     callback: (data: { taskId: string; comment: any }) => void,
   ): void {
+    this.socket?.off('comment:created');
+
     this.socket?.on('comment:created', callback);
   }
 
   onCommentUpdated(
     callback: (data: { taskId: string; comment: any }) => void,
   ): void {
+    this.socket?.off('comment:updated');
+
     this.socket?.on('comment:updated', callback);
   }
 
   onCommentDeleted(
     callback: (data: { taskId: string; commentId: string }) => void,
   ): void {
+    this.socket?.off('comment:deleted');
+
     this.socket?.on('comment:deleted', callback);
+  }
+  // =========================================
+  // REMOVE COMMENT LISTENERS
+  // =========================================
+
+  removeCommentListeners(): void {
+    this.socket?.off('comment:created');
+    this.socket?.off('comment:updated');
+    this.socket?.off('comment:deleted');
+
+    console.log('🧹 Comment socket listeners removed');
   }
   onTaskCreated(callback: (task: any) => void): void {
     this.socket?.off('task:created');
@@ -240,5 +283,116 @@ export class SocketService {
   onTaskDeleted(callback: (data: { taskId: string }) => void): void {
     this.socket?.off('task:deleted');
     this.socket?.on('task:deleted', callback);
+  }
+  // =========================================
+  // PROJECT EVENTS
+  // =========================================
+
+  onProjectCreated(callback: (project: any) => void): void {
+    this.socket?.off('project:created');
+
+    this.socket?.on('project:created', callback);
+  }
+
+  onProjectUpdated(callback: (project: any) => void): void {
+    this.socket?.off('project:updated');
+
+    this.socket?.on('project:updated', callback);
+  }
+
+  // =========================================
+  // WORKSPACE ROOM
+  // =========================================
+
+  joinWorkspace(workspaceId: string): void {
+    if (!workspaceId) {
+      return;
+    }
+
+    if (!this.socket?.connected) {
+      console.warn('⚠️ Cannot join workspace before socket connection');
+
+      return;
+    }
+
+    console.log('🏢 Joining workspace room:', workspaceId);
+
+    this.socket.emit('join-workspace', workspaceId);
+  }
+
+  leaveWorkspace(workspaceId: string): void {
+    if (!workspaceId) {
+      return;
+    }
+
+    this.socket?.emit('leave-workspace', workspaceId);
+  }
+  removeProjectListeners(): void {
+    this.socket?.off('project:created');
+    this.socket?.off('project:updated');
+
+    console.log('🧹 Project socket listeners removed');
+  }
+  // =========================================
+  // WORKSPACE EVENTS
+  // =========================================
+
+  onWorkspaceUpdated(callback: (workspace: any) => void): void {
+    this.socket?.off('workspace:updated');
+
+    this.socket?.on('workspace:updated', callback);
+  }
+
+  removeWorkspaceListeners(): void {
+    this.socket?.off('workspace:updated');
+
+    console.log('🧹 Workspace socket listeners removed');
+  }
+  // =========================================
+  // PRESENCE
+  // =========================================
+  onUserOnline(callback: (data: { userId: string }) => void): void {
+    this.socket?.off('user-online');
+
+    this.socket?.on('user-online', (data) => {
+      console.log('🟢 SOCKET SERVICE USER ONLINE:', data);
+
+      callback(data);
+    });
+  }
+
+  onUserOffline(callback: (data: { userId: string }) => void): void {
+    this.socket?.off('user-offline');
+
+    this.socket?.on('user-offline', (data) => {
+      console.log('🔴 SOCKET SERVICE USER OFFLINE:', data);
+
+      callback(data);
+    });
+  }
+
+  onOnlineUsers(callback: (userIds: string[]) => void): void {
+    this.socket?.off('online-users');
+
+    this.socket?.on('online-users', callback);
+  }
+
+  removePresenceListeners(): void {
+    this.socket?.off('user-online');
+    this.socket?.off('user-offline');
+    this.socket?.off('online-users');
+
+    console.log('🧹 Presence socket listeners removed');
+  }
+  requestOnlineUsers(): void {
+    if (!this.socket?.connected) {
+      console.warn('⚠️ Cannot request online users before socket connection');
+
+      return;
+    }
+
+    console.log('🟢 Requesting current online users');
+
+    this.socket.emit('get-online-users');
   }
 }

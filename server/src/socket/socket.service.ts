@@ -2,6 +2,48 @@ import { getIO } from "./index";
 
 export class SocketService {
   // =========================================
+  // PROJECTS
+  // =========================================
+
+  sendProjectCreated(workspaceId: string, project: any): void {
+    try {
+      const io = getIO();
+
+      console.log("📁 Sending project created:", `workspace:${workspaceId}`);
+
+      io.to(`workspace:${workspaceId}`).emit("project:created", project);
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping project creation.", error);
+    }
+  }
+
+  sendProjectUpdated(workspaceId: string, project: any): void {
+    try {
+      const io = getIO();
+
+      console.log("📁 Sending project updated:", `workspace:${workspaceId}`);
+
+      io.to(`workspace:${workspaceId}`).emit("project:updated", project);
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping project update.", error);
+    }
+  }
+  // =========================================
+  // WORKSPACE UPDATED
+  // =========================================
+
+  sendWorkspaceUpdated(workspaceId: string, workspace: any): void {
+    try {
+      const io = getIO();
+
+      console.log("🏢 Sending workspace updated:", `workspace:${workspaceId}`);
+
+      io.to(`workspace:${workspaceId}`).emit("workspace:updated", workspace);
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping workspace update.", error);
+    }
+  }
+  // =========================================
   // TASK CREATED
   // =========================================
 
