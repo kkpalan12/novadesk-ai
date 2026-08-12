@@ -10,6 +10,8 @@ export interface IUser extends Document {
   avatar?: string;
   isEmailVerified: boolean;
   refreshToken?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

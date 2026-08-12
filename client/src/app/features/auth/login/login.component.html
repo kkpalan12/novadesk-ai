@@ -14,6 +14,8 @@
 
         <form [formGroup]="loginForm" (ngSubmit)="submit()" novalidate>
 
+            <!-- Email -->
+
             <div class="form-group">
                 <label for="email">
                     Email
@@ -27,14 +29,21 @@
                 email.touched
                 ) {
                 <small class="field-error">
+
                     @if (email.hasError('required')) {
                     Email is required.
-                    } @else if (email.hasError('email')) {
+                    }
+
+                    @else if (email.hasError('email')) {
                     Enter a valid email address.
                     }
+
                 </small>
                 }
             </div>
+
+
+            <!-- Password -->
 
             <div class="form-group">
                 <label for="password">
@@ -49,14 +58,30 @@
                 password.touched
                 ) {
                 <small class="field-error">
+
                     @if (password.hasError('required')) {
                     Password is required.
-                    } @else if (password.hasError('minlength')) {
+                    }
+
+                    @else if (password.hasError('minlength')) {
                     Password must be at least 6 characters.
                     }
+
                 </small>
                 }
             </div>
+
+
+            <!-- Forgot Password -->
+
+            <div class="forgot-password-link">
+                <a routerLink="/forgot-password">
+                    Forgot password?
+                </a>
+            </div>
+
+
+            <!-- Sign In -->
 
             <button type="submit" [disabled]="loading()">
                 @if (loading()) {
@@ -67,16 +92,20 @@
             </button>
 
         </form>
+
+
+        <!-- Register -->
+
         <div class="register-link">
-        
+
             <span>
                 Don't have an account?
             </span>
-        
+
             <a routerLink="/register">
                 Create account
             </a>
-        
+
         </div>
 
     </div>

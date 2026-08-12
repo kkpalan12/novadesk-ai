@@ -8,6 +8,8 @@ import { WorkspaceSelectionComponent } from './features/workspace/workspace-sele
 
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { RegisterComponent } from './features/auth/register/register.component';
+import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 export const routes: Routes = [
   // =========================================
   // AUTH
@@ -20,6 +22,15 @@ export const routes: Routes = [
   {
     path: 'register',
     component: RegisterComponent,
+  },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent,
+  },
+
+  {
+    path: 'reset-password',
+    component: ResetPasswordComponent,
   },
 
   // =========================================

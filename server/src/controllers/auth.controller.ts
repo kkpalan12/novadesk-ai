@@ -53,4 +53,15 @@ export class AuthController {
       ),
     );
   });
+  forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.authService.forgotPassword(req.body);
+
+    res.status(200).json(new ApiResponse(true, result.message, result));
+  });
+
+  resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.authService.resetPassword(req.body);
+
+    res.status(200).json(new ApiResponse(true, result.message, result));
+  });
 }

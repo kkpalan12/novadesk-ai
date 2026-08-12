@@ -14,6 +14,11 @@ import {
 } from "../utils/jwt";
 
 import { sanitizeUser } from "../utils/sanitizeUser";
+import crypto from "crypto";
+
+import { ForgotPasswordDto } from "../dto/auth/forgot-password.dto";
+import { ResetPasswordDto } from "../dto/auth/reset-password.dto";
+import { BadRequestError } from "../common/errors/BadRequestError";
 
 export class AuthService {
   private readonly userRepository: UserRepository;
@@ -136,5 +141,80 @@ export class AuthService {
 
       throw new UnauthorizedError("Invalid refresh token");
     }
+  }
+  async forgotPassword(data: ForgotPasswordDto) {
+    const user = await this.userRepository.findByEmail(
+      data.email.toLowerCase(),
+    );
+
+    /*
+     * Do not reveal whether an email exists.
+     */
+    if (!user) {
+      return {
+        message:
+          "If an account exists with this email, a password reset link has been generated.",
+      };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.userRepository.updateOne(
+      {
+        _id: user._id,
+      },
+      {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires,
+      },
+    );
+
+    /*
+     * Temporary development response.
+     *
+     * Production email delivery will replace this.
+     */
+    return {
+      message:
+        "If an account exists with this email, a password reset link has been generated.",
+
+      resetToken,
+    };
+  }
+  async resetPassword(data: ResetPasswordDto) {
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(data.token)
+      .digest("hex");
+
+    const user = await this.userRepository.updateOne(
+      {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: {
+          $gt: new Date(),
+        },
+      },
+      {
+        password: await bcrypt.hash(data.password, 10),
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+        refreshToken: null,
+      },
+    );
+
+    if (!user) {
+      throw new BadRequestError("Invalid or expired password reset token");
+    }
+
+    return {
+      message: "Password reset successfully",
+    };
   }
 }

@@ -35,6 +35,15 @@ const userSchema = new Schema<IUser>(
       type: String,
       select: false,
     },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+
+    resetPasswordExpires: {
+      type: Date,
+      select: false,
+    },
 
     role: {
       type: String,

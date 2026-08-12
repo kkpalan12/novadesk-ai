@@ -2,8 +2,12 @@ import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
-import { registerSchema, loginSchema } from "../validators/auth.validator";
-
+import {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../validators/auth.validator";
 /**
  * @swagger
  * tags:
@@ -71,6 +75,17 @@ router.post("/register", validate(registerSchema), authController.register);
  *         description: Login successful
  */
 router.post("/login", validate(loginSchema), authController.login);
+router.post(
+  "/forgot-password",
+  validate(forgotPasswordSchema),
+  authController.forgotPassword,
+);
+
+router.post(
+  "/reset-password",
+  validate(resetPasswordSchema),
+  authController.resetPassword,
+);
 /**
  * @swagger
  * /auth/me:
