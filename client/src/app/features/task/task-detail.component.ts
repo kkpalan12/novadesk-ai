@@ -98,6 +98,11 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   readonly activityLoading = signal(false);
 
   readonly activityError = signal('');
+  readonly activityLoadingMore = signal(false);
+
+  readonly activityPage = signal(1);
+
+  readonly activityTotalPages = signal(1);
 
   // =========================================================
   // Attachments
@@ -112,6 +117,8 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   readonly attachmentDeleting = signal<string | null>(null);
 
   readonly attachmentError = signal('');
+
+  readonly activityTotal = signal(0);
 
   readonly selectedFile = signal<File | null>(null);
 
@@ -178,6 +185,8 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
       console.log('📝 REAL-TIME ACTIVITY CREATED:', activity);
 
+      let added = false;
+
       this.activities.update((items) => {
         const exists = items.some((item) => item._id === activity._id);
 
@@ -185,8 +194,18 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
           return items;
         }
 
+        added = true;
+
         return [activity, ...items];
       });
+
+      if (!added) {
+        return;
+      }
+
+      this.activityTotal.update((total) => total + 1);
+
+      this.activityTotalPages.set(Math.ceil(this.activityTotal() / 20));
     });
 
     // =======================================================
@@ -621,28 +640,77 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   // Activity
   // =========================================================
 
-  private loadActivity(projectId: string): void {
-    this.activityLoading.set(true);
+  private loadActivity(projectId: string, page = 1, append = false): void {
+    if (append) {
+      this.activityLoadingMore.set(true);
+    } else {
+      this.activityLoading.set(true);
+      this.activityError.set('');
+    }
 
-    this.activityError.set('');
-
-    this.activityService.getProjectActivity(projectId, 1, 20).subscribe({
+    this.activityService.getProjectActivity(projectId, page, 20).subscribe({
       next: (response) => {
-        this.activities.set(response.data?.activities ?? []);
+        const newActivities = response.data?.activities ?? [];
 
-        this.activityLoading.set(false);
+        this.activityPage.set(response.data?.page ?? page);
+        this.activityTotal.set(response.data?.total ?? newActivities.length);
+
+        this.activityTotalPages.set(response.data?.totalPages ?? 1);
+
+        if (append) {
+          this.activities.update((items) => {
+            const existingIds = new Set(items.map((item) => item._id));
+
+            const uniqueActivities = newActivities.filter(
+              (activity) => !existingIds.has(activity._id),
+            );
+
+            return [...items, ...uniqueActivities];
+          });
+
+          this.activityLoadingMore.set(false);
+        } else {
+          this.activities.set(newActivities);
+
+          this.activityLoading.set(false);
+        }
       },
 
       error: (error) => {
         console.error('Load activity error:', error);
 
-        this.activityLoading.set(false);
+        if (append) {
+          this.activityLoadingMore.set(false);
+        } else {
+          this.activityLoading.set(false);
+        }
 
         this.activityError.set(
           error?.error?.message ?? 'Unable to load activity.',
         );
       },
     });
+  }
+  loadMoreActivity(): void {
+    const projectId = this.projectId();
+
+    if (!projectId) {
+      return;
+    }
+
+    if (this.activityLoadingMore()) {
+      return;
+    }
+
+    const currentPage = this.activityPage();
+
+    const totalPages = this.activityTotalPages();
+
+    if (currentPage >= totalPages) {
+      return;
+    }
+
+    this.loadActivity(projectId, currentPage + 1, true);
   }
 
   formatActivityAction(action: string): string {

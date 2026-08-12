@@ -534,106 +534,126 @@ item.newValue !== undefined
 
         </section>
 
+<!-- ==========================
+   ACTIVITY
+   ========================== -->
 
-        <!-- ==========================
-           ACTIVITY
-           ========================== -->
+<section class="detail-section activity-section">
 
-        <section class="detail-section activity-section">
+    <h2>
+        Activity
+    </h2>
 
-            <h2>
-                Activity
-            </h2>
+    @if (activityError()) {
 
+    <div class="form-error">
+        {{ activityError() }}
+    </div>
 
-            @if (activityError()) {
+    }
 
-            <div class="form-error">
-                {{ activityError() }}
-            </div>
+    @if (activityLoading()) {
 
-            }
+    <div class="state">
+        Loading activity...
+    </div>
 
+    }
 
-            @if (activityLoading()) {
+    @if (
+    !activityLoading() &&
+    !activityError() &&
+    activities().length === 0
+    ) {
 
-            <div class="state">
-                Loading activity...
-            </div>
+    <div class="placeholder">
+        No activity available.
+    </div>
 
-            }
+    }
 
+    @if (
+    !activityLoading() &&
+    activities().length > 0
+    ) {
 
-            @if (
-            !activityLoading() &&
-            !activityError() &&
-            activities().length === 0
-            ) {
+    <div class="activity-list">
 
-            <div class="placeholder">
-                No activity available.
-            </div>
+        @for (
+        activity of activities();
+        track activity._id
+        ) {
 
-            }
+        <article class="activity-item">
 
+            <div class="activity-marker"></div>
 
-            @if (
-            !activityLoading() &&
-            activities().length > 0
-            ) {
+            <div class="activity-content">
 
-            <div class="activity-list">
+                <div class="activity-header">
 
-                @for (
-                activity of activities();
-                track activity._id
-                ) {
+                    <strong>
+                        {{
+                        formatActivityAction(
+                        activity.action
+                        )
+                        }}
+                    </strong>
 
-                <article class="activity-item">
+                    <small>
+                        {{
+                        activity.createdAt
+                        | date:'medium'
+                        }}
+                    </small>
 
-                    <div class="activity-marker"></div>
+                </div>
 
-                    <div class="activity-content">
-
-                        <div class="activity-header">
-
-                            <strong>
-                                {{
-                                formatActivityAction(
-                                activity.action
-                                )
-                                }}
-                            </strong>
-
-                            <small>
-                                {{
-                                activity.createdAt
-                                | date:'medium'
-                                }}
-                            </small>
-
-                        </div>
-
-                        <p>
-                            {{
-                            getActivityUserName(
-                            activity
-                            )
-                            }}
-                        </p>
-
-                    </div>
-
-                </article>
-
-                }
+                <p>
+                    {{
+                    getActivityUserName(
+                    activity
+                    )
+                    }}
+                </p>
 
             </div>
 
-            }
+        </article>
 
-        </section>
+        }
 
+    </div>
+
+    }
+
+    <!-- ==========================
+       LOAD MORE
+       ========================== -->
+
+    @if (
+    !activityLoading() &&
+    !activityLoadingMore() &&
+    activities().length > 0 &&
+    activityPage() < activityTotalPages() ) { <div class="activity-load-more">
+
+        <button type="button" (click)="loadMoreActivity()">
+            Load More
+        </button>
+
+        </div>
+
+        }
+
+        @if (activityLoadingMore()) {
+
+        <div class="state">
+            Loading more activity...
+        </div>
+
+        }
+
+</section>
 
         <!-- ==========================
            ATTACHMENTS
