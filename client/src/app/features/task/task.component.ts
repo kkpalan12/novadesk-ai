@@ -20,6 +20,7 @@ import { Membership } from '../../core/models/membership.model';
 })
 export class TaskComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+
   private readonly router = inject(Router);
 
   private readonly taskService = inject(TaskService);
@@ -91,6 +92,8 @@ export class TaskComponent implements OnInit {
   taskStatus: TaskStatus = 'TODO';
 
   taskDueDate = '';
+
+  taskAssignedTo = '';
 
   // =========================================
   // INIT
@@ -207,6 +210,8 @@ export class TaskComponent implements OnInit {
 
     this.taskDueDate = '';
 
+    this.taskAssignedTo = '';
+
     this.formError.set('');
 
     this.showCreateForm.set(true);
@@ -228,6 +233,12 @@ export class TaskComponent implements OnInit {
     this.taskStatus = task.status;
 
     this.taskDueDate = this.formatDateForInput(task.dueDate);
+
+    if (typeof task.assignedTo === 'string') {
+      this.taskAssignedTo = task.assignedTo;
+    } else {
+      this.taskAssignedTo = task.assignedTo?._id ?? '';
+    }
 
     this.formError.set('');
 
@@ -266,6 +277,8 @@ export class TaskComponent implements OnInit {
     this.taskStatus = 'TODO';
 
     this.taskDueDate = '';
+
+    this.taskAssignedTo = '';
   }
 
   // =========================================
@@ -317,15 +330,17 @@ export class TaskComponent implements OnInit {
         })
         .subscribe({
           next: () => {
-            this.saving.set(false);
+            this.assignTaskAfterSave(projectId, editingTask._id, () => {
+              this.saving.set(false);
 
-            this.showCreateForm.set(false);
+              this.showCreateForm.set(false);
 
-            this.editingTask.set(null);
+              this.editingTask.set(null);
 
-            this.resetForm();
+              this.resetForm();
 
-            this.loadTasks();
+              this.loadTasks();
+            });
           },
 
           error: (error) => {
@@ -357,7 +372,23 @@ export class TaskComponent implements OnInit {
         dueDate: this.taskDueDate || undefined,
       })
       .subscribe({
-        next: () => {
+        next: (response) => {
+          const createdTaskId = response?.data?._id;
+
+          if (createdTaskId && this.taskAssignedTo) {
+            this.assignTaskAfterSave(projectId, createdTaskId, () => {
+              this.saving.set(false);
+
+              this.showCreateForm.set(false);
+
+              this.resetForm();
+
+              this.loadTasks();
+            });
+
+            return;
+          }
+
           this.saving.set(false);
 
           this.showCreateForm.set(false);
@@ -373,6 +404,42 @@ export class TaskComponent implements OnInit {
           this.saving.set(false);
 
           this.formError.set(error?.error?.message ?? 'Unable to create task.');
+        },
+      });
+  }
+
+  // =========================================
+  // ASSIGN TASK AFTER CREATE / UPDATE
+  // =========================================
+
+  private assignTaskAfterSave(
+    projectId: string,
+    taskId: string,
+    onSuccess: () => void,
+  ): void {
+    if (!this.taskAssignedTo) {
+      onSuccess();
+
+      return;
+    }
+
+    this.taskService
+      .assignTask(projectId, taskId, this.taskAssignedTo)
+      .subscribe({
+        next: () => {
+          onSuccess();
+        },
+
+        error: (error) => {
+          console.error('Assign task failed:', error);
+
+          this.saving.set(false);
+
+          this.formError.set(
+            error?.error?.message ?? 'Task saved but assignment failed.',
+          );
+
+          this.loadTasks();
         },
       });
   }
@@ -478,9 +545,6 @@ export class TaskComponent implements OnInit {
 
         this.deleting.set(null);
 
-        // If current page becomes empty,
-        // move back one page.
-
         if (this.tasks().length === 0 && this.page() > 1) {
           this.page.update((value) => value - 1);
 
@@ -505,15 +569,6 @@ export class TaskComponent implements OnInit {
   // =========================================
 
   applyFilters(): void {
-    /*
-     * Current backend task repository supports:
-     * search
-     * status
-     * priority
-     *
-     * The TaskService must pass these query params.
-     */
-
     this.page.set(1);
 
     this.loadTasksWithFilters();
@@ -724,8 +779,14 @@ export class TaskComponent implements OnInit {
 
     return `${year}-${month}-${day}`;
   }
+
+  // =========================================
+  // TASK DETAIL
+  // =========================================
+
   openTaskDetail(task: Task): void {
     const projectId = this.projectId();
+
     const workspaceId = this.workspaceId();
 
     if (!projectId || !workspaceId || !task._id) {

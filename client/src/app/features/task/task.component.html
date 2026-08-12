@@ -89,6 +89,10 @@
         }
 
 
+        <!-- ========================================= -->
+        <!-- TITLE -->
+        <!-- ========================================= -->
+
         <div class="form-group">
 
             <label for="taskTitle">
@@ -100,6 +104,10 @@
 
         </div>
 
+
+        <!-- ========================================= -->
+        <!-- DESCRIPTION -->
+        <!-- ========================================= -->
 
         <div class="form-group">
 
@@ -113,7 +121,13 @@
         </div>
 
 
+        <!-- ========================================= -->
+        <!-- PRIORITY / STATUS / ASSIGNEE / DUE DATE -->
+        <!-- ========================================= -->
+
         <div class="form-row">
+
+            <!-- PRIORITY -->
 
             <div class="form-group">
 
@@ -143,6 +157,8 @@
 
             </div>
 
+
+            <!-- STATUS -->
 
             @if (editingTask()) {
 
@@ -177,6 +193,43 @@
             }
 
 
+            <!-- ASSIGNEE -->
+
+            <div class="form-group">
+
+                <label for="taskAssignedTo">
+                    Assign To
+                </label>
+
+                <select id="taskAssignedTo" [(ngModel)]="taskAssignedTo" [disabled]="saving()">
+
+                    <option value="">
+                        Unassigned
+                    </option>
+
+                    @for (
+                    member of members();
+                    track member._id
+                    ) {
+
+                    @if (member.status === 'ACTIVE') {
+
+                    <option [value]="member.user._id">
+                        {{ member.user.firstName }}
+                        {{ member.user.lastName }}
+                    </option>
+
+                    }
+
+                    }
+
+                </select>
+
+            </div>
+
+
+            <!-- DUE DATE -->
+
             <div class="form-group">
 
                 <label for="taskDueDate">
@@ -190,6 +243,10 @@
         </div>
 
 
+        <!-- ========================================= -->
+        <!-- FORM ACTIONS -->
+        <!-- ========================================= -->
+
         <div class="form-actions">
 
             <button type="button" class="secondary-button" (click)="closeCreateForm()" [disabled]="saving()">
@@ -199,9 +256,13 @@
             <button type="button" class="primary-button" (click)="saveTask()" [disabled]="saving()">
 
                 @if (saving()) {
+
                 Saving...
+
                 } @else {
+
                 {{ editingTask() ? 'Update Task' : 'Create Task' }}
+
                 }
 
             </button>
@@ -386,7 +447,9 @@
 
             <article class="task-card">
 
-                <!-- Task Main -->
+                <!-- =====================================
+                   TASK MAIN
+                   ===================================== -->
 
                 <div class="task-main">
 
@@ -454,16 +517,18 @@
                 </div>
 
 
-                <!-- Task Actions -->
+                <!-- =====================================
+                   TASK ACTIONS
+                   ===================================== -->
 
                 <div class="task-actions">
 
                     <select [value]="task.status" (change)="
-                  changeStatus(
-                    task,
-                    $any($event.target).value
-                  )
-                ">
+                            changeStatus(
+                                task,
+                                $any($event.target).value
+                            )
+                        ">
 
                         <option value="TODO">
                             To Do
@@ -484,17 +549,19 @@
                     </select>
 
 
-<button type="button" class="view-button" (click)="openTaskDetail(task)">
-    View
-</button>
+                    <button type="button" class="view-button" (click)="openTaskDetail(task)">
+                        View
+                    </button>
 
-<button type="button" class="edit-button" (click)="openEditForm(task)">
-    Edit
-</button>
 
-<button type="button" class="delete-button" (click)="deleteTask(task)" [disabled]="deleting()">
-    Delete
-</button>
+                    <button type="button" class="edit-button" (click)="openEditForm(task)">
+                        Edit
+                    </button>
+
+
+                    <button type="button" class="delete-button" (click)="deleteTask(task)" [disabled]="deleting()">
+                        Delete
+                    </button>
 
                 </div>
 
@@ -517,9 +584,11 @@
                 ← Previous
             </button>
 
+
             <span>
                 Page {{ page() }} of {{ totalPages() }}
             </span>
+
 
             <button type="button" class="secondary-button" (click)="nextPage()" [disabled]="page() === totalPages()">
                 Next →
