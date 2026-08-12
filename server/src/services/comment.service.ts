@@ -20,6 +20,7 @@ import { MembershipRole } from "../interfaces/membership.interface";
 
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
 import { ACTIVITY_ACTIONS } from "../common/constants/activity.constants";
+import { SocketService } from "./../socket/socket.service";
 
 export class CommentService {
   private readonly repository = new CommentRepository();
@@ -36,6 +37,7 @@ export class CommentService {
   private readonly membershipRepository = new MembershipRepository();
 
   private readonly userRepository = new UserRepository();
+  private readonly socketService = new SocketService();
 
   /**
    * Create Comment
@@ -45,8 +47,7 @@ export class CommentService {
    */
   async createComment(dto: CreateCommentDto) {
     /**
-     * Verify task access BEFORE creating
-     * the comment.
+     * Verify task access before creating comment.
      */
     const task = await this.getAuthorizedTask(dto.task, dto.createdBy);
 
@@ -95,7 +96,25 @@ export class CommentService {
       });
     }
 
-    return comment;
+    /**
+     * Get populated comment for realtime clients.
+     */
+    const comments = await this.repository.findByTask(task._id.toString());
+
+    const populatedComment = comments.find(
+      (item: any) => String(item._id) === String(comment._id),
+    );
+
+    /**
+     * Realtime comment event.
+     */
+    await this.socketService.sendCommentCreated(
+      this.getObjectId(task.project),
+      task._id.toString(),
+      populatedComment ?? comment,
+    );
+
+    return populatedComment ?? comment;
   }
   /**
    * Get Comments
@@ -116,28 +135,19 @@ export class CommentService {
       throw new NotFoundError("Comment not found");
     }
 
-    /**
-     * Only comment creator can edit.
-     */
     if (this.getObjectId(comment.createdBy) !== userId) {
       throw new ForbiddenError("You can edit only your own comments");
     }
-
-    /**
-     * Make sure the underlying task still
-     * belongs to a workspace the user can access.
-     */
-    await this.getAuthorizedTask(this.getObjectId(comment.task), userId);
-
-    const updatedComment = await this.repository.update(id, {
-      ...dto,
-      isEdited: true,
-    });
 
     const task = await this.getAuthorizedTask(
       this.getObjectId(comment.task),
       userId,
     );
+
+    const updatedComment = await this.repository.update(id, {
+      ...dto,
+      isEdited: true,
+    });
 
     await this.activityService.createActivity({
       project: this.getObjectId(task.project),
@@ -151,9 +161,17 @@ export class CommentService {
       },
     });
 
+    /**
+     * Realtime update.
+     */
+    await this.socketService.sendCommentUpdated(
+      this.getObjectId(task.project),
+      task._id.toString(),
+      updatedComment,
+    );
+
     return updatedComment;
   }
-
   /**
    * Delete Comment
    */
@@ -164,24 +182,16 @@ export class CommentService {
       throw new NotFoundError("Comment not found");
     }
 
-    /**
-     * Only comment creator can delete.
-     */
     if (this.getObjectId(comment.createdBy) !== userId) {
       throw new ForbiddenError("You can delete only your own comments");
     }
-
-    /**
-     * Verify task/workspace access.
-     */
-    await this.getAuthorizedTask(this.getObjectId(comment.task), userId);
-
-    const deletedComment = await this.repository.softDelete(id);
 
     const task = await this.getAuthorizedTask(
       this.getObjectId(comment.task),
       userId,
     );
+
+    const deletedComment = await this.repository.softDelete(id);
 
     await this.activityService.createActivity({
       project: this.getObjectId(task.project),
@@ -195,9 +205,17 @@ export class CommentService {
       },
     });
 
+    /**
+     * Realtime delete.
+     */
+    await this.socketService.sendCommentDeleted(
+      this.getObjectId(task.project),
+      task._id.toString(),
+      id,
+    );
+
     return deletedComment;
   }
-
   /**
    * Get Task and verify workspace access.
    */

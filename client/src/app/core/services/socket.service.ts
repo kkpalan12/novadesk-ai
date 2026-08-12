@@ -179,4 +179,25 @@ export class SocketService {
   isConnected(): boolean {
     return this.socket?.connected ?? false;
   }
+  // =========================================
+  // COMMENT EVENTS
+  // =========================================
+
+  onCommentCreated(
+    callback: (data: { taskId: string; comment: any }) => void,
+  ): void {
+    this.socket?.on('comment:created', callback);
+  }
+
+  onCommentUpdated(
+    callback: (data: { taskId: string; comment: any }) => void,
+  ): void {
+    this.socket?.on('comment:updated', callback);
+  }
+
+  onCommentDeleted(
+    callback: (data: { taskId: string; commentId: string }) => void,
+  ): void {
+    this.socket?.on('comment:deleted', callback);
+  }
 }

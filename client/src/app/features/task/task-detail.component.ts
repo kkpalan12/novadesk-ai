@@ -138,8 +138,10 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
     this.workspaceId.set(workspaceId ?? '');
 
+    // Initialize realtime
     this.initializeRealtime(projectId, taskId);
 
+    // Load task
     this.loadTask(projectId, taskId);
   }
 
@@ -160,9 +162,9 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
     this.socketService.joinProject(projectId);
 
-    // -----------------------------------------
+    // =======================================================
     // Task Updated
-    // -----------------------------------------
+    // =======================================================
 
     this.socketService.onTaskUpdated((updatedTask: Task) => {
       if (!updatedTask?._id) {
@@ -182,9 +184,9 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       this.loadActivity(projectId);
     });
 
-    // -----------------------------------------
+    // =======================================================
     // Task Deleted
-    // -----------------------------------------
+    // =======================================================
 
     this.socketService.onTaskDeleted((data: { taskId: string }) => {
       if (data?.taskId !== taskId) {
@@ -204,6 +206,82 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
             : {}),
         },
       });
+    });
+
+    // =======================================================
+    // Comment Created
+    // =======================================================
+
+    this.socketService.onCommentCreated((data) => {
+      if (!data?.taskId || !data?.comment) {
+        return;
+      }
+
+      if (data.taskId !== taskId) {
+        return;
+      }
+
+      console.log('💬 REAL-TIME COMMENT CREATED:', data.comment);
+
+      this.comments.update((items) => {
+        const exists = items.some((item) => item._id === data.comment._id);
+
+        if (exists) {
+          return items.map((item) =>
+            item._id === data.comment._id ? data.comment : item,
+          );
+        }
+
+        return [data.comment, ...items];
+      });
+
+      this.loadActivity(projectId);
+    });
+
+    // =======================================================
+    // Comment Updated
+    // =======================================================
+
+    this.socketService.onCommentUpdated((data) => {
+      if (!data?.taskId || !data?.comment) {
+        return;
+      }
+
+      if (data.taskId !== taskId) {
+        return;
+      }
+
+      console.log('💬 REAL-TIME COMMENT UPDATED:', data.comment);
+
+      this.comments.update((items) =>
+        items.map((item) =>
+          item._id === data.comment._id ? data.comment : item,
+        ),
+      );
+
+      this.loadActivity(projectId);
+    });
+
+    // =======================================================
+    // Comment Deleted
+    // =======================================================
+
+    this.socketService.onCommentDeleted((data) => {
+      if (!data?.taskId || !data?.commentId) {
+        return;
+      }
+
+      if (data.taskId !== taskId) {
+        return;
+      }
+
+      console.log('🗑️ REAL-TIME COMMENT DELETED:', data.commentId);
+
+      this.comments.update((items) =>
+        items.filter((item) => item._id !== data.commentId),
+      );
+
+      this.loadActivity(projectId);
     });
   }
 
@@ -247,7 +325,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   formatStatus(status: string): string {
     return status
-      .replace(/_/g, ' ')
+      .replace(/\_/g, ' ')
       .toLowerCase()
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }
@@ -321,6 +399,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
           this.commentSaving.set(false);
 
+          /*
+           * Do not depend on realtime
+           * for the creator's own UI.
+           *
+           * Reloading also keeps the
+           * creator immediately in sync.
+           */
           this.loadComments(taskId);
         },
 
@@ -474,7 +559,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   formatHistoryAction(action: string): string {
     return action
-      .replace(/_/g, ' ')
+      .replace(/\_/g, ' ')
       .toLowerCase()
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }
@@ -535,7 +620,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   formatActivityAction(action: string): string {
     return action
-      .replace(/_/g, ' ')
+      .replace(/\_/g, ' ')
       .toLowerCase()
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }

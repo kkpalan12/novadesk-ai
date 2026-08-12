@@ -1,6 +1,10 @@
 import { getIO } from "./index";
 
 export class SocketService {
+  // =========================================
+  // TASK
+  // =========================================
+
   sendTaskUpdate(projectId: string, task: any) {
     try {
       const io = getIO();
@@ -22,6 +26,59 @@ export class SocketService {
       console.warn("Socket.IO unavailable. Skipping task deletion.");
     }
   }
+
+  // =========================================
+  // COMMENTS
+  // =========================================
+
+  sendCommentCreated(projectId: string, taskId: string, comment: any) {
+    try {
+      const io = getIO();
+
+      console.log("💬 Sending comment created:", `project:${projectId}`);
+
+      io.to(`project:${projectId}`).emit("comment:created", {
+        taskId,
+        comment,
+      });
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping comment created.", error);
+    }
+  }
+
+  sendCommentUpdated(projectId: string, taskId: string, comment: any) {
+    try {
+      const io = getIO();
+
+      console.log("💬 Sending comment updated:", `project:${projectId}`);
+
+      io.to(`project:${projectId}`).emit("comment:updated", {
+        taskId,
+        comment,
+      });
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping comment updated.", error);
+    }
+  }
+
+  sendCommentDeleted(projectId: string, taskId: string, commentId: string) {
+    try {
+      const io = getIO();
+
+      console.log("💬 Sending comment deleted:", `project:${projectId}`);
+
+      io.to(`project:${projectId}`).emit("comment:deleted", {
+        taskId,
+        commentId,
+      });
+    } catch (error) {
+      console.warn("Socket.IO unavailable. Skipping comment deletion.", error);
+    }
+  }
+
+  // =========================================
+  // NOTIFICATIONS
+  // =========================================
 
   sendNotification(userId: string, notification: any) {
     try {
