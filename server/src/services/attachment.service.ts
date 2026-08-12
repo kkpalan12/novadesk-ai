@@ -134,7 +134,7 @@ export class AttachmentService {
   private addUrl(attachment: any) {
     return {
       ...(attachment.toObject?.() ?? attachment),
-      url: `/uploads/${attachment.path}`,
+      url: `${process.env.PUBLIC_API_URL}/uploads/${attachment.path}`,
     };
   }
 
