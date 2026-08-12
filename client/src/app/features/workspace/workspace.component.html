@@ -121,8 +121,8 @@
                 ) {
 
                 <button type="button" class="workspace-card" [class.active]="
-                selectedWorkspace()?._id === workspace._id
-              " (click)="selectWorkspace(workspace)">
+                        selectedWorkspace()?._id === workspace._id
+                    " (click)="selectWorkspace(workspace)">
 
                     <div class="workspace-icon">
                         {{
@@ -200,10 +200,14 @@
                 </div>
 
 
+                @if (isCurrentUserWorkspaceOwner()) {
+
                 <button type="button" class="primary-button" (click)="openAddMember()"
                     [disabled]="memberActionLoading()">
                     + Add Member
                 </button>
+
+                }
 
             </header>
 
@@ -225,69 +229,82 @@
                ADD MEMBER FORM
                ================================= -->
 
-            @if (showAddMember()) {
+            @if (
+            showAddMember() &&
+            isCurrentUserWorkspaceOwner()
+            ) {
+
             <div class="add-member-form">
-            
+
                 <div class="form-header">
+
                     <div>
-                        <h3>Add Member</h3>
-            
+
+                        <h3>
+                            Add Member
+                        </h3>
+
                         <p>
-                            Search for a user and add them to this workspace.
+                            Search for a user and add them
+                            to this workspace.
                         </p>
+
                     </div>
+
                 </div>
-            
-                @if (memberError()) {
-                <div class="member-error">
-                    {{ memberError() }}
-                </div>
-                }
-            
-                <!-- =============================== -->
-                <!-- USER SEARCH -->
-                <!-- =============================== -->
-            
+
+
+                <!-- ===============================
+                   USER SEARCH
+                   =============================== -->
+
                 <div class="form-group">
-            
+
                     <label for="userSearch">
                         Search User
                     </label>
-            
-                    <input id="userSearch" type="text" [ngModel]="userSearchQuery()"
-                        (ngModelChange)="userSearchQuery.set($event); searchUsers()" placeholder="Search by name or email"
-                        autocomplete="off" [disabled]="memberActionLoading()" />
-            
+
+                    <input id="userSearch" type="text" [ngModel]="userSearchQuery()" (ngModelChange)="
+                            userSearchQuery.set($event);
+                            searchUsers()
+                        " placeholder="Search by name or email" autocomplete="off"
+                        [disabled]="memberActionLoading()" />
+
                 </div>
-            
-                <!-- =============================== -->
-                <!-- SEARCH LOADING -->
-                <!-- =============================== -->
-            
+
+
+                <!-- ===============================
+                   SEARCH LOADING
+                   =============================== -->
+
                 @if (userSearchLoading()) {
+
                 <div class="user-search-state">
                     Searching users...
                 </div>
+
                 }
-            
-                <!-- =============================== -->
-                <!-- SEARCH RESULTS -->
-                <!-- =============================== -->
-            
+
+
+                <!-- ===============================
+                   SEARCH RESULTS
+                   =============================== -->
+
                 @if (
                 !userSearchLoading() &&
                 userSearchResults().length > 0
                 ) {
-            
+
                 <div class="user-search-results">
-            
+
                     @for (
                     user of userSearchResults();
                     track user._id
                     ) {
-            
-                    <button type="button" class="user-search-result" (click)="selectUser(user)" [disabled]="memberActionLoading()">
-            
+
+                    <button type="button" class="user-search-result" (click)="selectUser(user)"
+                        [disabled]="memberActionLoading()">
+
                         <div class="search-user-avatar">
                             {{
                             user.firstName
@@ -295,35 +312,38 @@
                             .toUpperCase()
                             }}
                         </div>
-            
+
+
                         <div class="search-user-info">
-            
+
                             <strong>
                                 {{ user.firstName }}
                                 {{ user.lastName }}
                             </strong>
-            
+
                             <span>
                                 {{ user.email }}
                             </span>
-            
+
                         </div>
-            
+
                     </button>
-            
+
                     }
-            
+
                 </div>
+
                 }
-            
-                <!-- =============================== -->
-                <!-- SELECTED USER -->
-                <!-- =============================== -->
-            
+
+
+                <!-- ===============================
+                   SELECTED USER
+                   =============================== -->
+
                 @if (selectedUser(); as user) {
-            
+
                 <div class="selected-user">
-            
+
                     <div class="selected-user-avatar">
                         {{
                         user.firstName
@@ -331,79 +351,86 @@
                         .toUpperCase()
                         }}
                     </div>
-            
+
+
                     <div class="selected-user-info">
-            
+
                         <strong>
                             {{ user.firstName }}
                             {{ user.lastName }}
                         </strong>
-            
+
                         <span>
                             {{ user.email }}
                         </span>
-            
+
                     </div>
-            
+
+
                     <span class="selected-user-check">
                         ✓
                     </span>
-            
+
                 </div>
-            
+
                 }
-            
-                <!-- =============================== -->
-                <!-- ROLE -->
-                <!-- =============================== -->
-            
+
+
+                <!-- ===============================
+                   ROLE
+                   =============================== -->
+
                 <div class="form-group">
-            
+
                     <label for="memberRole">
                         Role
                     </label>
-            
-                    <select id="memberRole" class="role-select" [ngModel]="memberRole()" (ngModelChange)="memberRole.set($event)"
-                        [disabled]="memberActionLoading()">
-            
+
+                    <select id="memberRole" class="role-select" [ngModel]="memberRole()"
+                        (ngModelChange)="memberRole.set($event)" [disabled]="memberActionLoading()">
+
                         <option value="MEMBER">
                             MEMBER
                         </option>
-            
+
                         <option value="ADMIN">
                             ADMIN
                         </option>
-            
+
                     </select>
-            
+
                 </div>
-            
-                <!-- =============================== -->
-                <!-- ACTIONS -->
-                <!-- =============================== -->
-            
+
+
+                <!-- ===============================
+                   ACTIONS
+                   =============================== -->
+
                 <div class="form-actions">
-            
-                    <button type="button" class="secondary-button" (click)="closeAddMember()" [disabled]="memberActionLoading()">
+
+                    <button type="button" class="secondary-button" (click)="closeAddMember()"
+                        [disabled]="memberActionLoading()">
                         Cancel
                     </button>
-            
+
+
                     <button type="button" class="primary-button" (click)="addMember()" [disabled]="
-                      memberActionLoading() ||
-                      !selectedUser()
-                    ">
-            
+                            memberActionLoading() ||
+                            !selectedUser()
+                        ">
+
                         @if (memberActionLoading()) {
                         Adding...
                         } @else {
                         Add Member
                         }
-            
+
                     </button>
-            
+
                 </div>
-            
+
             </div>
+
             }
 
 
@@ -520,14 +547,16 @@
 
                         } @else {
 
-                        <!-- MEMBER ROLE -->
+                        @if (isCurrentUserWorkspaceOwner()) {
+
+                        <!-- OWNER CAN MANAGE MEMBER -->
 
                         <select class="role-select" [value]="member.role" [disabled]="memberActionLoading()" (change)="
-                          updateMemberRole(
-                            member,
-                            $any($event.target).value
-                          )
-                        ">
+                                updateMemberRole(
+                                    member,
+                                    $any($event.target).value
+                                )
+                            ">
 
                             <option value="MEMBER">
                                 MEMBER
@@ -540,12 +569,20 @@
                         </select>
 
 
-                        <!-- REMOVE MEMBER -->
-
                         <button type="button" class="remove-button" [disabled]="memberActionLoading()"
                             (click)="removeMember(member)">
                             Remove
                         </button>
+
+                        } @else {
+
+                        <!-- REGULAR MEMBER -->
+
+                        <span class="role-badge" [class.admin]="member.role === 'ADMIN'">
+                            {{ member.role }}
+                        </span>
+
+                        }
 
                         }
 

@@ -11,6 +11,8 @@ import { Membership, MembershipRole } from '../../core/models/membership.model';
 import { SearchService } from '../../core/services/search.service';
 import { SearchUser } from '../../core/models/search.model';
 
+import { AuthService } from '../../core/auth/auth.service';
+
 @Component({
   selector: 'app-workspace',
   standalone: true,
@@ -24,6 +26,14 @@ export class WorkspaceComponent implements OnInit {
   private readonly membershipService = inject(MembershipService);
 
   private readonly searchService = inject(SearchService);
+
+  private readonly authService = inject(AuthService);
+
+  // =========================================
+  // Current User
+  // =========================================
+
+  readonly currentUser = this.authService.getCurrentUser();
 
   // =========================================
   // Workspace State
@@ -152,10 +162,29 @@ export class WorkspaceComponent implements OnInit {
   }
 
   // =========================================
+  // Current User Is Workspace Owner
+  // =========================================
+
+  isCurrentUserWorkspaceOwner(): boolean {
+    const workspace = this.selectedWorkspace();
+    const currentUser = this.currentUser;
+
+    if (!workspace || !currentUser) {
+      return false;
+    }
+
+    return workspace.owner._id === currentUser._id;
+  }
+
+  // =========================================
   // Open Add Member
   // =========================================
 
   openAddMember(): void {
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
     this.resetAddMemberForm();
 
     this.showAddMember.set(true);
@@ -200,6 +229,10 @@ export class WorkspaceComponent implements OnInit {
   // =========================================
 
   searchUsers(): void {
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
     const query = this.userSearchQuery().trim();
 
     this.selectedUser.set(null);
@@ -246,6 +279,10 @@ export class WorkspaceComponent implements OnInit {
   // =========================================
 
   selectUser(user: SearchUser): void {
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
     this.selectedUser.set(user);
 
     this.userId = user._id;
@@ -260,6 +297,10 @@ export class WorkspaceComponent implements OnInit {
   // =========================================
 
   addMember(): void {
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
     const workspace = this.selectedWorkspace();
 
     const userId = this.selectedUser()?._id ?? this.userId.trim();
@@ -310,6 +351,10 @@ export class WorkspaceComponent implements OnInit {
   // =========================================
 
   removeMember(member: Membership): void {
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
     const workspace = this.selectedWorkspace();
 
     if (!workspace) {
@@ -352,6 +397,10 @@ export class WorkspaceComponent implements OnInit {
   // =========================================
 
   updateMemberRole(member: Membership, role: MembershipRole): void {
+    if (!this.isCurrentUserWorkspaceOwner()) {
+      return;
+    }
+
     const workspace = this.selectedWorkspace();
 
     if (!workspace) {
