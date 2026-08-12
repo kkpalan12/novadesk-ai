@@ -4,7 +4,13 @@ import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 
-import { LoginRequest, LoginResponse, AuthUser } from './auth.model';
+import {
+  LoginRequest,
+  LoginResponse,
+  AuthUser,
+  RegisterRequest,
+  RegisterResponse,
+} from './auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +23,21 @@ export class AuthService {
   private readonly userKey = 'currentUser';
 
   constructor(private readonly http: HttpClient) {}
+
+  // =========================================
+  // REGISTER
+  // =========================================
+
+  register(userData: RegisterRequest): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(
+      `${this.apiUrl}/auth/register`,
+      userData,
+    );
+  }
+
+  // =========================================
+  // LOGIN
+  // =========================================
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http
@@ -42,11 +63,21 @@ export class AuthService {
       );
   }
 
+  // =========================================
+  // LOGOUT
+  // =========================================
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
+
     localStorage.removeItem(this.refreshTokenKey);
+
     localStorage.removeItem(this.userKey);
   }
+
+  // =========================================
+  // TOKEN
+  // =========================================
 
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey);
@@ -55,6 +86,10 @@ export class AuthService {
   getRefreshToken(): string | null {
     return localStorage.getItem(this.refreshTokenKey);
   }
+
+  // =========================================
+  // CURRENT USER
+  // =========================================
 
   getCurrentUser(): AuthUser | null {
     const user = localStorage.getItem(this.userKey);
@@ -69,6 +104,10 @@ export class AuthService {
       return null;
     }
   }
+
+  // =========================================
+  // AUTH STATE
+  // =========================================
 
   isAuthenticated(): boolean {
     return !!this.getToken();

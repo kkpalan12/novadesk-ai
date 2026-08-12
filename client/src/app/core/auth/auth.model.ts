@@ -1,3 +1,16 @@
+export interface RegisterRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  data: AuthUser;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
