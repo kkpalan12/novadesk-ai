@@ -1,0 +1,259 @@
+<div class="register-page">
+
+    <div class="register-card">
+
+        <div class="brand">
+
+            <h1>
+                NovaDesk
+            </h1>
+
+            <p>
+                Create your account
+            </p>
+
+        </div>
+
+
+        @if (errorMessage()) {
+
+        <div class="error-message">
+            {{ errorMessage() }}
+        </div>
+
+        }
+
+
+        @if (successMessage()) {
+
+        <div class="success-message">
+            {{ successMessage() }}
+        </div>
+
+        }
+
+
+        <form [formGroup]="registerForm" (ngSubmit)="submit()" novalidate>
+
+            <!-- FIRST NAME -->
+
+            <div class="form-group">
+
+                <label for="firstName">
+                    First name
+                </label>
+
+                <input id="firstName" type="text" formControlName="firstName" autocomplete="given-name"
+                    placeholder="Enter your first name" />
+
+                @if (
+                firstName.invalid &&
+                firstName.touched
+                ) {
+
+                <small class="field-error">
+
+                    @if (
+                    firstName.hasError('required')
+                    ) {
+                    First name is required.
+                    }
+
+                    @else if (
+                    firstName.hasError('minlength')
+                    ) {
+                    First name must be at least 2 characters.
+                    }
+
+                </small>
+
+                }
+
+            </div>
+
+
+            <!-- LAST NAME -->
+
+            <div class="form-group">
+
+                <label for="lastName">
+                    Last name
+                </label>
+
+                <input id="lastName" type="text" formControlName="lastName" autocomplete="family-name"
+                    placeholder="Enter your last name" />
+
+                @if (
+                lastName.invalid &&
+                lastName.touched
+                ) {
+
+                <small class="field-error">
+
+                    @if (
+                    lastName.hasError('required')
+                    ) {
+                    Last name is required.
+                    }
+
+                    @else if (
+                    lastName.hasError('minlength')
+                    ) {
+                    Last name must be at least 2 characters.
+                    }
+
+                </small>
+
+                }
+
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email
+                </label>
+
+                <input id="email" type="email" formControlName="email" autocomplete="email"
+                    placeholder="Enter your email" />
+
+                @if (
+                email.invalid &&
+                email.touched
+                ) {
+
+                <small class="field-error">
+
+                    @if (
+                    email.hasError('required')
+                    ) {
+                    Email is required.
+                    }
+
+                    @else if (
+                    email.hasError('email')
+                    ) {
+                    Enter a valid email address.
+                    }
+
+                </small>
+
+                }
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input id="password" type="password" formControlName="password" autocomplete="new-password"
+                    placeholder="Create a password" />
+
+                @if (
+                password.invalid &&
+                password.touched
+                ) {
+
+                <small class="field-error">
+
+                    @if (
+                    password.hasError('required')
+                    ) {
+                    Password is required.
+                    }
+
+                    @else if (
+                    password.hasError('minlength')
+                    ) {
+                    Password must be at least 8 characters.
+                    }
+
+                    @else if (
+                    password.hasError('pattern')
+                    ) {
+                    Password must contain uppercase,
+                    lowercase, number and special character.
+                    }
+
+                </small>
+
+                }
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="confirmPassword">
+                    Confirm password
+                </label>
+
+                <input id="confirmPassword" type="password" formControlName="confirmPassword"
+                    autocomplete="new-password" placeholder="Confirm your password" />
+
+                @if (
+                confirmPassword.invalid &&
+                confirmPassword.touched
+                ) {
+
+                <small class="field-error">
+
+                    @if (
+                    confirmPassword.hasError('required')
+                    ) {
+                    Please confirm your password.
+                    }
+
+                </small>
+
+                }
+
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <button type="submit" [disabled]="loading()">
+
+                @if (loading()) {
+
+                Creating account...
+
+                } @else {
+
+                Create Account
+
+                }
+
+            </button>
+
+        </form>
+
+
+        <!-- LOGIN -->
+
+        <div class="login-link">
+
+            <span>
+                Already have an account?
+            </span>
+
+            <button type="button" (click)="goToLogin()">
+                Sign in
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

@@ -7,7 +7,7 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { WorkspaceSelectionComponent } from './features/workspace/workspace-selection.component';
 
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
-
+import { RegisterComponent } from './features/auth/register/register.component';
 export const routes: Routes = [
   // =========================================
   // AUTH
@@ -16,6 +16,10 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
   },
 
   // =========================================
