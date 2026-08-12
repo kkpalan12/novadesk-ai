@@ -1,18 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 
-import { Router } from '@angular/router';
+import { Workspace } from '../models/workspace.model';
 
 import { WorkspaceService } from './workspace.service';
-
-import { Workspace } from '../models/workspace.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WorkspaceContextService {
   private readonly workspaceService = inject(WorkspaceService);
-
-  private readonly router = inject(Router);
 
   // =========================================
   // State
@@ -24,34 +20,38 @@ export class WorkspaceContextService {
 
   readonly loading = signal(false);
 
-  readonly error = signal('');
+  readonly errorMessage = signal('');
 
   // =========================================
   // Load Workspaces
   // =========================================
 
   loadWorkspaces(): void {
+    if (this.loading()) {
+      return;
+    }
+
     this.loading.set(true);
 
-    this.error.set('');
+    this.errorMessage.set('');
 
     this.workspaceService.getWorkspaces().subscribe({
       next: (response) => {
-        /*
-         * Backend response:
-         *
-         * data: {
-         *   workspaces: [...]
-         *   total: 1
-         *   page: 1
-         * }
-         */
-
-        const workspaces = response.data?.workspaces ?? [];
+        const workspaces = response?.data?.workspaces ?? [];
 
         this.workspaces.set(workspaces);
 
-        this.resolveActiveWorkspace(workspaces);
+        const savedWorkspaceId = localStorage.getItem('activeWorkspaceId');
+
+        if (savedWorkspaceId) {
+          const workspace = workspaces.find(
+            (item) => item._id === savedWorkspaceId,
+          );
+
+          if (workspace) {
+            this.activeWorkspace.set(workspace);
+          }
+        }
 
         this.loading.set(false);
       },
@@ -61,7 +61,9 @@ export class WorkspaceContextService {
 
         this.loading.set(false);
 
-        this.error.set(error?.error?.message ?? 'Unable to load workspaces.');
+        this.errorMessage.set(
+          error?.error?.message ?? 'Unable to load workspaces.',
+        );
       },
     });
   }
@@ -73,56 +75,24 @@ export class WorkspaceContextService {
   selectWorkspace(workspace: Workspace): void {
     this.activeWorkspace.set(workspace);
 
-    this.router.navigate(['/dashboard'], {
-      queryParams: {
-        workspace: workspace._id,
-      },
-    });
+    localStorage.setItem('activeWorkspaceId', workspace._id);
   }
 
   // =========================================
-  // Resolve Active Workspace
+  // Get Active Workspace
   // =========================================
 
-  private resolveActiveWorkspace(workspaces: Workspace[]): void {
-    if (!workspaces.length) {
-      this.activeWorkspace.set(null);
-      return;
-    }
+  getActiveWorkspace(): Workspace | null {
+    return this.activeWorkspace();
+  }
 
-    const workspaceId = this.getWorkspaceIdFromUrl();
+  // =========================================
+  // Clear Workspace
+  // =========================================
 
-    if (workspaceId) {
-      const workspace = workspaces.find((item) => item._id === workspaceId);
-
-      if (workspace) {
-        this.activeWorkspace.set(workspace);
-
-        return;
-      }
-    }
-
-    // No workspace selected.
-    // The user must explicitly select one.
+  clearWorkspace(): void {
     this.activeWorkspace.set(null);
-  }
-  // =========================================
-  // Get Workspace ID From URL
-  // =========================================
 
-  private getWorkspaceIdFromUrl(): string | null {
-    const url = this.router.url;
-
-    const questionMark = url.indexOf('?');
-
-    if (questionMark === -1) {
-      return null;
-    }
-
-    const queryString = url.substring(questionMark + 1);
-
-    const params = new URLSearchParams(queryString);
-
-    return params.get('workspace');
+    localStorage.removeItem('activeWorkspaceId');
   }
 }

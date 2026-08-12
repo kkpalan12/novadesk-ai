@@ -36,7 +36,7 @@ export class MembershipRepository {
    * Get Workspace Members
    */
   async findByWorkspace(workspaceId: string) {
-    return Membership.find({
+    const memberships = await Membership.find({
       workspace: workspaceId,
       status: "ACTIVE",
     })
@@ -44,6 +44,8 @@ export class MembershipRepository {
       .sort({
         createdAt: 1,
       });
+
+    return memberships;
   }
 
   /**

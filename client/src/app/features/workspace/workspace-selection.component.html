@@ -1,10 +1,10 @@
-<div class="workspace-page">
+<div class="workspace-selection-page">
 
-    <div class="workspace-container">
+    <div class="workspace-selection-card">
 
         <!-- Header -->
 
-        <div class="workspace-header">
+        <div class="selection-header">
 
             <div class="brand-icon">
                 N
@@ -15,8 +15,7 @@
             </h1>
 
             <p>
-                Select a workspace to continue
-                to NovaDesk.
+                Select a workspace to continue to NovaDesk AI.
             </p>
 
         </div>
@@ -24,13 +23,11 @@
 
         <!-- Loading -->
 
-        @if (
-        workspaceContext.loading()
-        ) {
+        @if (workspaceContext.loading()) {
 
-        <div class="loading-state">
+        <div class="state">
 
-            <div class="spinner"></div>
+            <div class="loading-spinner"></div>
 
             <p>
                 Loading workspaces...
@@ -44,20 +41,16 @@
         <!-- Error -->
 
         @else if (
-        workspaceContext.error()
+        workspaceContext.errorMessage()
         ) {
 
         <div class="error-state">
 
-            <h3>
-                Unable to load workspaces
-            </h3>
+            <div class="error-message">
+                {{ workspaceContext.errorMessage() }}
+            </div>
 
-            <p>
-                {{ workspaceContext.error() }}
-            </p>
-
-            <button type="button" class="retry-button" (click)="retry()">
+            <button type="button" class="primary-button" (click)="retry()">
                 Try Again
             </button>
 
@@ -66,11 +59,30 @@
         }
 
 
-        <!-- Workspaces -->
+        <!-- No Workspaces -->
 
         @else if (
-        workspaceContext.workspaces().length > 0
+        workspaceContext.workspaces().length === 0
         ) {
+
+        <div class="empty-state">
+
+            <h2>
+                No workspaces found
+            </h2>
+
+            <p>
+                You don't have access to any workspace yet.
+            </p>
+
+        </div>
+
+        }
+
+
+        <!-- Workspace List -->
+
+        @else {
 
         <div class="workspace-list">
 
@@ -81,22 +93,8 @@
 
             <button type="button" class="workspace-card" (click)="selectWorkspace(workspace._id)">
 
-                <div class="workspace-logo">
-
-                    @if (workspace.logo) {
-
-                    <img [src]="workspace.logo" [alt]="workspace.name" />
-
-                    } @else {
-
-                    {{
-                    workspace.name
-                    .charAt(0)
-                    .toUpperCase()
-                    }}
-
-                    }
-
+                <div class="workspace-icon">
+                    {{ workspace.name.charAt(0).toUpperCase() }}
                 </div>
 
 
@@ -106,26 +104,32 @@
                         {{ workspace.name }}
                     </h2>
 
-                    @if (
-                    workspace.description
-                    ) {
-
                     <p>
-                        {{ workspace.description }}
+                        {{
+                        workspace.description ||
+                        'No description available'
+                        }}
                     </p>
 
-                    }
 
-                    <span>
+                    @if (
+                    workspace.members &&
+                    workspace.members.length > 0
+                    ) {
+
+                    <span class="workspace-members">
+
+                        {{ workspace.members.length }}
+
                         {{
-                        workspace.members?.length ?? 0
+                        workspace.members.length === 1
+                        ? 'member'
+                        : 'members'
                         }}
-                        member{{
-                        (workspace.members?.length ?? 0) === 1
-                        ? ''
-                        : 's'
-                        }}
+
                     </span>
+
+                    }
 
                 </div>
 
@@ -137,30 +141,6 @@
             </button>
 
             }
-
-        </div>
-
-        }
-
-
-        <!-- Empty -->
-
-        @else {
-
-        <div class="empty-state">
-
-            <div class="empty-icon">
-                □
-            </div>
-
-            <h3>
-                No workspaces found
-            </h3>
-
-            <p>
-                You don't have access to any
-                workspace yet.
-            </p>
 
         </div>
 

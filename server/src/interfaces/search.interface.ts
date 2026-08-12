@@ -5,9 +5,16 @@ export interface SearchResult<T = unknown> {
 
 export interface GlobalSearchResult {
   query: string;
+
+  users: SearchResult;
+
   workspaces: SearchResult;
+
   projects: SearchResult;
+
   tasks: SearchResult;
+
   comments: SearchResult;
+
   total: number;
 }

@@ -1,48 +1,53 @@
 export type NotificationType =
   | 'TASK_ASSIGNED'
-  | 'TASK_STATUS_CHANGED'
   | 'COMMENT_ADDED'
-  | string;
+  | 'TASK_STATUS_CHANGED'
+  | 'TASK_UPDATED';
 
 export interface NotificationUser {
   _id: string;
   firstName: string;
   lastName: string;
-  email?: string;
+  email: string;
 }
 
 export interface Notification {
   _id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  isRead: boolean;
-  user?: NotificationUser | string;
-  task?: string;
-  project?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
 
-export interface NotificationResponse {
-  success: boolean;
+  recipient: string;
+
+  sender: NotificationUser | string;
+
+  type: NotificationType;
+
+  title: string;
+
   message: string;
-  data: Notification;
+
+  entityType: string;
+
+  entityId: string;
+
+  projectId?: string;
+
+  isRead: boolean;
+
+  isDeleted: boolean;
+
+  createdAt: string;
+
+  updatedAt: string;
 }
 
 export interface NotificationsResponse {
   success: boolean;
   message: string;
-  data: {
-    notifications: Notification[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  data: Notification[];
 }
-
-export interface NotificationActionResponse {
+export interface UnreadCountResponse {
   success: boolean;
   message: string;
+  data: {
+    count: number;
+  };
 }

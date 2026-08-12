@@ -1,11 +1,14 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 
-import { NotificationService } from '../../../core/services/notification.service';
+import { NotificationService } from '../../core/services/notification.service';
 
-import { Notification } from '../../../core/models/notification.model';
+import { Notification } from '../../core/models/notification.model';
+
+import { WorkspaceContextService } from '../../core/services/workspace-context.service';
 
 @Component({
   selector: 'app-notification',
@@ -19,6 +22,12 @@ export class NotificationComponent implements OnInit {
 
   private readonly router = inject(Router);
 
+  private readonly workspaceContext = inject(WorkspaceContextService);
+
+  // =========================================
+  // State
+  // =========================================
+
   readonly notifications = signal<Notification[]>([]);
 
   readonly loading = signal(true);
@@ -29,19 +38,30 @@ export class NotificationComponent implements OnInit {
 
   readonly total = signal(0);
 
+  // =========================================
+  // Init
+  // =========================================
+
   ngOnInit(): void {
     this.loadNotifications();
   }
 
+  // =========================================
+  // Load Notifications
+  // =========================================
+
   loadNotifications(): void {
     this.loading.set(true);
+
     this.errorMessage.set('');
 
     this.notificationService.getNotifications().subscribe({
       next: (response) => {
-        this.notifications.set(response.data?.notifications ?? []);
+        const notifications = response?.data ?? [];
 
-        this.total.set(response.data?.total ?? 0);
+        this.notifications.set(notifications);
+
+        this.total.set(notifications.length);
 
         this.loading.set(false);
       },
@@ -57,6 +77,10 @@ export class NotificationComponent implements OnInit {
       },
     });
   }
+
+  // =========================================
+  // Mark One As Read
+  // =========================================
 
   markAsRead(notification: Notification): void {
     if (notification.isRead) {
@@ -79,6 +103,7 @@ export class NotificationComponent implements OnInit {
         );
 
         this.actionLoading.set(null);
+        this.notificationService.refreshUnreadCount();
       },
 
       error: (error) => {
@@ -92,6 +117,10 @@ export class NotificationComponent implements OnInit {
       },
     });
   }
+
+  // =========================================
+  // Mark All As Read
+  // =========================================
 
   markAllAsRead(): void {
     const unreadExists = this.notifications().some((item) => !item.isRead);
@@ -112,6 +141,7 @@ export class NotificationComponent implements OnInit {
         );
 
         this.actionLoading.set(null);
+        this.notificationService.refreshUnreadCount();
       },
 
       error: (error) => {
@@ -126,7 +156,19 @@ export class NotificationComponent implements OnInit {
     });
   }
 
+  // =========================================
+  // Delete Notification
+  // =========================================
+
   deleteNotification(notification: Notification): void {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this notification?',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     this.actionLoading.set(notification._id);
 
     this.notificationService.deleteNotification(notification._id).subscribe({
@@ -138,6 +180,7 @@ export class NotificationComponent implements OnInit {
         this.actionLoading.set(null);
 
         this.total.update((value) => Math.max(0, value - 1));
+        this.notificationService.refreshUnreadCount();
       },
 
       error: (error) => {
@@ -152,25 +195,47 @@ export class NotificationComponent implements OnInit {
     });
   }
 
+  // =========================================
+  // Open Notification
+  // =========================================
+
   openNotification(notification: Notification): void {
+    // Mark as read first
     if (!notification.isRead) {
       this.markAsRead(notification);
     }
 
-    if (notification.task) {
-      const projectId = notification.project;
-
-      if (projectId) {
-        this.router.navigate(['/tasks', notification.task], {
-          queryParams: {
-            project: projectId,
-          },
-        });
-
-        return;
-      }
+    // Only task notifications
+    if (notification.entityType?.toLowerCase() !== 'task') {
+      return;
     }
+
+    if (!notification.entityId) {
+      return;
+    }
+
+    if (!notification.projectId) {
+      return;
+    }
+
+    const workspaceId = this.workspaceContext.activeWorkspace()?._id;
+
+    this.router.navigate(['/tasks', notification.entityId], {
+      queryParams: {
+        project: notification.projectId,
+
+        ...(workspaceId
+          ? {
+              workspace: workspaceId,
+            }
+          : {}),
+      },
+    });
   }
+
+  // =========================================
+  // Notification Type
+  // =========================================
 
   formatType(type: string): string {
     return type

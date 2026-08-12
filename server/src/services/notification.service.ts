@@ -3,11 +3,13 @@ import { CreateNotificationDto } from "../dto/notification/create-notification.d
 import { NotificationRepository } from "../repositories/notification.repository";
 import { SocketService } from "../socket/socket.service";
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
+import { TaskRepository } from "../repositories/task.repository";
 
 export class NotificationService {
   private readonly repository = new NotificationRepository();
 
   private readonly socketService = new SocketService();
+  private readonly taskRepository = new TaskRepository();
 
   /**
    * Create Notification
@@ -16,6 +18,7 @@ export class NotificationService {
    */
   async create(dto: CreateNotificationDto) {
     const notification = await this.repository.create(dto);
+    console.log("✅ NOTIFICATION CREATED:", notification._id);
 
     this.socketService.sendNotification(dto.recipient, notification);
 
@@ -30,7 +33,13 @@ export class NotificationService {
    * Get logged-in user's notifications
    */
   async getMyNotifications(userId: string) {
-    return this.repository.findByRecipient(userId);
+    const notifications = await this.repository.findByRecipient(userId);
+
+    return Promise.all(
+      notifications.map((notification) =>
+        this.addNavigationContext(notification),
+      ),
+    );
   }
 
   /**
@@ -168,5 +177,31 @@ export class NotificationService {
       entityType: ENTITY_TYPES.TASK,
       entityId: data.taskId,
     });
+  }
+  private async addNavigationContext(notification: any) {
+    const result = notification.toObject?.() ?? notification;
+
+    if (result.entityType?.toLowerCase() !== "task" || !result.entityId) {
+      return result;
+    }
+
+    const task = await this.taskRepository.findById(result.entityId);
+
+    if (!task) {
+      return result;
+    }
+
+    return {
+      ...result,
+      projectId: this.getObjectId(task.project),
+    };
+  }
+
+  private getObjectId(value: any): string {
+    if (value && typeof value === "object" && "_id" in value) {
+      return String(value._id);
+    }
+
+    return String(value);
   }
 }

@@ -1,12 +1,12 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiService } from './api.service';
 
 import {
-  NotificationActionResponse,
-  NotificationResponse,
+  Notification,
   NotificationsResponse,
+  UnreadCountResponse,
 } from '../models/notification.model';
 
 @Injectable({
@@ -14,38 +14,55 @@ import {
 })
 export class NotificationService {
   private readonly api = inject(ApiService);
+  readonly unreadCount = signal(0);
 
-  getNotifications(page = 1, limit = 20): Observable<NotificationsResponse> {
-    return this.api.get<NotificationsResponse>(
-      `/notifications?page=${page}&limit=${limit}`,
-    );
+  // =========================================
+  // Get My Notifications
+  // =========================================
+
+  getNotifications(): Observable<NotificationsResponse> {
+    return this.api.get<NotificationsResponse>('/notifications');
   }
 
-  getNotification(notificationId: string): Observable<NotificationResponse> {
-    return this.api.get<NotificationResponse>(
-      `/notifications/${notificationId}`,
-    );
+  // =========================================
+  // Mark Notification As Read
+  // =========================================
+
+  markAsRead(notificationId: string): Observable<unknown> {
+    return this.api.patch(`/notifications/${notificationId}/read`, {});
   }
 
-  markAsRead(notificationId: string): Observable<NotificationActionResponse> {
-    return this.api.patch<NotificationActionResponse>(
-      `/notifications/${notificationId}/read`,
-      {},
-    );
+  // =========================================
+  // Mark All As Read
+  // =========================================
+
+  markAllAsRead(): Observable<unknown> {
+    return this.api.patch('/notifications/read-all', {});
   }
 
-  markAllAsRead(): Observable<NotificationActionResponse> {
-    return this.api.patch<NotificationActionResponse>(
-      '/notifications/read-all',
-      {},
-    );
+  // =========================================
+  // Delete Notification
+  // =========================================
+
+  deleteNotification(notificationId: string): Observable<unknown> {
+    return this.api.delete(`/notifications/${notificationId}`);
   }
 
-  deleteNotification(
-    notificationId: string,
-  ): Observable<NotificationActionResponse> {
-    return this.api.delete<NotificationActionResponse>(
-      `/notifications/${notificationId}`,
-    );
+  // =========================================
+  // Get Unread Count
+  // =========================================
+  getUnreadCount(): Observable<UnreadCountResponse> {
+    return this.api.get<UnreadCountResponse>('/notifications/unread-count');
+  }
+  refreshUnreadCount(): void {
+    this.getUnreadCount().subscribe({
+      next: (response) => {
+        this.unreadCount.set(response.data?.count ?? 0);
+      },
+
+      error: (error) => {
+        console.error('Load unread notification count error:', error);
+      },
+    });
   }
 }

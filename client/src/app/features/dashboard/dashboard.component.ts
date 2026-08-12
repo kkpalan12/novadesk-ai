@@ -1,21 +1,25 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+
+import { CommonModule } from '@angular/common';
 
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AuthService } from '../../../core/auth/auth.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 import {
   DashboardData,
   DashboardService,
-} from '../../../core/services/dashboard.service';
-import { CommonModule } from '@angular/common';
+} from '../../core/services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss',
+
   imports: [CommonModule],
+
+  templateUrl: './dashboard.component.html',
+
+  styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
@@ -26,7 +30,15 @@ export class DashboardComponent implements OnInit {
 
   private readonly route = inject(ActivatedRoute);
 
+  // =========================================
+  // User
+  // =========================================
+
   readonly user = this.authService.getCurrentUser();
+
+  // =========================================
+  // State
+  // =========================================
 
   readonly loading = signal(true);
 
@@ -35,6 +47,10 @@ export class DashboardComponent implements OnInit {
   readonly dashboard = signal<DashboardData | null>(null);
 
   readonly workspaceId = signal('');
+
+  // =========================================
+  // Lifecycle
+  // =========================================
 
   ngOnInit(): void {
     const workspaceId = this.route.snapshot.queryParamMap.get('workspace');
@@ -45,6 +61,10 @@ export class DashboardComponent implements OnInit {
 
     this.loadDashboard();
   }
+
+  // =========================================
+  // Load Dashboard
+  // =========================================
 
   private loadDashboard(): void {
     this.loading.set(true);
@@ -70,6 +90,10 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // =========================================
+  // Projects
+  // =========================================
+
   goToProjects(): void {
     const workspaceId = this.workspaceId();
 
@@ -85,6 +109,18 @@ export class DashboardComponent implements OnInit {
       },
     });
   }
+
+  // =========================================
+  // Notifications
+  // =========================================
+
+  goToNotifications(): void {
+    this.router.navigate(['/notifications']);
+  }
+
+  // =========================================
+  // Logout
+  // =========================================
 
   logout(): void {
     this.authService.logout();

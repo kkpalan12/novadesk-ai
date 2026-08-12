@@ -4,17 +4,17 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { TaskService } from '../../../core/services/task.service';
-import { CommentService } from '../../../core/services/comment.service';
-import { TaskHistoryService } from '../../../core/services/task-history.service';
-import { ActivityService } from '../../../core/services/activity.service';
-import { AttachmentService } from '../../../core/services/attachment.service';
+import { TaskService } from '../../core/services/task.service';
+import { CommentService } from '../../core/services/comment.service';
+import { TaskHistoryService } from '../../core/services/task-history.service';
+import { ActivityService } from '../../core/services/activity.service';
+import { AttachmentService } from '../../core/services/attachment.service';
 
-import { Task } from '../../../core/models/task.model';
-import { Comment } from '../../../core/models/comment.model';
-import { TaskHistory } from '../../../core/models/task-history.model';
-import { Activity } from '../../../core/models/activity.model';
-import { Attachment } from '../../../core/models/attachment.model';
+import { Task } from '../../core/models/task.model';
+import { Comment } from '../../core/models/comment.model';
+import { TaskHistory } from '../../core/models/task-history.model';
+import { Activity } from '../../core/models/activity.model';
+import { Attachment } from '../../core/models/attachment.model';
 
 @Component({
   selector: 'app-task-detail',
@@ -66,9 +66,15 @@ export class TaskDetailComponent implements OnInit {
 
   readonly commentSaving = signal(false);
 
+  readonly commentDeleting = signal<string | null>(null);
+
+  readonly editingCommentId = signal<string | null>(null);
+
   readonly commentError = signal('');
 
   commentText = '';
+
+  editingCommentText = '';
 
   // =========================================================
   // History
@@ -111,7 +117,7 @@ export class TaskDetailComponent implements OnInit {
   // =========================================================
 
   ngOnInit(): void {
-    const taskId = this.route.snapshot.paramMap.get('taskId');
+    const taskId = this.route.snapshot.paramMap.get('id');
 
     const projectId = this.route.snapshot.queryParamMap.get('project');
 
@@ -259,6 +265,100 @@ export class TaskDetailComponent implements OnInit {
           );
         },
       });
+  }
+  startEditComment(comment: Comment): void {
+    this.editingCommentId.set(comment._id);
+
+    this.editingCommentText = comment.content;
+
+    this.commentError.set('');
+  }
+
+  cancelEditComment(): void {
+    this.editingCommentId.set(null);
+
+    this.editingCommentText = '';
+
+    this.commentError.set('');
+  }
+
+  updateComment(comment: Comment): void {
+    const content = this.editingCommentText.trim();
+
+    if (!content) {
+      return;
+    }
+
+    this.commentSaving.set(true);
+
+    this.commentError.set('');
+
+    this.commentService
+      .updateComment(comment._id, {
+        content,
+      })
+      .subscribe({
+        next: (response) => {
+          this.comments.update((items) =>
+            items.map((item) =>
+              item._id === comment._id ? response.data : item,
+            ),
+          );
+
+          this.commentSaving.set(false);
+
+          this.editingCommentId.set(null);
+
+          this.editingCommentText = '';
+
+          this.loadActivity(this.projectId()!);
+        },
+
+        error: (error) => {
+          console.error('Update comment error:', error);
+
+          this.commentSaving.set(false);
+
+          this.commentError.set(
+            error?.error?.message ?? 'Unable to update comment.',
+          );
+        },
+      });
+  }
+
+  deleteComment(comment: Comment): void {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this comment?',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.commentDeleting.set(comment._id);
+
+    this.commentError.set('');
+
+    this.commentService.deleteComment(comment._id).subscribe({
+      next: () => {
+        this.comments.update((items) =>
+          items.filter((item) => item._id !== comment._id),
+        );
+
+        this.commentDeleting.set(null);
+        this.loadActivity(this.projectId()!);
+      },
+
+      error: (error) => {
+        console.error('Delete comment error:', error);
+
+        this.commentDeleting.set(null);
+
+        this.commentError.set(
+          error?.error?.message ?? 'Unable to delete comment.',
+        );
+      },
+    });
   }
 
   getCommentAuthorName(comment: Comment): string {
@@ -437,6 +537,7 @@ export class TaskDetailComponent implements OnInit {
         this.selectedFile.set(null);
 
         this.loadAttachments(taskId);
+        this.loadActivity(this.projectId());
       },
 
       error: (error) => {
@@ -452,6 +553,14 @@ export class TaskDetailComponent implements OnInit {
   }
 
   deleteAttachment(attachment: Attachment): void {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${this.getAttachmentName(attachment)}"?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     this.attachmentDeleting.set(attachment._id);
 
     this.attachmentError.set('');
@@ -463,6 +572,8 @@ export class TaskDetailComponent implements OnInit {
         );
 
         this.attachmentDeleting.set(null);
+
+        this.loadActivity(this.projectId());
       },
 
       error: (error) => {

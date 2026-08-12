@@ -1,11 +1,6 @@
-export interface WorkspaceOwner {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
+import { MembershipRole, MembershipStatus } from './membership.model';
 
-export interface WorkspaceMember {
+export interface WorkspaceOwner {
   _id: string;
   firstName: string;
   lastName: string;
@@ -19,35 +14,48 @@ export interface Workspace {
 
   owner: WorkspaceOwner;
 
-  members?: WorkspaceMember[];
+  members?: WorkspaceOwner[];
 
   logo?: string;
-
   isDeleted?: boolean;
-
   createdAt?: string;
   updatedAt?: string;
-
-  __v?: number;
-}
-
-export interface WorkspaceListData {
-  workspaces: Workspace[];
-
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 export interface WorkspaceListResponse {
   success: boolean;
   message: string;
-  data: WorkspaceListData;
+
+  data: {
+    workspaces: Workspace[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export interface WorkspaceResponse {
   success: boolean;
   message: string;
   data: Workspace;
+}
+// membership.model.ts
+
+export interface MembershipUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface Membership {
+  _id: string;
+  workspace: string;
+  user: MembershipUser;
+  role: MembershipRole;
+  status: MembershipStatus;
+  joinedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
