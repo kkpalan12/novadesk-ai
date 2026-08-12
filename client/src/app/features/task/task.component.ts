@@ -1,5 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,7 +18,7 @@ import { Membership } from '../../core/models/membership.model';
   templateUrl: './task.component.html',
   styleUrl: './task.component.scss',
 })
-export class TaskComponent implements OnInit {
+export class TaskComponent implements OnInit, OnDestroy {
   // =========================================
   // SERVICES
   // =========================================
@@ -851,5 +850,16 @@ export class TaskComponent implements OnInit {
         workspace: workspaceId,
       },
     });
+  }
+  // =========================================
+  // SOCKET CLEANUP
+  // =========================================
+
+  ngOnDestroy(): void {
+    const projectId = this.projectId();
+
+    if (projectId) {
+      this.socketService.leaveProject(projectId);
+    }
   }
 }

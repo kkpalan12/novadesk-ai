@@ -5,9 +5,11 @@ export interface CreateTaskDto {
 
   description?: string;
 
-  priority?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  status?: string;
+
+  priority?: string;
 
   assignedTo?: string;
 
-  dueDate?: Date;
+  dueDate?: string;
 }

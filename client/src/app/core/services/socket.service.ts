@@ -12,9 +12,19 @@ export class SocketService {
 
   private socket: Socket | null = null;
 
+  /**
+   * Projects requested before socket connection completes.
+   */
+  private readonly pendingProjectRooms = new Set<string>();
+
+  // =========================================
+  // CONNECT
+  // =========================================
+
   connect(): void {
     if (this.socket?.connected) {
       console.log('🔌 Socket already connected');
+
       return;
     }
 
@@ -22,23 +32,14 @@ export class SocketService {
 
     if (!token) {
       console.warn('⚠️ Socket: access token missing');
+
       return;
     }
 
-    // =========================================
-    // Socket Server URL
-    // =========================================
-
-    const apiUrl = environment.apiUrl;
-
-    const socketUrl = new URL(apiUrl).origin;
+    const socketUrl = new URL(environment.apiUrl).origin;
 
     console.log('🔌 Connecting Socket.IO...');
     console.log('Socket URL:', socketUrl);
-
-    // =========================================
-    // Connect
-    // =========================================
 
     this.socket = io(socketUrl, {
       auth: {
@@ -51,15 +52,23 @@ export class SocketService {
     });
 
     // =========================================
-    // Connected
+    // CONNECTED
     // =========================================
 
     this.socket.on('connect', () => {
       console.log('✅ Socket connected:', this.socket?.id);
+
+      // Join projects requested while socket
+      // was still connecting.
+      this.pendingProjectRooms.forEach((projectId) => {
+        this.joinProjectRoom(projectId);
+      });
+
+      this.pendingProjectRooms.clear();
     });
 
     // =========================================
-    // Connection Error
+    // CONNECTION ERROR
     // =========================================
 
     this.socket.on('connect_error', (error) => {
@@ -67,7 +76,7 @@ export class SocketService {
     });
 
     // =========================================
-    // Disconnected
+    // DISCONNECTED
     // =========================================
 
     this.socket.on('disconnect', (reason) => {
@@ -76,7 +85,7 @@ export class SocketService {
   }
 
   // =========================================
-  // Notifications
+  // NOTIFICATIONS
   // =========================================
 
   onNotification(callback: (notification: any) => void): void {
@@ -88,19 +97,59 @@ export class SocketService {
   }
 
   // =========================================
-  // Project Room
+  // PROJECT ROOM
   // =========================================
 
   joinProject(projectId: string): void {
-    this.socket?.emit('join-project', projectId);
+    if (!projectId) {
+      return;
+    }
+
+    // Socket not connected yet.
+    // Store the room and join automatically
+    // when connection completes.
+    if (!this.socket?.connected) {
+      console.log(
+        '⏳ Socket not connected yet. Queuing project room:',
+        projectId,
+      );
+
+      this.pendingProjectRooms.add(projectId);
+
+      return;
+    }
+
+    this.joinProjectRoom(projectId);
+  }
+
+  private joinProjectRoom(projectId: string): void {
+    if (!this.socket?.connected) {
+      return;
+    }
+
+    console.log('📁 Joining project room:', projectId);
+
+    this.socket.emit('join-project', projectId);
   }
 
   leaveProject(projectId: string): void {
-    this.socket?.emit('leave-project', projectId);
+    if (!projectId) {
+      return;
+    }
+
+    this.pendingProjectRooms.delete(projectId);
+
+    if (!this.socket?.connected) {
+      return;
+    }
+
+    console.log('📁 Leaving project room:', projectId);
+
+    this.socket.emit('leave-project', projectId);
   }
 
   // =========================================
-  // Task Events
+  // TASK EVENTS
   // =========================================
 
   onTaskUpdated(callback: (task: any) => void): void {
@@ -112,17 +161,19 @@ export class SocketService {
   }
 
   // =========================================
-  // Disconnect
+  // DISCONNECT
   // =========================================
 
   disconnect(): void {
+    this.pendingProjectRooms.clear();
+
     this.socket?.disconnect();
 
     this.socket = null;
   }
 
   // =========================================
-  // Status
+  // STATUS
   // =========================================
 
   isConnected(): boolean {

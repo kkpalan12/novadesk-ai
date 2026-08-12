@@ -484,15 +484,39 @@
                         </p>
 
 @if (
+item.oldValue !== null &&
+item.oldValue !== undefined ||
 item.newValue !== null &&
 item.newValue !== undefined
 ) {
 
 <div class="history-change">
 
-    <span>
+    @if (
+    item.oldValue !== null &&
+    item.oldValue !== undefined
+    ) {
+
+    <span class="history-old-value">
+        {{ formatHistoryValue(item.oldValue) }}
+    </span>
+
+    <span class="history-arrow">
+        →
+    </span>
+
+    }
+
+    @if (
+    item.newValue !== null &&
+    item.newValue !== undefined
+    ) {
+
+    <span class="history-new-value">
         {{ formatHistoryValue(item.newValue) }}
     </span>
+
+    }
 
 </div>
 

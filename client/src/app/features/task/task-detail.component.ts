@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,6 +9,7 @@ import { CommentService } from '../../core/services/comment.service';
 import { TaskHistoryService } from '../../core/services/task-history.service';
 import { ActivityService } from '../../core/services/activity.service';
 import { AttachmentService } from '../../core/services/attachment.service';
+import { SocketService } from '../../core/services/socket.service';
 
 import { Task } from '../../core/models/task.model';
 import { Comment } from '../../core/models/comment.model';
@@ -23,7 +24,7 @@ import { Attachment } from '../../core/models/attachment.model';
   templateUrl: './task-detail.component.html',
   styleUrl: './task-detail.component.scss',
 })
-export class TaskDetailComponent implements OnInit {
+export class TaskDetailComponent implements OnInit, OnDestroy {
   // =========================================================
   // Dependencies
   // =========================================================
@@ -41,6 +42,8 @@ export class TaskDetailComponent implements OnInit {
   private readonly activityService = inject(ActivityService);
 
   private readonly attachmentService = inject(AttachmentService);
+
+  private readonly socketService = inject(SocketService);
 
   // =========================================================
   // Task
@@ -135,7 +138,73 @@ export class TaskDetailComponent implements OnInit {
 
     this.workspaceId.set(workspaceId ?? '');
 
+    this.initializeRealtime(projectId, taskId);
+
     this.loadTask(projectId, taskId);
+  }
+
+  ngOnDestroy(): void {
+    const projectId = this.projectId();
+
+    if (projectId) {
+      this.socketService.leaveProject(projectId);
+    }
+  }
+
+  // =========================================================
+  // REALTIME
+  // =========================================================
+
+  private initializeRealtime(projectId: string, taskId: string): void {
+    this.socketService.connect();
+
+    this.socketService.joinProject(projectId);
+
+    // -----------------------------------------
+    // Task Updated
+    // -----------------------------------------
+
+    this.socketService.onTaskUpdated((updatedTask: Task) => {
+      if (!updatedTask?._id) {
+        return;
+      }
+
+      if (updatedTask._id !== taskId) {
+        return;
+      }
+
+      console.log('🔄 REAL-TIME TASK DETAIL UPDATED:', updatedTask);
+
+      this.task.set(updatedTask);
+
+      this.loadHistory(taskId);
+
+      this.loadActivity(projectId);
+    });
+
+    // -----------------------------------------
+    // Task Deleted
+    // -----------------------------------------
+
+    this.socketService.onTaskDeleted((data: { taskId: string }) => {
+      if (data?.taskId !== taskId) {
+        return;
+      }
+
+      console.log('🗑️ REAL-TIME TASK DETAIL DELETED:', taskId);
+
+      this.router.navigate(['/tasks'], {
+        queryParams: {
+          project: projectId,
+
+          ...(this.workspaceId()
+            ? {
+                workspace: this.workspaceId(),
+              }
+            : {}),
+        },
+      });
+    });
   }
 
   // =========================================================
@@ -266,6 +335,7 @@ export class TaskDetailComponent implements OnInit {
         },
       });
   }
+
   startEditComment(comment: Comment): void {
     this.editingCommentId.set(comment._id);
 
@@ -311,7 +381,7 @@ export class TaskDetailComponent implements OnInit {
 
           this.editingCommentText = '';
 
-          this.loadActivity(this.projectId()!);
+          this.loadActivity(this.projectId());
         },
 
         error: (error) => {
@@ -346,7 +416,8 @@ export class TaskDetailComponent implements OnInit {
         );
 
         this.commentDeleting.set(null);
-        this.loadActivity(this.projectId()!);
+
+        this.loadActivity(this.projectId());
       },
 
       error: (error) => {
@@ -537,6 +608,7 @@ export class TaskDetailComponent implements OnInit {
         this.selectedFile.set(null);
 
         this.loadAttachments(taskId);
+
         this.loadActivity(this.projectId());
       },
 
