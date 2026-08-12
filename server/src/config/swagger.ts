@@ -12,7 +12,7 @@ export const swaggerSpec = swaggerJsdoc({
 
     servers: [
       {
-        url: "http://localhost:5000/api/v1",
+        url: process.env.API_URL ?? "http://localhost:5000/api/v1",
         description: "Local Development",
       },
     ],
