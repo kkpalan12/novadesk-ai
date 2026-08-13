@@ -15,10 +15,22 @@ export const createMembershipSchema = z.object({
 
 export const updateMembershipSchema = z.object({
   params: z.object({
-    id: z.string().min(1),
+    id: objectIdSchema,
   }),
 
   body: z.object({
     role: z.nativeEnum(MembershipRole),
+  }),
+});
+
+export const membershipIdSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+});
+
+export const workspaceMembershipSchema = z.object({
+  params: z.object({
+    workspaceId: objectIdSchema,
   }),
 });

@@ -10,6 +10,7 @@ import {
   createTaskSchema,
   updateTaskSchema,
   updateStatusSchema,
+  taskQuerySchema,
 } from "../validators/task.validator";
 
 const router = Router();
@@ -30,6 +31,7 @@ router.post(
 router.get(
   "/projects/:projectId/tasks",
   authenticate,
+  validate(taskQuerySchema),
   taskController.getAllTasks,
 );
 

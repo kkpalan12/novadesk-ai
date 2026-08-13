@@ -1,14 +1,24 @@
+import { ClientSession } from "mongoose";
+
+import { BaseRepository } from "../common/repositories/base.repository";
+import { paginate } from "../common/pagination/pagination.util";
+
 import { Workspace } from "../models/workspace.model";
 import { WorkspaceEntity } from "../entities/workspace.entity";
 import { UpdateWorkspaceDto } from "../dto/workspace/update-workspace.dto";
+
 import { Membership } from "../models/membership.model";
 
-export class WorkspaceRepository {
+export class WorkspaceRepository extends BaseRepository<any> {
+  constructor() {
+    super(Workspace);
+  }
+
   /**
    * Create Workspace
    */
-  async create(entity: WorkspaceEntity) {
-    return Workspace.create(entity);
+  async create(entity: WorkspaceEntity, session?: ClientSession) {
+    return super.create(entity, session);
   }
 
   /**
@@ -19,13 +29,15 @@ export class WorkspaceRepository {
    * - Member
    */
   async findById(id: string, userId: string) {
-    return Workspace.findOne({
-      _id: id,
-      isDeleted: { $ne: true },
-      $or: [{ owner: userId }, { members: userId }],
-    })
+    return this.model
+      .findOne({
+        _id: id,
+        isDeleted: { $ne: true },
+        $or: [{ owner: userId }, { members: userId }],
+      })
       .populate("owner", "firstName lastName email")
-      .populate("members", "firstName lastName email");
+      .populate("members", "firstName lastName email")
+      .exec();
   }
 
   /**
@@ -50,23 +62,28 @@ export class WorkspaceRepository {
       };
     }
 
-    const skip = (page - 1) * limit;
-
-    const workspaces = await Workspace.find(query)
-      .populate("owner", "firstName lastName email")
-      .populate("members", "firstName lastName email")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await Workspace.countDocuments(query);
+    const result = await paginate(
+      this.model,
+      query,
+      {
+        page,
+        limit,
+      },
+      (queryBuilder) =>
+        queryBuilder
+          .populate("owner", "firstName lastName email")
+          .populate("members", "firstName lastName email")
+          .sort({
+            createdAt: -1,
+          }),
+    );
 
     return {
-      workspaces,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      workspaces: result.data,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
     };
   }
 
@@ -75,21 +92,29 @@ export class WorkspaceRepository {
    *
    * Only owner can update.
    */
-  async update(id: string, userId: string, dto: UpdateWorkspaceDto) {
-    return Workspace.findOneAndUpdate(
-      {
-        _id: id,
-        owner: userId,
-        isDeleted: { $ne: true },
-      },
-      dto,
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
+  async update(
+    id: string,
+    userId: string,
+    dto: UpdateWorkspaceDto,
+    session?: ClientSession,
+  ) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: id,
+          owner: userId,
+          isDeleted: { $ne: true },
+        },
+        dto,
+        {
+          new: true,
+          runValidators: true,
+          session,
+        },
+      )
       .populate("owner", "firstName lastName email")
-      .populate("members", "firstName lastName email");
+      .populate("members", "firstName lastName email")
+      .exec();
   }
 
   /**
@@ -97,71 +122,90 @@ export class WorkspaceRepository {
    *
    * Only owner can delete.
    */
-  async softDelete(id: string, userId: string) {
-    return Workspace.findOneAndUpdate(
-      {
-        _id: id,
-        owner: userId,
-        isDeleted: { $ne: true },
-      },
-      {
-        isDeleted: true,
-      },
-      {
-        new: true,
-      },
-    );
+  async softDelete(id: string, userId: string, session?: ClientSession) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: id,
+          owner: userId,
+          isDeleted: { $ne: true },
+        },
+        {
+          isDeleted: true,
+        },
+        {
+          new: true,
+          session,
+        },
+      )
+      .exec();
   }
 
   /**
    * Add Member
    */
-  async addMember(workspaceId: string, userId: string) {
-    return Workspace.findOneAndUpdate(
-      {
-        _id: workspaceId,
-        isDeleted: { $ne: true },
-      },
-      {
-        $addToSet: {
-          members: userId,
+  async addMember(
+    workspaceId: string,
+    userId: string,
+    session?: ClientSession,
+  ) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: workspaceId,
+          isDeleted: { $ne: true },
         },
-      },
-      {
-        new: true,
-      },
-    );
+        {
+          $addToSet: {
+            members: userId,
+          },
+        },
+        {
+          new: true,
+          session,
+        },
+      )
+      .exec();
   }
 
   /**
    * Remove Member
    */
-  async removeMember(workspaceId: string, userId: string) {
-    return Workspace.findOneAndUpdate(
-      {
-        _id: workspaceId,
-        isDeleted: { $ne: true },
-      },
-      {
-        $pull: {
-          members: userId,
+  async removeMember(
+    workspaceId: string,
+    userId: string,
+    session?: ClientSession,
+  ) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: workspaceId,
+          isDeleted: { $ne: true },
         },
-      },
-      {
-        new: true,
-      },
-    );
+        {
+          $pull: {
+            members: userId,
+          },
+        },
+        {
+          new: true,
+          session,
+        },
+      )
+      .exec();
   }
 
   /**
    * Check Workspace Owner
    */
   async isOwner(workspaceId: string, userId: string): Promise<boolean> {
-    const workspace = await Workspace.exists({
-      _id: workspaceId,
-      owner: userId,
-      isDeleted: { $ne: true },
-    });
+    const workspace = await this.model
+      .exists({
+        _id: workspaceId,
+        owner: userId,
+        isDeleted: { $ne: true },
+      })
+      .exec();
 
     return !!workspace;
   }
@@ -180,21 +224,30 @@ export class WorkspaceRepository {
    */
   async findAccessibleWorkspaceIds(userId: string) {
     const [workspaceMemberships, memberships] = await Promise.all([
-      Workspace.find(
-        {
-          isDeleted: { $ne: true },
-          $or: [{ owner: userId }, { members: userId }],
-        },
-        { _id: 1 },
-      ).lean(),
+      this.model
+        .find(
+          {
+            isDeleted: { $ne: true },
+            $or: [{ owner: userId }, { members: userId }],
+          },
+          {
+            _id: 1,
+          },
+        )
+        .lean()
+        .exec(),
 
       Membership.find(
         {
           user: userId,
           status: "ACTIVE",
         },
-        { workspace: 1 },
-      ).lean(),
+        {
+          workspace: 1,
+        },
+      )
+        .lean()
+        .exec(),
     ]);
 
     const workspaceIds = new Set<string>();
@@ -214,9 +267,12 @@ export class WorkspaceRepository {
    * Find Workspace Owner
    */
   async findOwner(workspaceId: string) {
-    return Workspace.findOne({
-      _id: workspaceId,
-      isDeleted: { $ne: true },
-    }).populate("owner", "firstName lastName email");
+    return this.model
+      .findOne({
+        _id: workspaceId,
+        isDeleted: { $ne: true },
+      })
+      .populate("owner", "firstName lastName email")
+      .exec();
   }
 }

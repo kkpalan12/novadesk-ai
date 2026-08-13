@@ -6,6 +6,7 @@ import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
 
 import {
+  commentIdSchema,
   createCommentSchema,
   updateCommentSchema,
 } from "../validators/comment.validator";
@@ -27,7 +28,12 @@ router.post(
 /**
  * Get Comments
  */
-router.get("/tasks/:taskId/comments", authenticate, controller.getComments);
+router.get(
+  "/tasks/:taskId/comments",
+  authenticate,
+  validate(createCommentSchema.pick({ params: true })),
+  controller.getComments,
+);
 
 /**
  * Update Comment
@@ -42,6 +48,11 @@ router.put(
 /**
  * Delete Comment
  */
-router.delete("/comments/:id", authenticate, controller.deleteComment);
+router.delete(
+  "/comments/:id",
+  authenticate,
+  validate(commentIdSchema),
+  controller.deleteComment,
+);
 
 export default router;

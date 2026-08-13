@@ -25,6 +25,7 @@ export class TaskHistoryRepository {
       .populate("performedBy", "firstName lastName email")
       .sort({
         createdAt: -1,
-      });
+      })
+      .exec();
   }
 }

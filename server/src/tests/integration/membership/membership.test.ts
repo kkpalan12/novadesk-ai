@@ -40,7 +40,6 @@ describe("Membership API", () => {
   describe("POST /api/v1/memberships", () => {
     it("should allow workspace owner to add member", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -53,21 +52,15 @@ describe("Membership API", () => {
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
-
       expect(response.body.data).toBeDefined();
-
       expect(response.body.data.workspace).toBe(workspace._id);
-
       expect(response.body.data.user).toBe(member.user._id);
-
       expect(response.body.data.status).toBe("ACTIVE");
     });
 
     it("should reject unrelated user from adding member", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const unrelated = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -84,7 +77,6 @@ describe("Membership API", () => {
 
     it("should reject unauthenticated request", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -101,7 +93,6 @@ describe("Membership API", () => {
 
     it("should reject duplicate membership", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -128,7 +119,6 @@ describe("Membership API", () => {
   describe("GET /api/v1/memberships/workspace/:workspaceId", () => {
     it("should allow workspace owner to view members", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -148,25 +138,19 @@ describe("Membership API", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-
       expect(response.body.data).toBeDefined();
-
       expect(response.body.data).toHaveLength(1);
-
       expect(response.body.data[0].user._id).toBe(member.user._id);
     });
 
     it("should allow active member to view workspace members", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member1 = await AuthHelper.createAuthenticatedUser();
-
       const member2 = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
 
       await createMembership(owner.token, workspace._id, member1.user._id);
-
       await createMembership(owner.token, workspace._id, member2.user._id);
 
       const response = await RequestHelper.get(
@@ -176,13 +160,11 @@ describe("Membership API", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-
       expect(response.body.data).toHaveLength(2);
     });
 
     it("should reject unrelated user from viewing members", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const unrelated = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -213,7 +195,6 @@ describe("Membership API", () => {
   describe("PUT /api/v1/memberships/:id", () => {
     it("should allow workspace owner to update membership", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -238,15 +219,27 @@ describe("Membership API", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-
       expect(response.body.data.role).toBe("ADMIN");
+    });
+
+    it("should reject malformed membership id", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+
+      const response = await RequestHelper.put(
+        `${membershipEndpoint}/not-a-valid-object-id`,
+        {
+          role: "ADMIN",
+        },
+        owner.token,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
     });
 
     it("should reject unrelated user from updating membership", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
-
       const unrelated = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -273,7 +266,6 @@ describe("Membership API", () => {
 
     it("should reject active member from updating membership", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -300,7 +292,6 @@ describe("Membership API", () => {
 
     it("should reject unauthenticated update", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -328,7 +319,6 @@ describe("Membership API", () => {
   describe("DELETE /api/v1/memberships/:id", () => {
     it("should allow workspace owner to remove member", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -355,15 +345,12 @@ describe("Membership API", () => {
       );
 
       expect(membersResponse.status).toBe(200);
-
       expect(membersResponse.body.data).toHaveLength(0);
     });
 
     it("should reject unrelated user from removing member", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
-
       const unrelated = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -387,9 +374,7 @@ describe("Membership API", () => {
 
     it("should reject active member from removing another member", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member1 = await AuthHelper.createAuthenticatedUser();
-
       const member2 = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);
@@ -409,7 +394,6 @@ describe("Membership API", () => {
       const membership2 = membership2Response.body.data;
 
       expect(membershipResponse.status).toBe(201);
-
       expect(membership2Response.status).toBe(201);
 
       const response = await RequestHelper.delete(
@@ -423,7 +407,6 @@ describe("Membership API", () => {
 
     it("should reject unauthenticated delete", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const member = await AuthHelper.createAuthenticatedUser();
 
       const workspace = await createWorkspace(owner.token);

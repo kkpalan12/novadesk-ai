@@ -107,7 +107,20 @@ describe("Workspace API", () => {
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
+
+    it("should reject malformed workspace id", async () => {
+      const { token } = await AuthHelper.createAuthenticatedUser();
+
+      const response = await RequestHelper.get(
+        `${endpoint}/not-a-valid-object-id`,
+        token,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    });
   });
+
   describe("PUT /api/v1/workspaces/:id", () => {
     it("should update a workspace", async () => {
       const { token } = await AuthHelper.createAuthenticatedUser();
@@ -173,6 +186,21 @@ describe("Workspace API", () => {
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
+
+    it("should reject malformed workspace id", async () => {
+      const { token } = await AuthHelper.createAuthenticatedUser();
+
+      const response = await RequestHelper.put(
+        `${endpoint}/not-a-valid-object-id`,
+        {
+          name: "Updated Workspace",
+        },
+        token,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    });
   });
 
   describe("DELETE /api/v1/workspaces/:id", () => {
@@ -229,11 +257,23 @@ describe("Workspace API", () => {
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
+
+    it("should reject malformed workspace id", async () => {
+      const { token } = await AuthHelper.createAuthenticatedUser();
+
+      const response = await RequestHelper.delete(
+        `${endpoint}/not-a-valid-object-id`,
+        token,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    });
   });
+
   describe("Workspace ownership isolation", () => {
     it("should not allow another user to access workspace", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const otherUser = await AuthHelper.createAuthenticatedUser();
 
       const createResponse = await RequestHelper.post(
@@ -258,7 +298,6 @@ describe("Workspace API", () => {
 
     it("should not allow another user to update workspace", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const otherUser = await AuthHelper.createAuthenticatedUser();
 
       const createResponse = await RequestHelper.post(
@@ -285,7 +324,6 @@ describe("Workspace API", () => {
 
     it("should not allow another user to delete workspace", async () => {
       const owner = await AuthHelper.createAuthenticatedUser();
-
       const otherUser = await AuthHelper.createAuthenticatedUser();
 
       const createResponse = await RequestHelper.post(

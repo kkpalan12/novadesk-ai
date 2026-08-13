@@ -8,6 +8,7 @@ import { validate } from "../middlewares/validate.middleware";
 import {
   createWorkspaceSchema,
   updateWorkspaceSchema,
+  workspaceIdSchema,
 } from "../validators/workspace.validator";
 
 const router = Router();
@@ -89,14 +90,21 @@ router.get("/", authenticate, workspaceController.getAllWorkspaces);
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace ID
+ *         description: MongoDB Workspace ID
  *     responses:
  *       200:
  *         description: Workspace fetched successfully
+ *       400:
+ *         description: Invalid workspace ID
  *       404:
  *         description: Workspace not found
  */
-router.get("/:id", authenticate, workspaceController.getWorkspaceById);
+router.get(
+  "/:id",
+  authenticate,
+  validate(workspaceIdSchema),
+  workspaceController.getWorkspaceById,
+);
 
 /**
  * @swagger
@@ -112,7 +120,7 @@ router.get("/:id", authenticate, workspaceController.getWorkspaceById);
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace ID
+ *         description: MongoDB Workspace ID
  *     requestBody:
  *       required: true
  *       content:
@@ -129,6 +137,8 @@ router.get("/:id", authenticate, workspaceController.getWorkspaceById);
  *     responses:
  *       200:
  *         description: Workspace updated successfully
+ *       400:
+ *         description: Validation error
  *       404:
  *         description: Workspace not found
  */
@@ -153,13 +163,20 @@ router.put(
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace ID
+ *         description: MongoDB Workspace ID
  *     responses:
  *       200:
  *         description: Workspace deleted successfully
+ *       400:
+ *         description: Invalid workspace ID
  *       404:
  *         description: Workspace not found
  */
-router.delete("/:id", authenticate, workspaceController.deleteWorkspace);
+router.delete(
+  "/:id",
+  authenticate,
+  validate(workspaceIdSchema),
+  workspaceController.deleteWorkspace,
+);
 
 export default router;

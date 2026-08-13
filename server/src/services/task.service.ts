@@ -57,6 +57,34 @@ export class TaskService {
       throw new NotFoundError("Project not found");
     }
 
+    // =========================================
+    // VALIDATE ASSIGNEE
+    // =========================================
+
+    if (dto.assignedTo) {
+      const workspaceId =
+        access.project.workspace &&
+        typeof access.project.workspace === "object" &&
+        "_id" in access.project.workspace
+          ? String((access.project.workspace as any)._id)
+          : String(access.project.workspace);
+
+      const assigneeMembership =
+        await this.membershipRepository.findActiveMembership(
+          workspaceId,
+          dto.assignedTo,
+        );
+
+      const isWorkspaceOwner = await this.workspaceRepository.isOwner(
+        workspaceId,
+        dto.assignedTo,
+      );
+
+      if (!assigneeMembership && !isWorkspaceOwner) {
+        throw new NotFoundError("User is not a member of this workspace");
+      }
+    }
+
     const entity = TaskMapper.toEntity(dto, createdBy);
 
     const task = await this.taskRepository.create(entity);
@@ -81,6 +109,7 @@ export class TaskService {
     });
 
     this.socketService.sendTaskCreated(projectId, task);
+
     return task;
   }
 
@@ -397,6 +426,7 @@ export class TaskService {
     });
 
     this.socketService.sendTaskStatusChanged(this.getProjectId(task), task);
+
     return task;
   }
 
@@ -500,6 +530,7 @@ export class TaskService {
     });
 
     this.socketService.sendTaskAssigned(this.getProjectId(task), task);
+
     return task;
   }
 

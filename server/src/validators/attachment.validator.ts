@@ -1,8 +1,15 @@
 import { z } from "zod";
+
 import { objectIdSchema } from "./common.validator";
 
 export const attachmentSchema = z.object({
   params: z.object({
     taskId: objectIdSchema,
+  }),
+});
+
+export const attachmentIdSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
   }),
 });

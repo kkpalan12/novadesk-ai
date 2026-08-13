@@ -1,6 +1,8 @@
 import { z } from "zod";
+
 import { TASK_PRIORITY, TASK_STATUS } from "../common/constants/task.constants";
-import { objectIdSchema } from "./common.validator";
+
+import { objectIdSchema, paginationSchema } from "./common.validator";
 
 export const createTaskSchema = z.object({
   params: z.object({
@@ -14,7 +16,7 @@ export const createTaskSchema = z.object({
 
     priority: z.enum(TASK_PRIORITY).optional(),
 
-    assignedTo: z.string().optional(),
+    assignedTo: objectIdSchema.optional(),
 
     dueDate: z.coerce.date().optional(),
   }),
@@ -24,7 +26,7 @@ export const updateTaskSchema = z.object({
   params: z.object({
     projectId: objectIdSchema,
 
-    id: z.string().min(1),
+    id: objectIdSchema,
   }),
 
   body: z.object({
@@ -34,7 +36,7 @@ export const updateTaskSchema = z.object({
 
     priority: z.enum(TASK_PRIORITY).optional(),
 
-    assignedTo: z.string().optional(),
+    assignedTo: objectIdSchema.optional(),
 
     dueDate: z.coerce.date().optional(),
   }),
@@ -42,7 +44,7 @@ export const updateTaskSchema = z.object({
 
 export const updateStatusSchema = z.object({
   params: z.object({
-    id: z.string().min(1),
+    id: objectIdSchema,
   }),
 
   body: z.object({
@@ -53,10 +55,23 @@ export const updateStatusSchema = z.object({
 export const assignTaskSchema = z.object({
   params: z.object({
     projectId: objectIdSchema,
+
     id: objectIdSchema,
   }),
 
   body: z.object({
     assignedTo: objectIdSchema,
+  }),
+});
+
+export const taskQuerySchema = z.object({
+  query: paginationSchema.extend({
+    search: z.string().trim().max(100, "Search query is too long").optional(),
+
+    status: z.enum(TASK_STATUS).optional(),
+
+    priority: z.enum(TASK_PRIORITY).optional(),
+
+    sort: z.string().trim().max(50, "Sort field is too long").optional(),
   }),
 });

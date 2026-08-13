@@ -15,7 +15,7 @@ export class SearchRepository {
     };
 
     /**
-     * 1. Search users.
+     * 1. Search users
      *
      * Used by the Add Member UI.
      *
@@ -38,23 +38,32 @@ export class SearchRepository {
       ],
     })
       .select("_id firstName lastName email")
-      .limit(20);
+      .limit(20)
+      .exec();
 
     /**
-     * 2. Find ALL workspaces accessible to the user.
+     * 2. Find all workspaces accessible to the user.
      *
-     * Owner OR active member.
+     * Access comes from:
+     * - workspace ownership
+     * - active membership
      */
     const [ownedWorkspaces, memberships] = await Promise.all([
       Workspace.find({
         owner: userId,
         isDeleted: { $ne: true },
-      }).select("_id name description"),
+      })
+        .select("_id name description")
+        .lean()
+        .exec(),
 
       Membership.find({
         user: userId,
         status: "ACTIVE",
-      }).select("workspace"),
+      })
+        .select("workspace")
+        .lean()
+        .exec(),
     ]);
 
     const memberWorkspaceIds = memberships.map(
@@ -70,7 +79,7 @@ export class SearchRepository {
     ];
 
     /**
-     * 3. Search workspaces.
+     * 3. Search workspaces
      */
     const workspaces =
       accessibleWorkspaceIds.length > 0
@@ -89,11 +98,13 @@ export class SearchRepository {
                 description: searchRegex,
               },
             ],
-          }).limit(20)
+          })
+            .limit(20)
+            .exec()
         : [];
 
     /**
-     * 4. Search projects inside accessible workspaces.
+     * 4. Search projects inside accessible workspaces
      */
     const projects =
       accessibleWorkspaceIds.length > 0
@@ -116,10 +127,11 @@ export class SearchRepository {
             .populate("workspace", "name")
             .populate("owner", "firstName lastName email")
             .limit(20)
+            .exec()
         : [];
 
     /**
-     * 5. Find ALL accessible projects.
+     * 5. Find all accessible projects.
      *
      * Needed for task/comment search.
      */
@@ -131,7 +143,10 @@ export class SearchRepository {
             },
 
             isDeleted: { $ne: true },
-          }).select("_id")
+          })
+            .select("_id")
+            .lean()
+            .exec()
         : [];
 
     const accessibleProjectIds = accessibleProjects.map(
@@ -139,7 +154,7 @@ export class SearchRepository {
     );
 
     /**
-     * 6. Search tasks inside accessible projects.
+     * 6. Search tasks inside accessible projects
      */
     const tasks =
       accessibleProjectIds.length > 0
@@ -163,10 +178,11 @@ export class SearchRepository {
             .populate("assignedTo", "firstName lastName email")
             .populate("createdBy", "firstName lastName email")
             .limit(20)
+            .exec()
         : [];
 
     /**
-     * 7. Find ALL accessible tasks.
+     * 7. Find all accessible tasks.
      *
      * Needed for comment search.
      */
@@ -178,14 +194,16 @@ export class SearchRepository {
             },
 
             isDeleted: false,
-          }).select("_id")
+          })
+            .select("_id")
+            .lean()
+            .exec()
         : [];
 
     const accessibleTaskIds = accessibleTasks.map((task) => task._id);
 
     /**
-     * 8. Search comments belonging to
-     *    accessible tasks.
+     * 8. Search comments belonging to accessible tasks
      */
     const comments =
       accessibleTaskIds.length > 0
@@ -201,10 +219,11 @@ export class SearchRepository {
             .populate("createdBy", "firstName lastName email")
             .populate("task", "title")
             .limit(20)
+            .exec()
         : [];
 
     /**
-     * 9. Return global search result.
+     * 9. Return global search result
      */
     return {
       query,

@@ -3,7 +3,10 @@ import { z } from "zod";
 /**
  * MongoDB ObjectId
  */
-export const objectIdSchema = z.string().trim().min(1, "Id is required");
+export const objectIdSchema = z
+  .string()
+  .trim()
+  .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId");
 
 /**
  * Pagination

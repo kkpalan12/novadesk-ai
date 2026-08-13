@@ -1,5 +1,7 @@
 import swaggerJsdoc from "swagger-jsdoc";
 
+import { env } from "./env";
+
 export const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: "3.0.0",
@@ -12,7 +14,7 @@ export const swaggerSpec = swaggerJsdoc({
 
     servers: [
       {
-        url: process.env.API_URL ?? "http://localhost:5000/api/v1",
+        url: env.PUBLIC_API_URL,
         description: "Local Development",
       },
     ],

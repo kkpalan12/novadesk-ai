@@ -4,10 +4,10 @@ import { ProjectController } from "../controllers/project.controller";
 
 import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
-
 import {
   createProjectSchema,
   updateProjectSchema,
+  projectQuerySchema,
 } from "../validators/project.validator";
 const router = Router();
 
@@ -26,8 +26,12 @@ router.post(
 /**
  * Get All Projects
  */
-router.get("/", authenticate, projectController.getAllProjects);
-
+router.get(
+  "/",
+  authenticate,
+  validate(projectQuerySchema),
+  projectController.getAllProjects,
+);
 /**
  * Get Project By Id
  */

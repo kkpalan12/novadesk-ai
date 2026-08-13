@@ -3,14 +3,13 @@ import { Router } from "express";
 import { MembershipController } from "../controllers/membership.controller";
 
 import { authenticate } from "../middlewares/auth.middleware";
-import { authorize } from "../middlewares/authorize.middleware";
 import { validate } from "../middlewares/validate.middleware";
-
-import { UserRole } from "../common/constants/roles";
 
 import {
   createMembershipSchema,
+  membershipIdSchema,
   updateMembershipSchema,
+  workspaceMembershipSchema,
 } from "../validators/membership.validator";
 
 const router = Router();
@@ -26,12 +25,14 @@ router.post(
   validate(createMembershipSchema),
   membershipController.createMembership,
 );
+
 /**
  * Get Workspace Members
  */
 router.get(
   "/workspace/:workspaceId",
   authenticate,
+  validate(workspaceMembershipSchema),
   membershipController.getWorkspaceMembers,
 );
 
@@ -48,6 +49,11 @@ router.put(
 /**
  * Remove Member
  */
-router.delete("/:id", authenticate, membershipController.removeMembership);
+router.delete(
+  "/:id",
+  authenticate,
+  validate(membershipIdSchema),
+  membershipController.removeMembership,
+);
 
 export default router;

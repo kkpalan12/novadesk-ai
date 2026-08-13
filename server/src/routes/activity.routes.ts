@@ -5,7 +5,10 @@ import { ActivityController } from "../controllers/activity.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
 
-import { activityQuerySchema } from "../validators/activity.validator";
+import {
+  activityIdSchema,
+  activityQuerySchema,
+} from "../validators/activity.validator";
 
 const router = Router();
 
@@ -44,5 +47,12 @@ router.get(
   validate(activityQuerySchema),
   controller.getProjectActivities,
 );
-router.get("/activities/:id", authenticate, controller.getActivity);
+
+router.get(
+  "/activities/:id",
+  authenticate,
+  validate(activityIdSchema),
+  controller.getActivity,
+);
+
 export default router;

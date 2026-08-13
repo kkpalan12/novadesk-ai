@@ -1,15 +1,29 @@
+import { ClientSession } from "mongoose";
+
+import { BaseRepository } from "../common/repositories/base.repository";
+import { paginate } from "../common/pagination/pagination.util";
+
 import { Project } from "../models/project.model";
 import { ProjectEntity } from "../entities/project.entity";
 import { UpdateProjectDto } from "../dto/project/update-project.dto";
 
-export class ProjectRepository {
-  async create(entity: ProjectEntity) {
-    return Project.create(entity);
+export class ProjectRepository extends BaseRepository<any> {
+  constructor() {
+    super(Project);
   }
 
   /**
-   * Get project only when the user belongs
-   * to the project's workspace.
+   * Create Project
+   */
+  async create(entity: ProjectEntity, session?: ClientSession) {
+    return super.create(entity, session);
+  }
+
+  /**
+   * Get Project By Id
+   *
+   * If workspaceIds are provided, the project
+   * must belong to one of those workspaces.
    */
   async findById(id: string, workspaceIds?: string[]) {
     const query: Record<string, any> = {
@@ -18,14 +32,27 @@ export class ProjectRepository {
     };
 
     if (workspaceIds) {
-      query.workspace = { $in: workspaceIds };
+      query.workspace = {
+        $in: workspaceIds,
+      };
     }
 
-    return Project.findOne(query)
+    return this.model
+      .findOne(query)
       .populate("workspace", "name")
-      .populate("owner", "firstName lastName email");
+      .populate("owner", "firstName lastName email")
+      .exec();
   }
 
+  /**
+   * Get All Projects
+   *
+   * Supports:
+   * - Workspace filtering
+   * - Search
+   * - Status filtering
+   * - Pagination
+   */
   async findAll(filters: {
     page: number;
     limit: number;
@@ -38,7 +65,9 @@ export class ProjectRepository {
 
     const query: Record<string, any> = {
       isDeleted: { $ne: true },
-      workspace: { $in: workspaceIds },
+      workspace: {
+        $in: workspaceIds,
+      },
     };
 
     if (workspace) {
@@ -57,59 +86,89 @@ export class ProjectRepository {
       };
     }
 
-    const skip = (page - 1) * limit;
-
-    const projects = await Project.find(query)
-      .populate("workspace", "name")
-      .populate("owner", "firstName lastName email")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await Project.countDocuments(query);
+    const result = await paginate(
+      this.model,
+      query,
+      {
+        page,
+        limit,
+      },
+      (queryBuilder) =>
+        queryBuilder
+          .populate("workspace", "name")
+          .populate("owner", "firstName lastName email")
+          .sort({
+            createdAt: -1,
+          }),
+    );
 
     return {
-      projects,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      projects: result.data,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
     };
   }
 
   /**
-   * Only OWNER / ADMIN authorization should reach this method.
+   * Update Project
+   *
+   * Only projects belonging to the
+   * supplied workspaces can be updated.
    */
-  async update(id: string, dto: UpdateProjectDto, workspaceIds: string[]) {
-    return Project.findOneAndUpdate(
-      {
-        _id: id,
-        workspace: { $in: workspaceIds },
-        isDeleted: { $ne: true },
-      },
-      dto,
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
+  async update(
+    id: string,
+    dto: UpdateProjectDto,
+    workspaceIds: string[],
+    session?: ClientSession,
+  ) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: id,
+          workspace: {
+            $in: workspaceIds,
+          },
+          isDeleted: { $ne: true },
+        },
+        dto,
+        {
+          new: true,
+          runValidators: true,
+          session,
+        },
+      )
       .populate("workspace", "name")
-      .populate("owner", "firstName lastName email");
+      .populate("owner", "firstName lastName email")
+      .exec();
   }
 
-  async softDelete(id: string, workspaceIds: string[]) {
-    return Project.findOneAndUpdate(
-      {
-        _id: id,
-        workspace: { $in: workspaceIds },
-        isDeleted: { $ne: true },
-      },
-      {
-        isDeleted: true,
-      },
-      {
-        new: true,
-      },
-    );
+  /**
+   * Soft Delete Project
+   */
+  async softDelete(
+    id: string,
+    workspaceIds: string[],
+    session?: ClientSession,
+  ) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: id,
+          workspace: {
+            $in: workspaceIds,
+          },
+          isDeleted: { $ne: true },
+        },
+        {
+          isDeleted: true,
+        },
+        {
+          new: true,
+          session,
+        },
+      )
+      .exec();
   }
 }

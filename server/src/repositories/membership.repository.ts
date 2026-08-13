@@ -1,94 +1,116 @@
+import { ClientSession } from "mongoose";
+
+import { BaseRepository } from "../common/repositories/base.repository";
+
 import { Membership } from "../models/membership.model";
 import { MembershipEntity } from "../entities/membership.entity";
 import { UpdateMembershipDto } from "../dto/membership/update-membership.dto";
 import { Workspace } from "../models/workspace.model";
 
-export class MembershipRepository {
+export class MembershipRepository extends BaseRepository<any> {
+  constructor() {
+    super(Membership);
+  }
+
   /**
    * Create Membership
    */
-  async create(entity: MembershipEntity) {
-    return Membership.create(entity);
+  async create(entity: MembershipEntity, session?: ClientSession) {
+    return super.create(entity, session);
   }
 
   /**
-   * Find Membership
+   * Find Membership By Workspace And User
    */
   async findByWorkspaceAndUser(workspaceId: string, userId: string) {
-    return Membership.findOne({
-      workspace: workspaceId,
-      user: userId,
-    });
+    return this.model
+      .findOne({
+        workspace: workspaceId,
+        user: userId,
+      })
+      .exec();
   }
 
   /**
-   * Check whether user is an active member
+   * Check Whether User Is An Active Member
    */
   async isMember(workspaceId: string, userId: string) {
-    return Membership.exists({
-      workspace: workspaceId,
-      user: userId,
-      status: "ACTIVE",
-    });
+    return !!(await this.model
+      .exists({
+        workspace: workspaceId,
+        user: userId,
+        status: "ACTIVE",
+      })
+      .exec());
   }
 
   /**
    * Get Workspace Members
+   *
+   * Owner is excluded because owner
+   * membership is handled separately.
    */
   async findByWorkspace(workspaceId: string) {
     const workspace = await Workspace.findById(workspaceId)
       .select("owner")
-      .lean();
+      .lean()
+      .exec();
 
-    const memberships = await Membership.find({
-      workspace: workspaceId,
-      status: "ACTIVE",
-      ...(workspace?.owner
-        ? {
-            user: {
-              $ne: workspace.owner,
-            },
-          }
-        : {}),
-    })
+    return this.model
+      .find({
+        workspace: workspaceId,
+        status: "ACTIVE",
+        ...(workspace?.owner
+          ? {
+              user: {
+                $ne: workspace.owner,
+              },
+            }
+          : {}),
+      })
       .populate("user", "firstName lastName email")
       .sort({
         createdAt: 1,
-      });
-
-    return memberships;
+      })
+      .exec();
   }
 
   /**
    * Find Membership By ID
    */
   async findById(id: string) {
-    return Membership.findById(id);
+    return this.model.findById(id).exec();
   }
 
   /**
    * Update Membership
    */
-  async update(id: string, dto: UpdateMembershipDto) {
-    return Membership.findByIdAndUpdate(id, dto, {
-      new: true,
-      runValidators: true,
-    });
+  async update(id: string, dto: UpdateMembershipDto, session?: ClientSession) {
+    return this.model
+      .findByIdAndUpdate(id, dto, {
+        new: true,
+        runValidators: true,
+        session,
+      })
+      .exec();
   }
 
   /**
    * Remove Membership
    */
-  async remove(id: string) {
-    return Membership.findByIdAndUpdate(
-      id,
-      {
-        status: "REMOVED",
-      },
-      {
-        new: true,
-      },
-    );
+  async remove(id: string, session?: ClientSession) {
+    return this.model
+      .findByIdAndUpdate(
+        id,
+        {
+          status: "REMOVED",
+        },
+        {
+          new: true,
+          session,
+        },
+      )
+      .exec();
   }
 
   /**
@@ -101,18 +123,21 @@ export class MembershipRepository {
       isDeleted: {
         $ne: true,
       },
-    });
+    }).exec();
 
     return !!workspace;
   }
+
   /**
    * Find Active Membership
    */
   async findActiveMembership(workspaceId: string, userId: string) {
-    return Membership.findOne({
-      workspace: workspaceId,
-      user: userId,
-      status: "ACTIVE",
-    });
+    return this.model
+      .findOne({
+        workspace: workspaceId,
+        user: userId,
+        status: "ACTIVE",
+      })
+      .exec();
   }
 }

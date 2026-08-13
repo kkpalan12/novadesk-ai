@@ -8,26 +8,36 @@ import { Notification } from "../models/notification.model";
 export class DashboardRepository {
   /**
    * Get accessible workspace IDs
+   *
+   * Access comes from:
+   * 1. Active membership
+   * 2. Workspace ownership
    */
-  private async getWorkspaceIds(userId: string) {
+  private async getWorkspaceIds(userId: string): Promise<string[]> {
     const [memberships, ownedWorkspaces] = await Promise.all([
       Membership.find({
         user: userId,
         status: "ACTIVE",
-      }).select("workspace"),
+      })
+        .select("workspace")
+        .lean()
+        .exec(),
 
       Workspace.find({
         owner: userId,
         isDeleted: { $ne: true },
-      }).select("_id"),
+      })
+        .select("_id")
+        .lean()
+        .exec(),
     ]);
 
     const membershipWorkspaceIds = memberships.map((membership) =>
-      membership.workspace.toString(),
+      String(membership.workspace),
     );
 
     const ownedWorkspaceIds = ownedWorkspaces.map((workspace) =>
-      workspace._id.toString(),
+      String(workspace._id),
     );
 
     return [...new Set([...ownedWorkspaceIds, ...membershipWorkspaceIds])];
@@ -75,7 +85,10 @@ export class DashboardRepository {
       isDeleted: {
         $ne: true,
       },
-    }).select("_id");
+    })
+      .select("_id")
+      .lean()
+      .exec();
 
     const projectIds = projects.map((project) => project._id);
 
@@ -94,47 +107,47 @@ export class DashboardRepository {
      */
     const [total, todo, inProgress, review, done, low, medium, high, critical] =
       await Promise.all([
-        Task.countDocuments(taskQuery),
+        Task.countDocuments(taskQuery).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           status: "TODO",
-        }),
+        }).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           status: "IN_PROGRESS",
-        }),
+        }).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           status: "REVIEW",
-        }),
+        }).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           status: "DONE",
-        }),
+        }).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           priority: "LOW",
-        }),
+        }).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           priority: "MEDIUM",
-        }),
+        }).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           priority: "HIGH",
-        }),
+        }).exec(),
 
         Task.countDocuments({
           ...taskQuery,
           priority: "CRITICAL",
-        }),
+        }).exec(),
       ]);
 
     /**
@@ -150,7 +163,8 @@ export class DashboardRepository {
         dueDate: 1,
         createdAt: -1,
       })
-      .limit(10);
+      .limit(10)
+      .exec();
 
     /**
      * Recent activity
@@ -164,7 +178,8 @@ export class DashboardRepository {
       .sort({
         createdAt: -1,
       })
-      .limit(10);
+      .limit(10)
+      .exec();
 
     /**
      * Unread notifications
@@ -173,7 +188,7 @@ export class DashboardRepository {
       recipient: userId,
       isRead: false,
       isDeleted: false,
-    });
+    }).exec();
 
     return {
       tasks: {
