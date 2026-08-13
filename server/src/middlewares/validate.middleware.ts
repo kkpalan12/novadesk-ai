@@ -5,7 +5,8 @@ import { BadRequestError } from "../common/errors/BadRequestError";
 import { logger } from "../common/logger";
 
 export const validate =
-  (schema: ZodSchema) => (req: Request, _res: Response, next: NextFunction) => {
+  (schema: ZodSchema) =>
+  (req: Request, _res: Response, next: NextFunction): void => {
     const payload = {
       body: req.body,
       params: req.params,
@@ -30,13 +31,15 @@ export const validate =
           "Request validation failed",
         );
 
-        return next(
+        next(
           new BadRequestError(
             error.issues
               .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
               .join(", "),
           ),
         );
+
+        return;
       }
 
       next(error);
