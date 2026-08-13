@@ -25,6 +25,7 @@ export const loginSchema = z.object({
     password: z.string().min(1),
   }),
 });
+
 export const forgotPasswordSchema = z.object({
   body: z.object({
     email: z.string().email("Invalid email").toLowerCase(),
@@ -42,5 +43,23 @@ export const resetPasswordSchema = z.object({
         /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])/,
         "Password must contain uppercase, lowercase, number and special character",
       ),
+  }),
+});
+
+/**
+ * Refresh Token
+ */
+export const refreshTokenSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1, "Refresh token is required"),
+  }),
+});
+
+/**
+ * Logout
+ */
+export const logoutSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1, "Refresh token is required"),
   }),
 });

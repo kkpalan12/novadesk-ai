@@ -10,6 +10,8 @@ import {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  refreshTokenSchema,
+  logoutSchema,
 } from "../validators/auth.validator";
 
 /**
@@ -123,7 +125,13 @@ router.post(
 
 router.get("/me", authenticate, authController.profile);
 
+/**
+ * Refresh Access Token
+ */
 router.post("/refresh", authRateLimiter, authController.refreshToken);
 
+/**
+ * Logout
+ */
 router.post("/logout", authController.logout);
 export default router;

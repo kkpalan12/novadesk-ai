@@ -4,11 +4,14 @@ import { ProjectController } from "../controllers/project.controller";
 
 import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
+
 import {
   createProjectSchema,
   updateProjectSchema,
   projectQuerySchema,
+  projectIdSchema,
 } from "../validators/project.validator";
+
 const router = Router();
 
 const projectController = new ProjectController();
@@ -32,10 +35,16 @@ router.get(
   validate(projectQuerySchema),
   projectController.getAllProjects,
 );
+
 /**
  * Get Project By Id
  */
-router.get("/:id", authenticate, projectController.getProjectById);
+router.get(
+  "/:id",
+  authenticate,
+  validate(projectIdSchema),
+  projectController.getProjectById,
+);
 
 /**
  * Update Project
@@ -50,6 +59,11 @@ router.put(
 /**
  * Delete Project
  */
-router.delete("/:id", authenticate, projectController.deleteProject);
+router.delete(
+  "/:id",
+  authenticate,
+  validate(projectIdSchema),
+  projectController.deleteProject,
+);
 
 export default router;

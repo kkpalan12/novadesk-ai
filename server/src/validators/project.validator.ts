@@ -29,6 +29,17 @@ export const updateProjectSchema = z.object({
   }),
 });
 
+/**
+ * Project ID
+ *
+ * Used by GET /:id and DELETE /:id
+ */
+export const projectIdSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+});
+
 export const projectQuerySchema = z.object({
   query: paginationSchema.extend({
     search: z.string().trim().max(100, "Search query is too long").optional(),
