@@ -1,10 +1,12 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { SocketService } from '../../core/services/socket.service';
+import { Activity } from '../../core/models/activity.model';
 
 import {
   DashboardData,
@@ -21,7 +23,7 @@ import {
 
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
 
   private readonly dashboardService = inject(DashboardService);
@@ -29,6 +31,7 @@ export class DashboardComponent implements OnInit {
   private readonly router = inject(Router);
 
   private readonly route = inject(ActivatedRoute);
+  private readonly socketService = inject(SocketService);
 
   // =========================================
   // User
@@ -57,9 +60,70 @@ export class DashboardComponent implements OnInit {
 
     if (workspaceId) {
       this.workspaceId.set(workspaceId);
+
+      this.initializeRealtime(workspaceId);
     }
 
     this.loadDashboard();
+  }
+  // =========================================
+  // REALTIME
+  // =========================================
+
+  private initializeRealtime(workspaceId: string): void {
+    this.socketService.connect();
+
+    this.socketService.joinWorkspace(workspaceId);
+
+    this.socketService.onActivityCreated((activity: Activity) => {
+      if (!activity?._id) {
+        return;
+      }
+
+      console.log('📝 REAL-TIME DASHBOARD ACTIVITY:', activity);
+
+      // =========================================
+      // TASK ACTIVITY
+      // =========================================
+
+      if (
+        activity.action === 'TASK_CREATED' ||
+        activity.action === 'TASK_UPDATED' ||
+        activity.action === 'TASK_STATUS_CHANGED' ||
+        activity.action === 'TASK_DELETED'
+      ) {
+        this.loadDashboard();
+
+        return;
+      }
+
+      // =========================================
+      // OTHER ACTIVITY
+      // =========================================
+
+      this.dashboard.update((current) => {
+        if (!current) {
+          return current;
+        }
+
+        const exists = current.recentActivities.some(
+          (item: any) => item?._id === activity._id,
+        );
+
+        if (exists) {
+          return current;
+        }
+
+        return {
+          ...current,
+
+          recentActivities: [activity, ...current.recentActivities].slice(
+            0,
+            10,
+          ),
+        };
+      });
+    });
   }
 
   // =========================================
@@ -126,5 +190,16 @@ export class DashboardComponent implements OnInit {
     this.authService.logout();
 
     this.router.navigate(['/login']);
+  }
+  ngOnDestroy(): void {
+    const workspaceId = this.workspaceId();
+
+    if (workspaceId) {
+      this.socketService.leaveWorkspace(workspaceId);
+    }
+
+    this.socketService.removeActivityListeners();
+
+    console.log('🧹 Dashboard realtime listeners removed');
   }
 }

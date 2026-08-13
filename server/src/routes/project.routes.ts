@@ -9,7 +9,6 @@ import {
   createProjectSchema,
   updateProjectSchema,
 } from "../validators/project.validator";
-console.log("✅ project.routes.ts loaded");
 const router = Router();
 
 const projectController = new ProjectController();

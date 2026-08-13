@@ -16,6 +16,7 @@ export class SocketService {
    * Projects requested before socket connection completes.
    */
   private readonly pendingProjectRooms = new Set<string>();
+  private readonly pendingWorkspaceRooms = new Set<string>();
 
   // =========================================
   // CONNECT
@@ -88,8 +89,17 @@ export class SocketService {
       });
 
       this.pendingProjectRooms.clear();
-    });
 
+      // =========================================
+      // JOIN PENDING WORKSPACE ROOMS
+      // =========================================
+
+      this.pendingWorkspaceRooms.forEach((workspaceId) => {
+        this.joinWorkspaceRoom(workspaceId);
+      });
+
+      this.pendingWorkspaceRooms.clear();
+    });
     // =========================================
     // CONNECTION ERROR
     // =========================================
@@ -208,9 +218,10 @@ export class SocketService {
   // =========================================
   // DISCONNECT
   // =========================================
-
   disconnect(): void {
     this.pendingProjectRooms.clear();
+
+    this.pendingWorkspaceRooms.clear();
 
     this.socket?.disconnect();
 
@@ -309,9 +320,24 @@ export class SocketService {
       return;
     }
 
+    // Socket not connected yet.
+    // Queue workspace room and join automatically
+    // after connection completes.
     if (!this.socket?.connected) {
-      console.warn('⚠️ Cannot join workspace before socket connection');
+      console.log(
+        '⏳ Socket not connected yet. Queuing workspace room:',
+        workspaceId,
+      );
 
+      this.pendingWorkspaceRooms.add(workspaceId);
+
+      return;
+    }
+
+    this.joinWorkspaceRoom(workspaceId);
+  }
+  private joinWorkspaceRoom(workspaceId: string): void {
+    if (!this.socket?.connected) {
       return;
     }
 
@@ -319,13 +345,20 @@ export class SocketService {
 
     this.socket.emit('join-workspace', workspaceId);
   }
-
   leaveWorkspace(workspaceId: string): void {
     if (!workspaceId) {
       return;
     }
 
-    this.socket?.emit('leave-workspace', workspaceId);
+    this.pendingWorkspaceRooms.delete(workspaceId);
+
+    if (!this.socket?.connected) {
+      return;
+    }
+
+    console.log('🏢 Leaving workspace room:', workspaceId);
+
+    this.socket.emit('leave-workspace', workspaceId);
   }
   removeProjectListeners(): void {
     this.socket?.off('project:created');

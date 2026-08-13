@@ -41,7 +41,7 @@ router.get(
 router.patch(
   "/projects/:projectId/tasks/:id/status",
   authenticate,
-  validate(updateTaskSchema),
+  validate(updateStatusSchema),
   taskController.updateTaskStatus,
 );
 

@@ -228,4 +228,22 @@ export class SocketService {
       console.warn("Socket.IO unavailable. Skipping activity creation.", error);
     }
   }
+  // =========================================
+  // WORKSPACE ACTIVITY
+  // =========================================
+
+  sendWorkspaceActivityCreated(workspaceId: string, activity: any): void {
+    try {
+      const io = getIO();
+
+      console.log("📝 Sending workspace activity:", `workspace:${workspaceId}`);
+
+      io.to(`workspace:${workspaceId}`).emit("activity:created", activity);
+    } catch (error) {
+      console.warn(
+        "Socket.IO unavailable. Skipping workspace activity.",
+        error,
+      );
+    }
+  }
 }

@@ -18,11 +18,17 @@ export class AttachmentController {
 
     const attachment = await this.attachmentService.uploadAttachment({
       task: req.params.taskId as string,
+
       uploadedBy: req.user!.userId,
+
       originalName: req.file.originalname,
+
       fileName: req.file.filename,
+
       mimeType: req.file.mimetype,
+
       size: req.file.size,
+
       path: `tasks/${req.file.filename}`,
     });
 
@@ -39,6 +45,7 @@ export class AttachmentController {
   getAttachments = asyncHandler(async (req: Request, res: Response) => {
     const attachments = await this.attachmentService.getAttachments(
       req.params.taskId as string,
+      req.user!.userId,
     );
 
     return res
@@ -49,10 +56,29 @@ export class AttachmentController {
   });
 
   /**
+   * Get Attachment By Id
+   */
+  getAttachment = asyncHandler(async (req: Request, res: Response) => {
+    const attachment = await this.attachmentService.getAttachment(
+      req.params.id as string,
+      req.user!.userId,
+    );
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(true, "Attachment fetched successfully", attachment),
+      );
+  });
+
+  /**
    * Delete Attachment
    */
   deleteAttachment = asyncHandler(async (req: Request, res: Response) => {
-    await this.attachmentService.deleteAttachment(req.params.id as string);
+    await this.attachmentService.deleteAttachment(
+      req.params.id as string,
+      req.user!.userId,
+    );
 
     return res
       .status(200)

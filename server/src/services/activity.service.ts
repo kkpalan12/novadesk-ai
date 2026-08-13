@@ -30,7 +30,23 @@ export class ActivityService {
 
     const activity = await this.repository.create(entity);
 
+    // =========================================
+    // PROJECT ACTIVITY
+    // =========================================
+
     this.socketService.sendActivityCreated(dto.project, activity);
+
+    // =========================================
+    // WORKSPACE ACTIVITY
+    // =========================================
+
+    const project = await this.projectRepository.findById(dto.project);
+
+    if (project) {
+      const workspaceId = this.getWorkspaceId(project);
+
+      this.socketService.sendWorkspaceActivityCreated(workspaceId, activity);
+    }
 
     return activity;
   }

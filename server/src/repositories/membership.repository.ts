@@ -36,9 +36,20 @@ export class MembershipRepository {
    * Get Workspace Members
    */
   async findByWorkspace(workspaceId: string) {
+    const workspace = await Workspace.findById(workspaceId)
+      .select("owner")
+      .lean();
+
     const memberships = await Membership.find({
       workspace: workspaceId,
       status: "ACTIVE",
+      ...(workspace?.owner
+        ? {
+            user: {
+              $ne: workspace.owner,
+            },
+          }
+        : {}),
     })
       .populate("user", "firstName lastName email")
       .sort({
