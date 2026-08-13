@@ -51,8 +51,11 @@ export class WorkspaceService {
   async getAllWorkspaces(query: any, userId: string) {
     return this.workspaceRepository.findAll({
       page: Number(query.page) || DEFAULT_PAGE,
+
       limit: Number(query.limit) || DEFAULT_LIMIT,
+
       search: query.search,
+
       userId,
     });
   }

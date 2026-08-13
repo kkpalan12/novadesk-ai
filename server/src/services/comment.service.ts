@@ -20,12 +20,14 @@ import { MembershipRole } from "../interfaces/membership.interface";
 
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
 import { ACTIVITY_ACTIONS } from "../common/constants/activity.constants";
-import { SocketService } from "./../socket/socket.service";
+
+import { SocketService } from "../socket/socket.service";
 
 export class CommentService {
   private readonly repository = new CommentRepository();
 
   private readonly notificationService = new NotificationService();
+
   private readonly activityService = new ActivityService();
 
   private readonly taskRepository = new TaskRepository();
@@ -37,25 +39,17 @@ export class CommentService {
   private readonly membershipRepository = new MembershipRepository();
 
   private readonly userRepository = new UserRepository();
+
   private readonly socketService = new SocketService();
 
   /**
    * Create Comment
    */
-  /**
-   * Create Comment
-   */
   async createComment(dto: CreateCommentDto) {
-    /**
-     * Verify task access before creating comment.
-     */
     const task = await this.getAuthorizedTask(dto.task, dto.createdBy);
 
     const comment = await this.repository.create(dto);
 
-    /**
-     * Record project activity.
-     */
     await this.activityService.createActivity({
       project: this.getObjectId(task.project),
       user: dto.createdBy,
@@ -105,9 +99,6 @@ export class CommentService {
       (item: any) => String(item._id) === String(comment._id),
     );
 
-    /**
-     * Realtime comment event.
-     */
     await this.socketService.sendCommentCreated(
       this.getObjectId(task.project),
       task._id.toString(),
@@ -116,6 +107,7 @@ export class CommentService {
 
     return populatedComment ?? comment;
   }
+
   /**
    * Get Comments
    */
@@ -149,6 +141,10 @@ export class CommentService {
       isEdited: true,
     });
 
+    if (!updatedComment) {
+      throw new NotFoundError("Comment not found");
+    }
+
     await this.activityService.createActivity({
       project: this.getObjectId(task.project),
       user: userId,
@@ -161,9 +157,6 @@ export class CommentService {
       },
     });
 
-    /**
-     * Realtime update.
-     */
     await this.socketService.sendCommentUpdated(
       this.getObjectId(task.project),
       task._id.toString(),
@@ -172,6 +165,7 @@ export class CommentService {
 
     return updatedComment;
   }
+
   /**
    * Delete Comment
    */
@@ -193,6 +187,10 @@ export class CommentService {
 
     const deletedComment = await this.repository.softDelete(id);
 
+    if (!deletedComment) {
+      throw new NotFoundError("Comment not found");
+    }
+
     await this.activityService.createActivity({
       project: this.getObjectId(task.project),
       user: userId,
@@ -205,9 +203,6 @@ export class CommentService {
       },
     });
 
-    /**
-     * Realtime delete.
-     */
     await this.socketService.sendCommentDeleted(
       this.getObjectId(task.project),
       task._id.toString(),
@@ -216,22 +211,17 @@ export class CommentService {
 
     return deletedComment;
   }
+
   /**
    * Get Task and verify workspace access.
    */
   private async getAuthorizedTask(taskId: string, userId: string) {
-    /**
-     * 1. Task
-     */
     const task = await this.taskRepository.findById(taskId);
 
     if (!task) {
       throw new NotFoundError("Task not found");
     }
 
-    /**
-     * 2. Project
-     */
     const projectId = this.getObjectId(task.project);
 
     const project = await this.projectRepository.findById(projectId);
@@ -240,23 +230,14 @@ export class CommentService {
       throw new NotFoundError("Task not found");
     }
 
-    /**
-     * 3. Workspace
-     */
     const workspaceId = this.getObjectId(project.workspace);
 
-    /**
-     * 4. Workspace owner
-     */
     const isOwner = await this.workspaceRepository.isOwner(workspaceId, userId);
 
     if (isOwner) {
       return task;
     }
 
-    /**
-     * 5. Workspace membership
-     */
     const membership = await this.membershipRepository.findByWorkspaceAndUser(
       workspaceId,
       userId,
@@ -266,10 +247,6 @@ export class CommentService {
       throw new NotFoundError("Task not found");
     }
 
-    /**
-     * Active ADMIN / MEMBER can access
-     * task comments.
-     */
     if (
       membership.role !== MembershipRole.ADMIN &&
       membership.role !== MembershipRole.MEMBER

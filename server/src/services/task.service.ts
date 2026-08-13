@@ -57,32 +57,11 @@ export class TaskService {
       throw new NotFoundError("Project not found");
     }
 
-    // =========================================
-    // VALIDATE ASSIGNEE
-    // =========================================
-
+    // Validate assignee when provided
     if (dto.assignedTo) {
-      const workspaceId =
-        access.project.workspace &&
-        typeof access.project.workspace === "object" &&
-        "_id" in access.project.workspace
-          ? String((access.project.workspace as any)._id)
-          : String(access.project.workspace);
+      const workspaceId = this.getWorkspaceId(access.project);
 
-      const assigneeMembership =
-        await this.membershipRepository.findActiveMembership(
-          workspaceId,
-          dto.assignedTo,
-        );
-
-      const isWorkspaceOwner = await this.workspaceRepository.isOwner(
-        workspaceId,
-        dto.assignedTo,
-      );
-
-      if (!assigneeMembership && !isWorkspaceOwner) {
-        throw new NotFoundError("User is not a member of this workspace");
-      }
+      await this.validateWorkspaceAssignee(workspaceId, dto.assignedTo);
     }
 
     const entity = TaskMapper.toEntity(dto, createdBy);
@@ -91,17 +70,11 @@ export class TaskService {
 
     await this.activityService.createActivity({
       project: projectId,
-
       user: createdBy,
-
       action: ACTIVITY_ACTIONS.TASK_CREATED,
-
       entityType: ENTITY_TYPES.TASK,
-
       entityId: task._id.toString(),
-
       description: `Created task "${task.title}"`,
-
       metadata: {
         priority: task.priority,
         status: task.status,
@@ -126,17 +99,11 @@ export class TaskService {
 
     return this.taskRepository.findAll({
       page: Number(query.page) || DEFAULT_PAGE,
-
       limit: Number(query.limit) || DEFAULT_LIMIT,
-
       project: query.project,
-
       search: query.search,
-
       status: query.status,
-
       priority: query.priority,
-
       sort: query.sort,
     });
   }
@@ -176,10 +143,7 @@ export class TaskService {
     // OWNER / ADMIN
     // =========================================
 
-    if (
-      access.role === MembershipRole.OWNER ||
-      access.role === MembershipRole.ADMIN
-    ) {
+    if (this.canManageTasks(access.role)) {
       const task = await this.taskRepository.update(id, dto);
 
       if (!task) {
@@ -188,23 +152,16 @@ export class TaskService {
 
       await this.taskHistoryService.createHistory({
         task: task._id.toString(),
-
         action: "UPDATED",
-
         performedBy: userId,
       });
 
       await this.activityService.createActivity({
         project: this.getProjectId(task),
-
         user: userId,
-
         action: ACTIVITY_ACTIONS.TASK_UPDATED,
-
         entityType: ENTITY_TYPES.TASK,
-
         entityId: task._id.toString(),
-
         description: `Updated task "${task.title}"`,
       });
 
@@ -222,13 +179,12 @@ export class TaskService {
         ? this.getUserId(existingTask.assignedTo)
         : null;
 
-      // MEMBER can only update
-      // their own assigned task.
+      // Member can only update their own task
       if (assignedTo !== userId) {
         throw new NotFoundError("Task not found");
       }
 
-      // MEMBER can only change status.
+      // Member can only change status
       if (!dto.status) {
         throw new NotFoundError("Task not found");
       }
@@ -245,43 +201,29 @@ export class TaskService {
 
       await this.taskHistoryService.createHistory({
         task: task._id.toString(),
-
         action: "STATUS_CHANGED",
-
         oldValue: existingTask.status,
-
         newValue: task.status,
-
         performedBy: userId,
       });
 
       if (task.assignedTo && this.getUserId(task.assignedTo) !== userId) {
         await this.notificationService.notifyTaskStatusChanged({
           recipient: this.getUserId(task.assignedTo),
-
           sender: userId,
-
           taskId: task._id.toString(),
-
           taskTitle: task.title,
-
           status: task.status,
         });
       }
 
       await this.activityService.createActivity({
         project: this.getProjectId(task),
-
         user: userId,
-
         action: ACTIVITY_ACTIONS.TASK_STATUS_CHANGED,
-
         entityType: ENTITY_TYPES.TASK,
-
         entityId: task._id.toString(),
-
         description: `Changed "${task.title}" status to ${task.status}`,
-
         metadata: {
           status: task.status,
         },
@@ -322,23 +264,16 @@ export class TaskService {
 
     await this.taskHistoryService.createHistory({
       task: id,
-
       action: "DELETED",
-
       performedBy: userId,
     });
 
     await this.activityService.createActivity({
       project: this.getProjectId(task),
-
       user: userId,
-
       action: ACTIVITY_ACTIONS.TASK_DELETED,
-
       entityType: ENTITY_TYPES.TASK,
-
       entityId: task._id.toString(),
-
       description: `Deleted task "${task.title}"`,
     });
 
@@ -385,41 +320,28 @@ export class TaskService {
 
     await this.taskHistoryService.createHistory({
       task: id,
-
       action: "STATUS_CHANGED",
-
       newValue: status,
-
       performedBy: userId,
     });
 
     if (task.assignedTo && this.getUserId(task.assignedTo) !== userId) {
       await this.notificationService.notifyTaskStatusChanged({
         recipient: this.getUserId(task.assignedTo),
-
         sender: userId,
-
         taskId: task._id.toString(),
-
         taskTitle: task.title,
-
         status,
       });
     }
 
     await this.activityService.createActivity({
       project: this.getProjectId(task),
-
       user: userId,
-
       action: ACTIVITY_ACTIONS.TASK_STATUS_CHANGED,
-
       entityType: ENTITY_TYPES.TASK,
-
       entityId: task._id.toString(),
-
       description: `Changed "${task.title}" status to ${status}`,
-
       metadata: {
         status,
       },
@@ -449,39 +371,9 @@ export class TaskService {
       throw new NotFoundError("Task not found");
     }
 
-    // =========================================
-    // Resolve Workspace
-    // =========================================
+    const workspaceId = this.getWorkspaceId(access.project);
 
-    const workspaceId =
-      access.project.workspace &&
-      typeof access.project.workspace === "object" &&
-      "_id" in access.project.workspace
-        ? String((access.project.workspace as any)._id)
-        : String(access.project.workspace);
-
-    // =========================================
-    // Validate Assignee
-    // =========================================
-
-    const assigneeMembership =
-      await this.membershipRepository.findActiveMembership(
-        workspaceId,
-        assignedTo,
-      );
-
-    const isWorkspaceOwner = await this.workspaceRepository.isOwner(
-      workspaceId,
-      assignedTo,
-    );
-
-    if (!assigneeMembership && !isWorkspaceOwner) {
-      throw new NotFoundError("User is not a member of this workspace");
-    }
-
-    // =========================================
-    // Assign
-    // =========================================
+    await this.validateWorkspaceAssignee(workspaceId, assignedTo);
 
     const task = await this.taskRepository.assignTask(id, assignedTo);
 
@@ -491,39 +383,27 @@ export class TaskService {
 
     await this.taskHistoryService.createHistory({
       task: id,
-
       action: "ASSIGNED",
-
       newValue: assignedTo,
-
       performedBy: userId,
     });
 
     if (assignedTo !== userId) {
       await this.notificationService.notifyTaskAssigned({
         recipient: assignedTo,
-
         sender: userId,
-
         taskId: task._id.toString(),
-
         taskTitle: task.title,
       });
     }
 
     await this.activityService.createActivity({
       project: this.getProjectId(task),
-
       user: userId,
-
       action: ACTIVITY_ACTIONS.TASK_ASSIGNED,
-
       entityType: ENTITY_TYPES.TASK,
-
       entityId: task._id.toString(),
-
       description: `Assigned "${task.title}"`,
-
       metadata: {
         assignedTo,
       },
@@ -571,6 +451,41 @@ export class TaskService {
   }
 
   // =========================================
+  // GET WORKSPACE ID
+  // =========================================
+
+  private getWorkspaceId(project: any): string {
+    if (!project?.workspace) {
+      throw new NotFoundError("Workspace not found");
+    }
+
+    if (typeof project.workspace === "object" && "_id" in project.workspace) {
+      return String((project.workspace as any)._id);
+    }
+
+    return String(project.workspace);
+  }
+
+  // =========================================
+  // VALIDATE WORKSPACE ASSIGNEE
+  // =========================================
+
+  private async validateWorkspaceAssignee(
+    workspaceId: string,
+    userId: string,
+  ): Promise<void> {
+    const [membership, isOwner] = await Promise.all([
+      this.membershipRepository.findActiveMembership(workspaceId, userId),
+
+      this.workspaceRepository.isOwner(workspaceId, userId),
+    ]);
+
+    if (!membership && !isOwner) {
+      throw new NotFoundError("User is not a member of this workspace");
+    }
+  }
+
+  // =========================================
   // PROJECT ACCESS
   // =========================================
 
@@ -581,20 +496,7 @@ export class TaskService {
       throw new NotFoundError("Project not found");
     }
 
-    // =========================================
-    // Resolve Workspace
-    // =========================================
-
-    const workspaceId =
-      project.workspace &&
-      typeof project.workspace === "object" &&
-      "_id" in project.workspace
-        ? String((project.workspace as any)._id)
-        : String(project.workspace);
-
-    // =========================================
-    // Workspace Owner
-    // =========================================
+    const workspaceId = this.getWorkspaceId(project);
 
     const isWorkspaceOwner = await this.workspaceRepository.isOwner(
       workspaceId,
@@ -604,35 +506,21 @@ export class TaskService {
     if (isWorkspaceOwner) {
       return {
         project,
-
         role: MembershipRole.OWNER,
       };
     }
-
-    // =========================================
-    // Membership
-    // =========================================
 
     const membership = await this.membershipRepository.findByWorkspaceAndUser(
       workspaceId,
       userId,
     );
 
-    if (!membership) {
-      throw new NotFoundError("Project not found");
-    }
-
-    // =========================================
-    // Active Membership
-    // =========================================
-
-    if (membership.status !== "ACTIVE") {
+    if (!membership || membership.status !== "ACTIVE") {
       throw new NotFoundError("Project not found");
     }
 
     return {
       project,
-
       role: membership.role,
     };
   }

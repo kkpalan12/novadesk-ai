@@ -43,63 +43,37 @@ export class TaskHistoryService {
    * in the Task's workspace.
    */
   async getTaskHistory(taskId: string, userId: string) {
-    /**
-     * 1. Find Task
-     */
     const task = await this.taskRepository.findById(taskId);
 
     if (!task) {
       throw new NotFoundError("Task not found");
     }
 
-    /**
-     * 2. Resolve Project ID
-     */
     const projectId = this.getProjectId(task);
 
-    /**
-     * 3. Find Project
-     */
     const project = await this.projectRepository.findById(projectId);
 
     if (!project) {
       throw new NotFoundError("Task not found");
     }
 
-    /**
-     * 4. Resolve Workspace ID
-     */
     const workspaceId = this.getWorkspaceId(project);
 
-    /**
-     * 5. Workspace Owner
-     */
     const isOwner = await this.workspaceRepository.isOwner(workspaceId, userId);
 
     if (isOwner) {
       return this.taskHistoryRepository.getTaskHistory(taskId);
     }
 
-    /**
-     * 6. Workspace Membership
-     */
     const membership = await this.membershipRepository.findByWorkspaceAndUser(
       workspaceId,
       userId,
     );
 
-    /**
-     * 7. Membership validation
-     */
     if (!membership || membership.status !== "ACTIVE") {
       throw new NotFoundError("Task not found");
     }
 
-    /**
-     * OWNER is already handled above.
-     *
-     * ADMIN and MEMBER can read history.
-     */
     if (
       membership.role !== MembershipRole.ADMIN &&
       membership.role !== MembershipRole.MEMBER

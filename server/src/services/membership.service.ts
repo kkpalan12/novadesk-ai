@@ -25,10 +25,6 @@ export class MembershipService {
    * synchronized.
    */
   async createMembership(dto: CreateMembershipDto, actorUserId: string) {
-    // =========================================
-    // Verify Workspace Owner
-    // =========================================
-
     const isOwner = await this.workspaceRepository.isOwner(
       dto.workspace,
       actorUserId,
@@ -37,10 +33,6 @@ export class MembershipService {
     if (!isOwner) {
       throw new NotFoundError("Workspace not found");
     }
-
-    // =========================================
-    // Check Existing Membership
-    // =========================================
 
     const existing = await this.membershipRepository.findByWorkspaceAndUser(
       dto.workspace,
@@ -51,17 +43,9 @@ export class MembershipService {
       throw new ConflictError("User is already a member of this workspace");
     }
 
-    // =========================================
-    // Create Membership
-    // =========================================
-
     const entity = MembershipMapper.toEntity(dto);
 
     const membership = await this.membershipRepository.create(entity);
-
-    // =========================================
-    // Sync Workspace.members[]
-    // =========================================
 
     const workspace = await this.workspaceRepository.addMember(
       dto.workspace,
@@ -69,11 +53,6 @@ export class MembershipService {
     );
 
     if (!workspace) {
-      // Membership was created but workspace
-      // could not be updated.
-      //
-      // This should normally never happen
-      // after the owner validation above.
       throw new NotFoundError("Workspace not found");
     }
 
@@ -169,10 +148,6 @@ export class MembershipService {
     if (!removed) {
       throw new NotFoundError("Membership not found");
     }
-
-    // =========================================
-    // Sync Workspace.members[]
-    // =========================================
 
     await this.workspaceRepository.removeMember(workspaceId, userId);
 

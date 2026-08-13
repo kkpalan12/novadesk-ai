@@ -13,7 +13,9 @@ import { ActivityService } from "./activity.service";
 
 import { ACTIVITY_ACTIONS } from "../common/constants/activity.constants";
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
+
 import { env } from "../config/env";
+
 import fs from "fs/promises";
 import path from "path";
 
@@ -46,22 +48,13 @@ export class AttachmentService {
 
     const attachment = await this.attachmentRepository.create(entity);
 
-    /**
-     * Record project activity.
-     */
     await this.activityService.createActivity({
       project: this.getProjectId(task),
-
       user: dto.uploadedBy,
-
       action: ACTIVITY_ACTIONS.ATTACHMENT_UPLOADED,
-
       entityType: ENTITY_TYPES.TASK,
-
       entityId: task._id.toString(),
-
       description: `Uploaded attachment "${dto.originalName}" to "${task.title}"`,
-
       metadata: {
         attachmentId: attachment._id.toString(),
       },
@@ -133,22 +126,14 @@ export class AttachmentService {
     await this.attachmentRepository.delete(id);
 
     await this.deletePhysicalFile(attachment.path);
-    /**
-     * Record project activity.
-     */
+
     await this.activityService.createActivity({
       project: this.getProjectId(task),
-
       user: this.getObjectId(attachment.uploadedBy),
-
       action: ACTIVITY_ACTIONS.ATTACHMENT_DELETED,
-
       entityType: ENTITY_TYPES.TASK,
-
       entityId: task._id.toString(),
-
       description: `Deleted attachment "${attachment.originalName}" from "${task.title}"`,
-
       metadata: {
         attachmentId: id,
       },
@@ -174,18 +159,12 @@ export class AttachmentService {
 
     const workspaceId = this.getWorkspaceId(project);
 
-    /**
-     * Workspace Owner
-     */
     const isOwner = await this.workspaceRepository.isOwner(workspaceId, userId);
 
     if (isOwner) {
       return;
     }
 
-    /**
-     * Workspace Membership
-     */
     const membership = await this.membershipRepository.findByWorkspaceAndUser(
       workspaceId,
       userId,
@@ -247,6 +226,10 @@ export class AttachmentService {
 
     return String(value);
   }
+
+  /**
+   * Delete physical uploaded file.
+   */
   private async deletePhysicalFile(filePath: string): Promise<void> {
     const absolutePath = path.join(process.cwd(), "uploads", filePath);
 

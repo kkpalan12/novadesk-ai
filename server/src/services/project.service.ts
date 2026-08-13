@@ -5,11 +5,14 @@ import { CreateProjectDto } from "../dto/project/create-project.dto";
 import { UpdateProjectDto } from "../dto/project/update-project.dto";
 
 import { NotFoundError } from "../common/errors/NotFoundError";
+
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
 
 import { WorkspaceRepository } from "../repositories/workspace.repository";
 import { MembershipRepository } from "../repositories/membership.repository";
+
 import { MembershipRole } from "../interfaces/membership.interface";
+
 import { SocketService } from "../socket/socket.service";
 
 export class ProjectService {
@@ -18,8 +21,12 @@ export class ProjectService {
   private readonly workspaceRepository = new WorkspaceRepository();
 
   private readonly membershipRepository = new MembershipRepository();
+
   private readonly socketService = new SocketService();
 
+  /**
+   * Create Project
+   */
   async createProject(dto: CreateProjectDto, userId: string) {
     const isOwner = await this.workspaceRepository.isOwner(
       dto.workspace,
@@ -46,6 +53,9 @@ export class ProjectService {
     return project;
   }
 
+  /**
+   * Get All Projects
+   */
   async getAllProjects(query: any, userId: string) {
     const workspaceIds =
       await this.workspaceRepository.findAccessibleWorkspaceIds(userId);
@@ -56,13 +66,18 @@ export class ProjectService {
       limit: Number(query.limit) || DEFAULT_LIMIT,
 
       search: query.search,
+
       workspace: query.workspace,
+
       status: query.status,
 
       workspaceIds,
     });
   }
 
+  /**
+   * Get Project By ID
+   */
   async getProjectById(id: string, userId: string) {
     const workspaceIds =
       await this.workspaceRepository.findAccessibleWorkspaceIds(userId);
@@ -76,6 +91,9 @@ export class ProjectService {
     return project;
   }
 
+  /**
+   * Update Project
+   */
   async updateProject(id: string, dto: UpdateProjectDto, userId: string) {
     const project = await this.getProjectById(id, userId);
 
@@ -97,18 +115,20 @@ export class ProjectService {
       }
     }
 
-    const workspaceIds = [workspaceId];
-
-    const updated = await this.projectRepository.update(id, dto, workspaceIds);
+    const updated = await this.projectRepository.update(id, dto, [workspaceId]);
 
     if (!updated) {
       throw new NotFoundError("Project not found");
     }
+
     this.socketService.sendProjectUpdated(workspaceId, updated);
 
     return updated;
   }
 
+  /**
+   * Delete Project
+   */
   async deleteProject(id: string, userId: string) {
     const project = await this.getProjectById(id, userId);
 

@@ -18,6 +18,7 @@ export class ActivityService {
   private readonly workspaceRepository = new WorkspaceRepository();
 
   private readonly membershipRepository = new MembershipRepository();
+
   private readonly socketService = new SocketService();
 
   /**
@@ -30,15 +31,7 @@ export class ActivityService {
 
     const activity = await this.repository.create(entity);
 
-    // =========================================
-    // PROJECT ACTIVITY
-    // =========================================
-
     this.socketService.sendActivityCreated(dto.project, activity);
-
-    // =========================================
-    // WORKSPACE ACTIVITY
-    // =========================================
 
     const project = await this.projectRepository.findById(dto.project);
 
@@ -60,11 +53,6 @@ export class ActivityService {
     page = 1,
     limit = 20,
   ) {
-    /*
-     * userId is required for HTTP access.
-     * Keeping it optional prevents breaking
-     * existing internal callers during migration.
-     */
     if (userId) {
       await this.verifyProjectAccess(projectId, userId);
     }
@@ -93,15 +81,27 @@ export class ActivityService {
 
   /**
    * Delete Activity
+   *
+   * Caller must have access to the activity's project.
    */
-  async deleteActivity(id: string) {
-    const activity = await this.repository.delete(id);
+  async deleteActivity(id: string, userId: string) {
+    const activity = await this.repository.findById(id);
 
     if (!activity) {
       throw new NotFoundError("Activity not found");
     }
 
-    return activity;
+    const projectId = this.getProjectId(activity);
+
+    await this.verifyProjectAccess(projectId, userId);
+
+    const deleted = await this.repository.delete(id);
+
+    if (!deleted) {
+      throw new NotFoundError("Activity not found");
+    }
+
+    return deleted;
   }
 
   /**
