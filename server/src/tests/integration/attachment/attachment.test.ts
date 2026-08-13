@@ -18,6 +18,12 @@ describe("Attachment API", () => {
 
   const fixturePath = path.join(__dirname, "attachment-test.png");
 
+  const invalidFixturePath = path.join(__dirname, "attachment-test.txt");
+
+  // =========================================================
+  // FIXTURES
+  // =========================================================
+
   beforeAll(() => {
     const pngBuffer = Buffer.from(
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -25,13 +31,23 @@ describe("Attachment API", () => {
     );
 
     fs.writeFileSync(fixturePath, pngBuffer);
+
+    fs.writeFileSync(invalidFixturePath, "This is an invalid attachment file.");
   });
 
   afterAll(() => {
     if (fs.existsSync(fixturePath)) {
       fs.unlinkSync(fixturePath);
     }
+
+    if (fs.existsSync(invalidFixturePath)) {
+      fs.unlinkSync(invalidFixturePath);
+    }
   });
+
+  // =========================================================
+  // HELPERS
+  // =========================================================
 
   async function createWorkspace(token: string) {
     const response = await RequestHelper.post(
@@ -96,6 +112,25 @@ describe("Attachment API", () => {
     };
   }
 
+  async function createMember(
+    ownerToken: string,
+    workspaceId: string,
+    userId: string,
+  ) {
+    const response = await RequestHelper.post(
+      "/api/v1/memberships",
+      {
+        workspace: workspaceId,
+        user: userId,
+      },
+      ownerToken,
+    );
+
+    expect(response.status).toBe(201);
+
+    return response.body.data;
+  }
+
   async function uploadAttachment(token: string, taskId: string) {
     return request(app)
       .post(uploadEndpoint(taskId))
@@ -103,8 +138,12 @@ describe("Attachment API", () => {
       .attach("file", fixturePath);
   }
 
+  // =========================================================
+  // POST
+  // =========================================================
+
   describe("POST /api/v1/tasks/:taskId/attachments", () => {
-    it("should allow authenticated user to upload attachment", async () => {
+    it("should allow workspace owner to upload attachment", async () => {
       const { owner, task } = await createTestData();
 
       const response = await uploadAttachment(owner.token, task._id);
@@ -129,6 +168,34 @@ describe("Attachment API", () => {
       expect(response.body.data.fileName).toBeDefined();
 
       expect(response.body.data.path).toBeDefined();
+
+      expect(response.body.data.url).toBeDefined();
+    });
+
+    it("should allow active workspace member to upload attachment", async () => {
+      const { owner, workspace, task } = await createTestData();
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      await createMember(owner.token, workspace._id, member.user._id);
+
+      const response = await uploadAttachment(member.token, task._id);
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+
+      expect(response.body.data.uploadedBy).toBe(member.user._id);
+    });
+
+    it("should reject unrelated user from uploading attachment", async () => {
+      const { task } = await createTestData();
+
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const response = await uploadAttachment(unrelated.token, task._id);
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
     });
 
     it("should reject unauthenticated upload", async () => {
@@ -151,6 +218,18 @@ describe("Attachment API", () => {
       expect(response.body.success).toBe(false);
     });
 
+    it("should reject unsupported file type", async () => {
+      const { owner, task } = await createTestData();
+
+      const response = await request(app)
+        .post(uploadEndpoint(task._id))
+        .set("Authorization", `Bearer ${owner.token}`)
+        .attach("file", invalidFixturePath);
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    });
+
     it("should reject upload for non-existing task", async () => {
       const { token } = await AuthHelper.createAuthenticatedUser();
 
@@ -163,8 +242,12 @@ describe("Attachment API", () => {
     });
   });
 
+  // =========================================================
+  // GET
+  // =========================================================
+
   describe("GET /api/v1/tasks/:taskId/attachments", () => {
-    it("should return task attachments", async () => {
+    it("should allow workspace owner to view attachments", async () => {
       const { owner, task } = await createTestData();
 
       const uploadResponse = await uploadAttachment(owner.token, task._id);
@@ -179,11 +262,49 @@ describe("Attachment API", () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
 
-      expect(response.body.data).toBeDefined();
-
       expect(response.body.data).toHaveLength(1);
 
       expect(response.body.data[0]._id).toBe(uploadResponse.body.data._id);
+    });
+
+    it("should allow active workspace member to view attachments", async () => {
+      const { owner, workspace, task } = await createTestData();
+
+      const uploadResponse = await uploadAttachment(owner.token, task._id);
+
+      expect(uploadResponse.status).toBe(201);
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      await createMember(owner.token, workspace._id, member.user._id);
+
+      const response = await RequestHelper.get(
+        uploadEndpoint(task._id),
+        member.token,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      expect(response.body.data).toHaveLength(1);
+    });
+
+    it("should reject unrelated user from viewing attachments", async () => {
+      const { owner, task } = await createTestData();
+
+      const uploadResponse = await uploadAttachment(owner.token, task._id);
+
+      expect(uploadResponse.status).toBe(201);
+
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const response = await RequestHelper.get(
+        uploadEndpoint(task._id),
+        unrelated.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
     });
 
     it("should return empty array when task has no attachments", async () => {
@@ -224,8 +345,12 @@ describe("Attachment API", () => {
     });
   });
 
+  // =========================================================
+  // DELETE
+  // =========================================================
+
   describe("DELETE /api/v1/attachments/:id", () => {
-    it("should allow authenticated user to delete attachment", async () => {
+    it("should allow workspace owner to delete attachment", async () => {
       const { owner, task } = await createTestData();
 
       const uploadResponse = await uploadAttachment(owner.token, task._id);
@@ -252,6 +377,57 @@ describe("Attachment API", () => {
       expect(getResponse.body.data).toHaveLength(0);
     });
 
+    it("should allow active workspace member to delete attachment", async () => {
+      const { owner, workspace, task } = await createTestData();
+
+      const uploadResponse = await uploadAttachment(owner.token, task._id);
+
+      expect(uploadResponse.status).toBe(201);
+
+      const attachment = uploadResponse.body.data;
+
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      await createMember(owner.token, workspace._id, member.user._id);
+
+      const response = await RequestHelper.delete(
+        attachmentEndpoint(attachment._id),
+        member.token,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    it("should reject unrelated user from deleting attachment", async () => {
+      const { owner, task } = await createTestData();
+
+      const uploadResponse = await uploadAttachment(owner.token, task._id);
+
+      expect(uploadResponse.status).toBe(201);
+
+      const attachment = uploadResponse.body.data;
+
+      const unrelated = await AuthHelper.createAuthenticatedUser();
+
+      const response = await RequestHelper.delete(
+        attachmentEndpoint(attachment._id),
+        unrelated.token,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+
+      const getResponse = await RequestHelper.get(
+        uploadEndpoint(task._id),
+        owner.token,
+      );
+
+      expect(getResponse.status).toBe(200);
+
+      expect(getResponse.body.data).toHaveLength(1);
+    });
+
     it("should return 404 when deleting already deleted attachment", async () => {
       const { owner, task } = await createTestData();
 
@@ -274,7 +450,6 @@ describe("Attachment API", () => {
       );
 
       expect(secondDelete.status).toBe(404);
-
       expect(secondDelete.body.success).toBe(false);
     });
 

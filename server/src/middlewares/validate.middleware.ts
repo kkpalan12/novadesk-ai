@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema, ZodError } from "zod";
+
 import { BadRequestError } from "../common/errors/BadRequestError";
+import { logger } from "../common/logger";
 
 export const validate =
   (schema: ZodSchema) => (req: Request, _res: Response, next: NextFunction) => {
@@ -10,23 +12,23 @@ export const validate =
       query: req.query,
     };
 
-    console.log("========== VALIDATION ==========");
-    console.log("URL:", req.originalUrl);
-    console.log("BODY:", req.body);
-    console.log("PARAMS:", req.params);
-    console.log("QUERY:", req.query);
-
     try {
       schema.parse(payload);
 
-      console.log("✅ Validation Passed");
-
       next();
     } catch (error) {
-      console.log("❌ Validation Failed");
-
       if (error instanceof ZodError) {
-        console.log(JSON.stringify(error.issues, null, 2));
+        logger.debug(
+          {
+            method: req.method,
+            url: req.originalUrl,
+            issues: error.issues.map((issue) => ({
+              path: issue.path,
+              message: issue.message,
+            })),
+          },
+          "Request validation failed",
+        );
 
         return next(
           new BadRequestError(

@@ -5,6 +5,7 @@ import { SOCKET_EVENTS } from "./socket.events";
 import { socketAuth, AuthenticatedSocket } from "./socket.middleware";
 
 import { presenceService } from "./presence.service";
+import { logger } from "../common/logger";
 
 let io: Server;
 
@@ -14,7 +15,7 @@ let io: Server;
 export const initializeSocket = (server: http.Server) => {
   io = new Server(server, {
     cors: {
-      origin: "*", // Change in production
+      origin: "*",
       credentials: true,
     },
   });
@@ -32,7 +33,7 @@ export const initializeSocket = (server: http.Server) => {
   io.on(SOCKET_EVENTS.CONNECTION, (socket: AuthenticatedSocket) => {
     const userId = socket.user!.userId;
 
-    console.log(`🔌 Socket connection received: ${socket.id}`);
+    logger.info({ socketId: socket.id, userId }, "Socket connection received");
 
     // =========================================
     // PERSONAL USER ROOM
@@ -42,7 +43,10 @@ export const initializeSocket = (server: http.Server) => {
 
     socket.join(userRoom);
 
-    console.log(`👤 User ${userId} joined room ${userRoom}`);
+    logger.debug(
+      { userId, socketId: socket.id, room: userRoom },
+      "User joined personal room",
+    );
 
     // =========================================
     // PRESENCE - CONNECTED
@@ -50,7 +54,14 @@ export const initializeSocket = (server: http.Server) => {
 
     const becameOnline = presenceService.userConnected(userId, socket.id);
 
-    console.log(`✅ User ${userId} connected (${socket.id})`);
+    logger.debug(
+      {
+        userId,
+        socketId: socket.id,
+        becameOnline,
+      },
+      "User connected",
+    );
 
     // =========================================
     // CURRENT ONLINE USERS
@@ -67,19 +78,15 @@ export const initializeSocket = (server: http.Server) => {
         userId,
       });
 
-      console.log(`🟢 User ${userId} is online`);
+      logger.debug({ userId }, "User is online");
     }
+
     // =========================================
     // REQUEST CURRENT ONLINE USERS
     // =========================================
-    //
-    // Used when Angular component is recreated
-    // after the socket is already connected.
-    //
-    // =========================================
 
     socket.on("get-online-users", () => {
-      console.log(`🟢 Sending online users to ${userId}`);
+      logger.debug({ userId, socketId: socket.id }, "Sending online users");
 
       socket.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
     });
@@ -90,7 +97,10 @@ export const initializeSocket = (server: http.Server) => {
 
     socket.on(SOCKET_EVENTS.JOIN_PROJECT, (projectId: string) => {
       if (!projectId) {
-        console.warn(`⚠️ User ${userId} attempted to join empty project room`);
+        logger.warn(
+          { userId, socketId: socket.id },
+          "User attempted to join empty project room",
+        );
 
         return;
       }
@@ -99,7 +109,14 @@ export const initializeSocket = (server: http.Server) => {
 
       socket.join(roomName);
 
-      console.log(`📁 User ${userId} joined project room ${roomName}`);
+      logger.debug(
+        {
+          userId,
+          socketId: socket.id,
+          room: roomName,
+        },
+        "User joined project room",
+      );
     });
 
     // =========================================
@@ -115,7 +132,14 @@ export const initializeSocket = (server: http.Server) => {
 
       socket.leave(roomName);
 
-      console.log(`📁 User ${userId} left project room ${roomName}`);
+      logger.debug(
+        {
+          userId,
+          socketId: socket.id,
+          room: roomName,
+        },
+        "User left project room",
+      );
     });
 
     // =========================================
@@ -124,8 +148,9 @@ export const initializeSocket = (server: http.Server) => {
 
     socket.on(SOCKET_EVENTS.JOIN_WORKSPACE, (workspaceId: string) => {
       if (!workspaceId) {
-        console.warn(
-          `⚠️ User ${userId} attempted to join empty workspace room`,
+        logger.warn(
+          { userId, socketId: socket.id },
+          "User attempted to join empty workspace room",
         );
 
         return;
@@ -135,7 +160,14 @@ export const initializeSocket = (server: http.Server) => {
 
       socket.join(roomName);
 
-      console.log(`🏢 User ${userId} joined workspace room ${roomName}`);
+      logger.debug(
+        {
+          userId,
+          socketId: socket.id,
+          room: roomName,
+        },
+        "User joined workspace room",
+      );
     });
 
     // =========================================
@@ -151,7 +183,14 @@ export const initializeSocket = (server: http.Server) => {
 
       socket.leave(roomName);
 
-      console.log(`🏢 User ${userId} left workspace room ${roomName}`);
+      logger.debug(
+        {
+          userId,
+          socketId: socket.id,
+          room: roomName,
+        },
+        "User left workspace room",
+      );
     });
 
     // =========================================
@@ -159,7 +198,14 @@ export const initializeSocket = (server: http.Server) => {
     // =========================================
 
     socket.on(SOCKET_EVENTS.DISCONNECT, (reason) => {
-      console.warn(`⚠️ User ${userId} disconnected:`, reason);
+      logger.info(
+        {
+          userId,
+          socketId: socket.id,
+          reason,
+        },
+        "Socket disconnected",
+      );
 
       const becameOffline = presenceService.userDisconnected(userId, socket.id);
 
@@ -168,10 +214,14 @@ export const initializeSocket = (server: http.Server) => {
           userId,
         });
 
-        console.log(`🔴 User ${userId} is offline`);
+        logger.debug({ userId }, "User is offline");
       } else {
-        console.log(
-          `🟡 User ${userId} disconnected socket ${socket.id}, but user is still online`,
+        logger.debug(
+          {
+            userId,
+            socketId: socket.id,
+          },
+          "Socket disconnected but user remains online",
         );
       }
     });

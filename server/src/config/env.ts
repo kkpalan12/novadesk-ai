@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { z } from "zod";
-
+import { logger } from "../common/logger";
 dotenv.config();
 
 const envSchema = z.object({
@@ -22,6 +22,8 @@ const envSchema = z.object({
 
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
+  PUBLIC_API_URL: z.string().url(),
+
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
@@ -30,8 +32,10 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("❌ Invalid environment variables");
-  console.error(parsed.error.format());
+  logger.error(
+    { issues: parsed.error.format() },
+    "Invalid environment variables",
+  );
   process.exit(1);
 }
 

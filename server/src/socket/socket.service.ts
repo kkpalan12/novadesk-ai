@@ -1,4 +1,5 @@
 import { getIO } from "./index";
+import { logger } from "../common/logger";
 
 export class SocketService {
   // =========================================
@@ -9,11 +10,14 @@ export class SocketService {
     try {
       const io = getIO();
 
-      console.log("📁 Sending project created:", `workspace:${workspaceId}`);
+      logger.debug({ workspaceId }, "Sending project created");
 
       io.to(`workspace:${workspaceId}`).emit("project:created", project);
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping project creation.", error);
+      logger.warn(
+        { err: error, workspaceId },
+        "Socket.IO unavailable. Skipping project creation.",
+      );
     }
   }
 
@@ -21,13 +25,17 @@ export class SocketService {
     try {
       const io = getIO();
 
-      console.log("📁 Sending project updated:", `workspace:${workspaceId}`);
+      logger.debug({ workspaceId }, "Sending project updated");
 
       io.to(`workspace:${workspaceId}`).emit("project:updated", project);
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping project update.", error);
+      logger.warn(
+        { err: error, workspaceId },
+        "Socket.IO unavailable. Skipping project update.",
+      );
     }
   }
+
   // =========================================
   // WORKSPACE UPDATED
   // =========================================
@@ -36,26 +44,33 @@ export class SocketService {
     try {
       const io = getIO();
 
-      console.log("🏢 Sending workspace updated:", `workspace:${workspaceId}`);
+      logger.debug({ workspaceId }, "Sending workspace updated");
 
       io.to(`workspace:${workspaceId}`).emit("workspace:updated", workspace);
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping workspace update.", error);
+      logger.warn(
+        { err: error, workspaceId },
+        "Socket.IO unavailable. Skipping workspace update.",
+      );
     }
   }
+
   // =========================================
   // TASK CREATED
   // =========================================
 
-  sendTaskCreated(projectId: string, task: any) {
+  sendTaskCreated(projectId: string, task: any): void {
     try {
       const io = getIO();
 
-      console.log("🆕 Sending task created:", `project:${projectId}`);
+      logger.debug({ projectId }, "Sending task created");
 
       io.to(`project:${projectId}`).emit("task:created", task);
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping task creation.", error);
+      logger.warn(
+        { err: error, projectId },
+        "Socket.IO unavailable. Skipping task creation.",
+      );
     }
   }
 
@@ -63,48 +78,56 @@ export class SocketService {
   // TASK UPDATED
   // =========================================
 
-  sendTaskUpdate(projectId: string, task: any) {
+  sendTaskUpdate(projectId: string, task: any): void {
     try {
       const io = getIO();
 
-      console.log("🔄 Sending task updated:", `project:${projectId}`);
+      logger.debug({ projectId }, "Sending task updated");
 
       io.to(`project:${projectId}`).emit("task:updated", task);
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping task update.", error);
+      logger.warn(
+        { err: error, projectId },
+        "Socket.IO unavailable. Skipping task update.",
+      );
     }
   }
+
   // =========================================
   // TASK STATUS CHANGED
   // =========================================
 
-  sendTaskStatusChanged(projectId: string, task: any) {
+  sendTaskStatusChanged(projectId: string, task: any): void {
     try {
       const io = getIO();
 
-      console.log("🔄 Sending task status changed:", `project:${projectId}`);
+      logger.debug({ projectId }, "Sending task status changed");
 
       io.to(`project:${projectId}`).emit("task:status-changed", task);
     } catch (error) {
-      console.warn(
+      logger.warn(
+        { err: error, projectId },
         "Socket.IO unavailable. Skipping task status change.",
-        error,
       );
     }
   }
+
   // =========================================
   // TASK ASSIGNED
   // =========================================
 
-  sendTaskAssigned(projectId: string, task: any) {
+  sendTaskAssigned(projectId: string, task: any): void {
     try {
       const io = getIO();
 
-      console.log("👤 Sending task assigned:", `project:${projectId}`);
+      logger.debug({ projectId }, "Sending task assigned");
 
       io.to(`project:${projectId}`).emit("task:assigned", task);
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping task assignment.", error);
+      logger.warn(
+        { err: error, projectId },
+        "Socket.IO unavailable. Skipping task assignment.",
+      );
     }
   }
 
@@ -112,17 +135,20 @@ export class SocketService {
   // TASK DELETED
   // =========================================
 
-  sendTaskDeleted(projectId: string, taskId: string) {
+  sendTaskDeleted(projectId: string, taskId: string): void {
     try {
       const io = getIO();
 
-      console.log("🗑️ Sending task deleted:", `project:${projectId}`);
+      logger.debug({ projectId, taskId }, "Sending task deleted");
 
       io.to(`project:${projectId}`).emit("task:deleted", {
         taskId,
       });
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping task deletion.", error);
+      logger.warn(
+        { err: error, projectId, taskId },
+        "Socket.IO unavailable. Skipping task deletion.",
+      );
     }
   }
 
@@ -130,48 +156,61 @@ export class SocketService {
   // COMMENTS
   // =========================================
 
-  sendCommentCreated(projectId: string, taskId: string, comment: any) {
+  sendCommentCreated(projectId: string, taskId: string, comment: any): void {
     try {
       const io = getIO();
 
-      console.log("💬 Sending comment created:", `project:${projectId}`);
+      logger.debug({ projectId, taskId }, "Sending comment created");
 
       io.to(`project:${projectId}`).emit("comment:created", {
         taskId,
         comment,
       });
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping comment created.", error);
+      logger.warn(
+        { err: error, projectId, taskId },
+        "Socket.IO unavailable. Skipping comment created.",
+      );
     }
   }
 
-  sendCommentUpdated(projectId: string, taskId: string, comment: any) {
+  sendCommentUpdated(projectId: string, taskId: string, comment: any): void {
     try {
       const io = getIO();
 
-      console.log("💬 Sending comment updated:", `project:${projectId}`);
+      logger.debug({ projectId, taskId }, "Sending comment updated");
 
       io.to(`project:${projectId}`).emit("comment:updated", {
         taskId,
         comment,
       });
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping comment updated.", error);
+      logger.warn(
+        { err: error, projectId, taskId },
+        "Socket.IO unavailable. Skipping comment updated.",
+      );
     }
   }
 
-  sendCommentDeleted(projectId: string, taskId: string, commentId: string) {
+  sendCommentDeleted(
+    projectId: string,
+    taskId: string,
+    commentId: string,
+  ): void {
     try {
       const io = getIO();
 
-      console.log("💬 Sending comment deleted:", `project:${projectId}`);
+      logger.debug({ projectId, taskId, commentId }, "Sending comment deleted");
 
       io.to(`project:${projectId}`).emit("comment:deleted", {
         taskId,
         commentId,
       });
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping comment deletion.", error);
+      logger.warn(
+        { err: error, projectId, taskId, commentId },
+        "Socket.IO unavailable. Skipping comment deletion.",
+      );
     }
   }
 
@@ -179,40 +218,38 @@ export class SocketService {
   // NOTIFICATIONS
   // =========================================
 
-  sendNotification(userId: string, notification: any) {
+  sendNotification(userId: string, notification: any): void {
     try {
       const io = getIO();
 
-      console.log("🔔 Sending notification to:", `user:${userId}`);
+      logger.debug({ userId }, "Sending notification");
 
       io.to(`user:${userId}`).emit("notification:new", notification);
-
-      console.log("✅ notification:new emitted");
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping notification.", error);
+      logger.warn(
+        { err: error, userId },
+        "Socket.IO unavailable. Skipping notification.",
+      );
     }
   }
 
-  sendUnreadCount(userId: string, count: number) {
+  sendUnreadCount(userId: string, count: number): void {
     try {
       const io = getIO();
 
-      console.log(
-        "🔔 Sending unread count to:",
-        `user:${userId}`,
-        "count:",
-        count,
-      );
+      logger.debug({ userId, count }, "Sending unread notification count");
 
       io.to(`user:${userId}`).emit("notification:unread-count", {
         count,
       });
-
-      console.log("✅ notification:unread-count emitted");
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping unread count.", error);
+      logger.warn(
+        { err: error, userId },
+        "Socket.IO unavailable. Skipping unread count.",
+      );
     }
   }
+
   // =========================================
   // ACTIVITY
   // =========================================
@@ -221,13 +258,17 @@ export class SocketService {
     try {
       const io = getIO();
 
-      console.log("📝 Sending activity created:", `project:${projectId}`);
+      logger.debug({ projectId }, "Sending activity created");
 
       io.to(`project:${projectId}`).emit("activity:created", activity);
     } catch (error) {
-      console.warn("Socket.IO unavailable. Skipping activity creation.", error);
+      logger.warn(
+        { err: error, projectId },
+        "Socket.IO unavailable. Skipping activity creation.",
+      );
     }
   }
+
   // =========================================
   // WORKSPACE ACTIVITY
   // =========================================
@@ -236,13 +277,13 @@ export class SocketService {
     try {
       const io = getIO();
 
-      console.log("📝 Sending workspace activity:", `workspace:${workspaceId}`);
+      logger.debug({ workspaceId }, "Sending workspace activity");
 
       io.to(`workspace:${workspaceId}`).emit("activity:created", activity);
     } catch (error) {
-      console.warn(
+      logger.warn(
+        { err: error, workspaceId },
         "Socket.IO unavailable. Skipping workspace activity.",
-        error,
       );
     }
   }

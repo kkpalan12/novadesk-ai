@@ -4,6 +4,7 @@ import { NotificationRepository } from "../repositories/notification.repository"
 import { SocketService } from "../socket/socket.service";
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
 import { TaskRepository } from "../repositories/task.repository";
+import { logger } from "../common/logger";
 
 export class NotificationService {
   private readonly repository = new NotificationRepository();
@@ -18,8 +19,7 @@ export class NotificationService {
    */
   async create(dto: CreateNotificationDto) {
     const notification = await this.repository.create(dto);
-    console.log("✅ NOTIFICATION CREATED:", notification._id);
-
+    logger.debug({ notificationId: notification._id }, "Notification created");
     this.socketService.sendNotification(dto.recipient, notification);
 
     const count = await this.repository.countUnread(dto.recipient);

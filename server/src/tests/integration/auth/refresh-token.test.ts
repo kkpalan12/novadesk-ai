@@ -23,6 +23,36 @@ describe("POST /api/v1/auth/refresh", () => {
 
       expect(typeof response.body.data.accessToken).toBe("string");
     });
+    it("should rotate the refresh token", async () => {
+      const { refreshToken } = await AuthHelper.createAuthenticatedUser();
+
+      const response = await RequestHelper.post(endpoint, {
+        refreshToken,
+      });
+
+      expect(response.status).toBe(200);
+
+      const newRefreshToken = response.body.data.refreshToken;
+
+      expect(newRefreshToken).toBeDefined();
+      expect(typeof newRefreshToken).toBe("string");
+      expect(newRefreshToken).not.toBe(refreshToken);
+
+      const oldTokenResponse = await RequestHelper.post(endpoint, {
+        refreshToken,
+      });
+
+      expect(oldTokenResponse.status).toBe(401);
+      expect(oldTokenResponse.body.success).toBe(false);
+
+      const newTokenResponse = await RequestHelper.post(endpoint, {
+        refreshToken: newRefreshToken,
+      });
+
+      expect(newTokenResponse.status).toBe(200);
+      expect(newTokenResponse.body.success).toBe(true);
+      expect(newTokenResponse.body.data.accessToken).toBeDefined();
+    });
   });
 
   describe("Validation", () => {

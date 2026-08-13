@@ -105,14 +105,23 @@ export class AuthService {
       throw new UnauthorizedError("Invalid refresh token");
     }
 
-    const accessToken = generateAccessToken({
+    const payload = {
       userId: String(user._id),
       email: user.email,
       role: user.role,
-    });
+    };
+
+    const accessToken = generateAccessToken(payload);
+    const newRefreshToken = generateRefreshToken(payload);
+
+    await this.userRepository.updateRefreshToken(
+      String(user._id),
+      newRefreshToken,
+    );
 
     return {
       accessToken,
+      refreshToken: newRefreshToken,
     };
   }
   async logout(refreshToken: string) {

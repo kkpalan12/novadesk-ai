@@ -13,6 +13,7 @@ import { ActivityService } from "./activity.service";
 
 import { ACTIVITY_ACTIONS } from "../common/constants/activity.constants";
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
+import { env } from "../config/env";
 
 export class AttachmentService {
   private readonly attachmentRepository = new AttachmentRepository();
@@ -199,7 +200,7 @@ export class AttachmentService {
     return {
       ...(attachment.toObject?.() ?? attachment),
 
-      url: `${process.env.PUBLIC_API_URL}/uploads/${attachment.path}`,
+      url: `${env.PUBLIC_API_URL}/uploads/${attachment.path}`,
     };
   }
 
