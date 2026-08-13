@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { JwtPayload } from "jsonwebtoken";
 
-import { env } from "../config/env";
 import { UnauthorizedError } from "../common/errors/UnauthorizedError";
 import { UserRole } from "../common/constants/roles";
 import { UserRepository } from "../repositories/user.repository";
 import { UserMapper } from "../mappers/user.mapper";
+import { verifyAccessToken } from "../utils/jwt";
 
 interface TokenPayload extends JwtPayload {
   userId: string;
@@ -28,7 +28,7 @@ export const authenticate = async (
   const token = authHeader.split(" ")[1];
 
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET) as TokenPayload;
+    const payload = verifyAccessToken(token) as TokenPayload;
 
     const user = await userRepository.findActiveById(payload.userId);
 

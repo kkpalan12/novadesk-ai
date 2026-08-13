@@ -17,6 +17,7 @@ export class WorkspaceService {
   private readonly workspaceRepository = new WorkspaceRepository();
 
   private readonly membershipRepository = new MembershipRepository();
+
   private readonly socketService = new SocketService();
 
   // =========================================
@@ -50,11 +51,8 @@ export class WorkspaceService {
   async getAllWorkspaces(query: any, userId: string) {
     return this.workspaceRepository.findAll({
       page: Number(query.page) || DEFAULT_PAGE,
-
       limit: Number(query.limit) || DEFAULT_LIMIT,
-
       search: query.search,
-
       userId,
     });
   }
@@ -72,10 +70,6 @@ export class WorkspaceService {
 
     return workspace;
   }
-
-  // =========================================
-  // Update Workspace
-  // =========================================
 
   // =========================================
   // Update Workspace
@@ -106,40 +100,6 @@ export class WorkspaceService {
 
     if (!workspace) {
       throw new NotFoundError("Workspace not found or access denied");
-    }
-
-    return workspace;
-  }
-
-  // =========================================
-  // Add Member
-  // =========================================
-
-  async addMember(workspaceId: string, userId: string) {
-    const workspace = await this.workspaceRepository.addMember(
-      workspaceId,
-      userId,
-    );
-
-    if (!workspace) {
-      throw new NotFoundError("Workspace not found");
-    }
-
-    return workspace;
-  }
-
-  // =========================================
-  // Remove Member
-  // =========================================
-
-  async removeMember(workspaceId: string, userId: string) {
-    const workspace = await this.workspaceRepository.removeMember(
-      workspaceId,
-      userId,
-    );
-
-    if (!workspace) {
-      throw new NotFoundError("Workspace not found");
     }
 
     return workspace;

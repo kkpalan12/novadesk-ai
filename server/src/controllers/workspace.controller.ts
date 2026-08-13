@@ -38,7 +38,7 @@ export class WorkspaceController {
   });
 
   /**
-   * Get Workspace By Id
+   * Get Workspace By ID
    */
   getWorkspaceById = asyncHandler(async (req: Request, res: Response) => {
     const workspace = await this.workspaceService.getWorkspaceById(
@@ -60,6 +60,7 @@ export class WorkspaceController {
       req.body,
       req.user!.userId,
     );
+
     res
       .status(200)
       .json(new ApiResponse(true, "Workspace updated successfully", workspace));
@@ -73,36 +74,9 @@ export class WorkspaceController {
       req.params.id as string,
       req.user!.userId,
     );
+
     res
       .status(200)
       .json(new ApiResponse(true, "Workspace deleted successfully"));
-  });
-
-  /**
-   * Add Member
-   */
-  addMember = asyncHandler(async (req: Request, res: Response) => {
-    const workspace = await this.workspaceService.addMember(
-      req.params.id as string,
-      req.body.userId,
-    );
-
-    res
-      .status(200)
-      .json(new ApiResponse(true, "Member added successfully", workspace));
-  });
-
-  /**
-   * Remove Member
-   */
-  removeMember = asyncHandler(async (req: Request, res: Response) => {
-    const workspace = await this.workspaceService.removeMember(
-      req.params.id as string,
-      req.params.userId as string,
-    );
-
-    res
-      .status(200)
-      .json(new ApiResponse(true, "Member removed successfully", workspace));
   });
 }
