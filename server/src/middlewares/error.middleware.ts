@@ -10,6 +10,12 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ) => {
+  if ((err as any).type === "entity.too.large") {
+    return res.status(413).json({
+      success: false,
+      message: "Request body too large",
+    });
+  }
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({

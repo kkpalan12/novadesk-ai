@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { z } from "zod";
 import { logger } from "../common/logger";
+
 dotenv.config();
 
 const envSchema = z.object({
@@ -24,6 +25,8 @@ const envSchema = z.object({
 
   PUBLIC_API_URL: z.string().url(),
 
+  CLIENT_URL: z.string().url().default("http://localhost:4200"),
+
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
@@ -36,6 +39,7 @@ if (!parsed.success) {
     { issues: parsed.error.format() },
     "Invalid environment variables",
   );
+
   process.exit(1);
 }
 

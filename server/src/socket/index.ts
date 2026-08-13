@@ -6,6 +6,7 @@ import { socketAuth, AuthenticatedSocket } from "./socket.middleware";
 
 import { presenceService } from "./presence.service";
 import { logger } from "../common/logger";
+import { env } from "../config/env";
 
 let io: Server;
 
@@ -15,7 +16,7 @@ let io: Server;
 export const initializeSocket = (server: http.Server) => {
   io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: env.CLIENT_URL,
       credentials: true,
     },
   });
