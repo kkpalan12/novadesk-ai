@@ -72,6 +72,21 @@ export class AttachmentController {
   });
 
   /**
+   * Get Private Attachment File
+   */
+  getAttachmentFile = asyncHandler(async (req: Request, res: Response) => {
+    const file = await this.attachmentService.getAttachmentFile(
+      req.params.id as string,
+      req.user!.userId,
+    );
+
+    res.setHeader("Content-Type", file.mimeType);
+    res.setHeader("Content-Length", file.size);
+
+    return res.sendFile(file.absolutePath);
+  });
+
+  /**
    * Delete Attachment
    */
   deleteAttachment = asyncHandler(async (req: Request, res: Response) => {

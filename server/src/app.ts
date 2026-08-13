@@ -4,7 +4,6 @@ import helmet from "helmet";
 
 import { errorHandler } from "./middlewares/error.middleware";
 import routes from "./routes";
-import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import { loggerMiddleware } from "./common/logger";
@@ -22,15 +21,15 @@ app.use(
     credentials: true,
   }),
 );
+
 app.use(express.json({ limit: "1mb" }));
 app.use(loggerMiddleware);
 
 app.use("/api/v1", routes);
 app.use("/api/v1/users", userRoutes);
 
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use(notFoundHandler);
 
 app.use(errorHandler);

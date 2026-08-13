@@ -104,6 +104,56 @@ export class AttachmentService {
   }
 
   /**
+   * Get Private Attachment File
+   *
+   * Authorization is performed before the physical file is served.
+   */
+  async getAttachmentFile(id: string, userId: string) {
+    const attachment = await this.attachmentRepository.findById(id);
+
+    if (!attachment) {
+      throw new NotFoundError("Attachment not found");
+    }
+
+    const task = await this.taskRepository.findById(
+      this.getObjectId(attachment.task),
+    );
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
+    await this.verifyTaskAccess(task, userId);
+
+    const absolutePath = path.resolve(
+      process.cwd(),
+      "uploads",
+      attachment.path,
+    );
+
+    const uploadsRoot = path.resolve(process.cwd(), "uploads");
+
+    if (
+      absolutePath !== uploadsRoot &&
+      !absolutePath.startsWith(`${uploadsRoot}${path.sep}`)
+    ) {
+      throw new NotFoundError("Attachment not found");
+    }
+
+    try {
+      await fs.access(absolutePath);
+    } catch {
+      throw new NotFoundError("Attachment file not found");
+    }
+
+    return {
+      absolutePath,
+      mimeType: attachment.mimeType,
+      size: attachment.size,
+    };
+  }
+
+  /**
    * Delete Attachment
    */
   async deleteAttachment(id: string, userId: string) {
@@ -144,9 +194,6 @@ export class AttachmentService {
 
   /**
    * Verify whether user can access the task.
-   *
-   * Workspace owner and active workspace members
-   * can access task attachments.
    */
   private async verifyTaskAccess(task: any, userId: string): Promise<void> {
     const projectId = this.getProjectId(task);
@@ -176,18 +223,19 @@ export class AttachmentService {
   }
 
   /**
-   * Add public file URL.
+   * Add private attachment URL.
    */
   private addUrl(attachment: any) {
-    return {
-      ...(attachment.toObject?.() ?? attachment),
+    const attachmentObject = attachment.toObject?.() ?? attachment;
 
-      url: `${env.PUBLIC_API_URL}/uploads/${attachment.path}`,
+    return {
+      ...attachmentObject,
+      url: `${env.PUBLIC_API_URL}/api/v1/attachments/${attachment._id}/file`,
     };
   }
 
   /**
-   * Resolve project ID from populated/unpopulated task.
+   * Resolve project ID.
    */
   private getProjectId(task: any): string {
     if (
@@ -202,7 +250,7 @@ export class AttachmentService {
   }
 
   /**
-   * Resolve workspace ID from populated/unpopulated project.
+   * Resolve workspace ID.
    */
   private getWorkspaceId(project: any): string {
     if (
@@ -217,7 +265,7 @@ export class AttachmentService {
   }
 
   /**
-   * Resolve ObjectId from populated/unpopulated value.
+   * Resolve ObjectId.
    */
   private getObjectId(value: any): string {
     if (value && typeof value === "object" && "_id" in value) {

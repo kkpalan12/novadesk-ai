@@ -38,6 +38,16 @@ router.get(
 );
 
 /**
+ * Get Attachment File
+ */
+router.get(
+  "/attachments/:id/file",
+  authenticate,
+  validate(attachmentIdSchema),
+  attachmentController.getAttachmentFile,
+);
+
+/**
  * Delete Attachment
  */
 router.delete(

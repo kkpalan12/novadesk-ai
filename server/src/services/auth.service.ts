@@ -1,11 +1,16 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 import { UserRepository } from "../repositories/user.repository";
+
 import { RegisterDto } from "../dto/auth/register.dto";
 import { LoginDto } from "../dto/auth/login.dto";
+import { ForgotPasswordDto } from "../dto/auth/forgot-password.dto";
+import { ResetPasswordDto } from "../dto/auth/reset-password.dto";
 
 import { ConflictError } from "../common/errors/ConflictError";
 import { UnauthorizedError } from "../common/errors/UnauthorizedError";
+import { BadRequestError } from "../common/errors/BadRequestError";
 
 import {
   generateAccessToken,
@@ -14,11 +19,7 @@ import {
 } from "../utils/jwt";
 
 import { sanitizeUser } from "../utils/sanitizeUser";
-import crypto from "crypto";
-
-import { ForgotPasswordDto } from "../dto/auth/forgot-password.dto";
-import { ResetPasswordDto } from "../dto/auth/reset-password.dto";
-import { BadRequestError } from "../common/errors/BadRequestError";
+import { env } from "../config/env";
 
 export class AuthService {
   private readonly userRepository: UserRepository;
@@ -88,6 +89,9 @@ export class AuthService {
     };
   }
 
+  /**
+   * Refresh access token
+   */
   async refreshToken(refreshToken: string) {
     if (!refreshToken) {
       throw new UnauthorizedError("Refresh token missing");
@@ -124,13 +128,17 @@ export class AuthService {
       refreshToken: newRefreshToken,
     };
   }
+
+  /**
+   * Logout user
+   */
   async logout(refreshToken: string) {
     if (!refreshToken) {
       throw new UnauthorizedError("Refresh token missing");
     }
 
     try {
-      const payload = verifyRefreshToken(refreshToken);
+      verifyRefreshToken(refreshToken);
 
       const user = await this.userRepository.findByRefreshToken(refreshToken);
 
@@ -151,14 +159,20 @@ export class AuthService {
       throw new UnauthorizedError("Invalid refresh token");
     }
   }
+
+  /**
+   * Forgot password
+   *
+   * Never reveals whether an email exists.
+   *
+   * The raw reset token is returned only in development/test
+   * environments for the current development workflow.
+   */
   async forgotPassword(data: ForgotPasswordDto) {
     const user = await this.userRepository.findByEmail(
       data.email.toLowerCase(),
     );
 
-    /*
-     * Do not reveal whether an email exists.
-     */
     if (!user) {
       return {
         message:
@@ -185,18 +199,30 @@ export class AuthService {
       },
     );
 
-    /*
-     * Temporary development response.
-     *
-     * Production email delivery will replace this.
-     */
-    return {
+    const response: {
+      message: string;
+      resetToken?: string;
+    } = {
       message:
         "If an account exists with this email, a password reset link has been generated.",
-
-      resetToken,
     };
+
+    /*
+     * Development/test support only.
+     *
+     * Production must deliver the reset token through
+     * a secure email/reset-link flow instead of the API response.
+     */
+    if (env.NODE_ENV !== "production") {
+      response.resetToken = resetToken;
+    }
+
+    return response;
   }
+
+  /**
+   * Reset password
+   */
   async resetPassword(data: ResetPasswordDto) {
     const hashedToken = crypto
       .createHash("sha256")
