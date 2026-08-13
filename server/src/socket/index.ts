@@ -8,6 +8,10 @@ import { presenceService } from "./presence.service";
 import { logger } from "../common/logger";
 import { env } from "../config/env";
 
+import { ProjectRepository } from "../repositories/project.repository";
+import { WorkspaceRepository } from "../repositories/workspace.repository";
+import { MembershipRepository } from "../repositories/membership.repository";
+
 let io: Server;
 
 /**
@@ -20,6 +24,60 @@ export const initializeSocket = (server: http.Server) => {
       credentials: true,
     },
   });
+
+  const projectRepository = new ProjectRepository();
+  const workspaceRepository = new WorkspaceRepository();
+  const membershipRepository = new MembershipRepository();
+
+  /**
+   * Verify workspace access for a user.
+   *
+   * Access is granted to:
+   * - Workspace owner
+   * - Active workspace member
+   */
+  const hasWorkspaceAccess = async (
+    workspaceId: string,
+    userId: string,
+  ): Promise<boolean> => {
+    const isOwner = await workspaceRepository.isOwner(workspaceId, userId);
+
+    if (isOwner) {
+      return true;
+    }
+
+    const membership = await membershipRepository.findByWorkspaceAndUser(
+      workspaceId,
+      userId,
+    );
+
+    return Boolean(membership && membership.status === "ACTIVE");
+  };
+
+  /**
+   * Verify project access for a user.
+   *
+   * Project access is inherited from the project's workspace.
+   */
+  const hasProjectAccess = async (
+    projectId: string,
+    userId: string,
+  ): Promise<boolean> => {
+    const project = await projectRepository.findById(projectId);
+
+    if (!project) {
+      return false;
+    }
+
+    const workspaceId =
+      project.workspace &&
+      typeof project.workspace === "object" &&
+      "_id" in project.workspace
+        ? String(project.workspace._id)
+        : String(project.workspace);
+
+    return hasWorkspaceAccess(workspaceId, userId);
+  };
 
   // =========================================
   // SOCKET AUTHENTICATION
@@ -34,7 +92,13 @@ export const initializeSocket = (server: http.Server) => {
   io.on(SOCKET_EVENTS.CONNECTION, (socket: AuthenticatedSocket) => {
     const userId = socket.user!.userId;
 
-    logger.info({ socketId: socket.id, userId }, "Socket connection received");
+    logger.info(
+      {
+        socketId: socket.id,
+        userId,
+      },
+      "Socket connection received",
+    );
 
     // =========================================
     // PERSONAL USER ROOM
@@ -45,7 +109,11 @@ export const initializeSocket = (server: http.Server) => {
     socket.join(userRoom);
 
     logger.debug(
-      { userId, socketId: socket.id, room: userRoom },
+      {
+        userId,
+        socketId: socket.id,
+        room: userRoom,
+      },
       "User joined personal room",
     );
 
@@ -87,7 +155,13 @@ export const initializeSocket = (server: http.Server) => {
     // =========================================
 
     socket.on("get-online-users", () => {
-      logger.debug({ userId, socketId: socket.id }, "Sending online users");
+      logger.debug(
+        {
+          userId,
+          socketId: socket.id,
+        },
+        "Sending online users",
+      );
 
       socket.emit(SOCKET_EVENTS.ONLINE_USERS, presenceService.getOnlineUsers());
     });
@@ -96,28 +170,58 @@ export const initializeSocket = (server: http.Server) => {
     // JOIN PROJECT ROOM
     // =========================================
 
-    socket.on(SOCKET_EVENTS.JOIN_PROJECT, (projectId: string) => {
+    socket.on(SOCKET_EVENTS.JOIN_PROJECT, async (projectId: string) => {
       if (!projectId) {
         logger.warn(
-          { userId, socketId: socket.id },
+          {
+            userId,
+            socketId: socket.id,
+          },
           "User attempted to join empty project room",
         );
 
         return;
       }
 
-      const roomName = `project:${projectId}`;
+      try {
+        const hasAccess = await hasProjectAccess(projectId, userId);
 
-      socket.join(roomName);
+        if (!hasAccess) {
+          logger.warn(
+            {
+              userId,
+              socketId: socket.id,
+              projectId,
+            },
+            "Unauthorized project room join attempt",
+          );
 
-      logger.debug(
-        {
-          userId,
-          socketId: socket.id,
-          room: roomName,
-        },
-        "User joined project room",
-      );
+          return;
+        }
+
+        const roomName = `project:${projectId}`;
+
+        socket.join(roomName);
+
+        logger.debug(
+          {
+            userId,
+            socketId: socket.id,
+            room: roomName,
+          },
+          "User joined project room",
+        );
+      } catch (error) {
+        logger.error(
+          {
+            err: error,
+            userId,
+            socketId: socket.id,
+            projectId,
+          },
+          "Failed to authorize project room join",
+        );
+      }
     });
 
     // =========================================
@@ -147,28 +251,58 @@ export const initializeSocket = (server: http.Server) => {
     // JOIN WORKSPACE ROOM
     // =========================================
 
-    socket.on(SOCKET_EVENTS.JOIN_WORKSPACE, (workspaceId: string) => {
+    socket.on(SOCKET_EVENTS.JOIN_WORKSPACE, async (workspaceId: string) => {
       if (!workspaceId) {
         logger.warn(
-          { userId, socketId: socket.id },
+          {
+            userId,
+            socketId: socket.id,
+          },
           "User attempted to join empty workspace room",
         );
 
         return;
       }
 
-      const roomName = `workspace:${workspaceId}`;
+      try {
+        const hasAccess = await hasWorkspaceAccess(workspaceId, userId);
 
-      socket.join(roomName);
+        if (!hasAccess) {
+          logger.warn(
+            {
+              userId,
+              socketId: socket.id,
+              workspaceId,
+            },
+            "Unauthorized workspace room join attempt",
+          );
 
-      logger.debug(
-        {
-          userId,
-          socketId: socket.id,
-          room: roomName,
-        },
-        "User joined workspace room",
-      );
+          return;
+        }
+
+        const roomName = `workspace:${workspaceId}`;
+
+        socket.join(roomName);
+
+        logger.debug(
+          {
+            userId,
+            socketId: socket.id,
+            room: roomName,
+          },
+          "User joined workspace room",
+        );
+      } catch (error) {
+        logger.error(
+          {
+            err: error,
+            userId,
+            socketId: socket.id,
+            workspaceId,
+          },
+          "Failed to authorize workspace room join",
+        );
+      }
     });
 
     // =========================================
