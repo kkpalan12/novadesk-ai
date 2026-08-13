@@ -47,13 +47,4 @@ router.delete(
   attachmentController.deleteAttachment,
 );
 
-/**
- * Attachment Route Test
- *
- * Temporary development endpoint.
- */
-router.get("/attachment-test", (_req, res) => {
-  res.send("Attachment Route Working");
-});
-
 export default router;
