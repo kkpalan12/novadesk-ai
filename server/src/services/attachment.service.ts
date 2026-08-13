@@ -14,6 +14,8 @@ import { ActivityService } from "./activity.service";
 import { ACTIVITY_ACTIONS } from "../common/constants/activity.constants";
 import { ENTITY_TYPES } from "../common/constants/entity.constants";
 import { env } from "../config/env";
+import fs from "fs/promises";
+import path from "path";
 
 export class AttachmentService {
   private readonly attachmentRepository = new AttachmentRepository();
@@ -130,6 +132,7 @@ export class AttachmentService {
 
     await this.attachmentRepository.delete(id);
 
+    await this.deletePhysicalFile(attachment.path);
     /**
      * Record project activity.
      */
@@ -243,5 +246,16 @@ export class AttachmentService {
     }
 
     return String(value);
+  }
+  private async deletePhysicalFile(filePath: string): Promise<void> {
+    const absolutePath = path.join(process.cwd(), "uploads", filePath);
+
+    try {
+      await fs.unlink(absolutePath);
+    } catch (error: any) {
+      if (error?.code !== "ENOENT") {
+        throw error;
+      }
+    }
   }
 }

@@ -483,5 +483,22 @@ describe("Attachment API", () => {
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
+    it("should reject file larger than 5 MB", async () => {
+      const { owner, task } = await createTestData();
+
+      const largeBuffer = Buffer.alloc(6 * 1024 * 1024);
+
+      const response = await request(app)
+        .post(uploadEndpoint(task._id))
+        .set("Authorization", `Bearer ${owner.token}`)
+        .attach("file", largeBuffer, {
+          filename: "large-test.png",
+          contentType: "image/png",
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe("File size cannot exceed 5 MB");
+    });
   });
 });

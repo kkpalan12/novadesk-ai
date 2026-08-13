@@ -1,21 +1,27 @@
 import { Router } from "express";
+
 import { AuthController } from "../controllers/auth.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
+import { authRateLimiter } from "../middlewares/rate-limit.middleware";
+
 import {
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "../validators/auth.validator";
+
 /**
  * @swagger
  * tags:
  *   - name: Authentication
  *     description: User Authentication APIs
  */
+
 const router = Router();
 const authController = new AuthController();
+
 /**
  * @swagger
  * /auth/register:
@@ -47,7 +53,13 @@ const authController = new AuthController();
  *       201:
  *         description: User registered successfully
  */
-router.post("/register", validate(registerSchema), authController.register);
+
+router.post(
+  "/register",
+  authRateLimiter,
+  validate(registerSchema),
+  authController.register,
+);
 
 /**
  * @swagger
@@ -74,18 +86,28 @@ router.post("/register", validate(registerSchema), authController.register);
  *       200:
  *         description: Login successful
  */
-router.post("/login", validate(loginSchema), authController.login);
+
+router.post(
+  "/login",
+  authRateLimiter,
+  validate(loginSchema),
+  authController.login,
+);
+
 router.post(
   "/forgot-password",
+  authRateLimiter,
   validate(forgotPasswordSchema),
   authController.forgotPassword,
 );
 
 router.post(
   "/reset-password",
+  authRateLimiter,
   validate(resetPasswordSchema),
   authController.resetPassword,
 );
+
 /**
  * @swagger
  * /auth/me:
@@ -101,8 +123,7 @@ router.post(
 
 router.get("/me", authenticate, authController.profile);
 
-router.post("/refresh", authController.refreshToken);
+router.post("/refresh", authRateLimiter, authController.refreshToken);
 
 router.post("/logout", authController.logout);
-
 export default router;
