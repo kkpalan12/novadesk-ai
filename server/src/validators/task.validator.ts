@@ -75,3 +75,9 @@ export const taskQuerySchema = z.object({
     sort: z.string().trim().max(50, "Sort field is too long").optional(),
   }),
 });
+export const taskIdSchema = z.object({
+  params: z.object({
+    projectId: objectIdSchema,
+    id: objectIdSchema,
+  }),
+});

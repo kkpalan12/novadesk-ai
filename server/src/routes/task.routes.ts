@@ -11,6 +11,7 @@ import {
   updateTaskSchema,
   updateStatusSchema,
   taskQuerySchema,
+  taskIdSchema,
 } from "../validators/task.validator";
 
 const router = Router();
@@ -38,6 +39,7 @@ router.get(
 router.get(
   "/projects/:projectId/tasks/:id",
   authenticate,
+  validate(taskIdSchema),
   taskController.getTaskById,
 );
 router.patch(
@@ -57,6 +59,7 @@ router.put(
 router.delete(
   "/projects/:projectId/tasks/:id",
   authenticate,
+  validate(taskIdSchema),
   taskController.deleteTask,
 );
 
