@@ -59,4 +59,13 @@ const notificationSchema = new Schema(
   },
 );
 
+/**
+ * Indexes
+ */
+notificationSchema.index({
+  recipient: 1,
+  isDeleted: 1,
+  isRead: 1,
+});
+
 export const Notification = model("Notification", notificationSchema);

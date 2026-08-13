@@ -45,4 +45,12 @@ const activitySchema = new Schema(
   },
 );
 
+/**
+ * Indexes
+ */
+activitySchema.index({
+  project: 1,
+  createdAt: -1,
+});
+
 export const Activity = model("Activity", activitySchema);

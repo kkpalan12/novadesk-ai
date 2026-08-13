@@ -40,6 +40,7 @@ const taskHistorySchema = new Schema<ITaskHistory>(
  */
 taskHistorySchema.index({
   task: 1,
+  createdAt: -1,
 });
 
 taskHistorySchema.index({

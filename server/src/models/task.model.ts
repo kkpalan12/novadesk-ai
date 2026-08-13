@@ -60,11 +60,40 @@ const taskSchema = new Schema<ITask>(
 /**
  * Indexes
  */
-taskSchema.index({ title: "text" });
-taskSchema.index({ status: 1 });
-taskSchema.index({ priority: 1 });
-taskSchema.index({ createdBy: 1 });
-taskSchema.index({ assignedTo: 1 });
-taskSchema.index({ project: 1 });
+taskSchema.index({
+  title: "text",
+});
+
+taskSchema.index({
+  status: 1,
+});
+
+taskSchema.index({
+  priority: 1,
+});
+
+taskSchema.index({
+  createdBy: 1,
+});
+
+taskSchema.index({
+  assignedTo: 1,
+});
+
+taskSchema.index({
+  project: 1,
+});
+
+taskSchema.index({
+  project: 1,
+  isDeleted: 1,
+  status: 1,
+});
+
+taskSchema.index({
+  project: 1,
+  isDeleted: 1,
+  priority: 1,
+});
 
 export const Task = mongoose.model<ITask>("Task", taskSchema);

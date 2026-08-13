@@ -50,6 +50,12 @@ commentSchema.index({
 });
 
 commentSchema.index({
+  task: 1,
+  isDeleted: 1,
+  createdAt: -1,
+});
+
+commentSchema.index({
   createdBy: 1,
 });
 
