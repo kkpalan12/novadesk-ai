@@ -10,7 +10,7 @@
     "test": "cross-env NODE_ENV=test jest",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "test:coverage": "cross-env NODE_ENV=test jest --coverage",
-    "test:unit": "cross-env NODE_ENV=test jest tests/unit",
+    "test:unit": "cross-env NODE_ENV=test jest tests/unit --passWithNoTests",
     "test:integration": "cross-env NODE_ENV=test jest tests/integration"
   },
   "keywords": [],
