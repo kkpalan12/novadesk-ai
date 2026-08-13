@@ -4,18 +4,25 @@ import multer from "multer";
 import { AppError } from "../common/errors/AppError";
 import { logger } from "../common/logger";
 
+interface RequestBodyError extends Error {
+  type?: string;
+}
+
 export const errorHandler = (
   err: Error,
   _req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
-  if ((err as any).type === "entity.too.large") {
+  const requestError = err as RequestBodyError;
+
+  if (requestError.type === "entity.too.large") {
     return res.status(413).json({
       success: false,
       message: "Request body too large",
     });
   }
+
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
