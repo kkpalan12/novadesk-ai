@@ -162,7 +162,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     this.socketService.removeCommentListeners();
 
     this.socketService.removeActivityListeners();
-
   }
 
   // =========================================================
@@ -181,7 +180,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       if (!activity?._id) {
         return;
       }
-
 
       let added = false;
 
@@ -219,7 +217,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-
       this.task.set(updatedTask);
 
       this.loadHistory(taskId);
@@ -235,7 +232,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       if (data?.taskId !== taskId) {
         return;
       }
-
 
       this.router.navigate(['/tasks'], {
         queryParams: {
@@ -262,7 +258,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       if (data.taskId !== taskId) {
         return;
       }
-
 
       this.comments.update((items) => {
         const exists = items.some((item) => item._id === data.comment._id);
@@ -292,7 +287,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-
       this.comments.update((items) =>
         items.map((item) =>
           item._id === data.comment._id ? data.comment : item,
@@ -314,7 +308,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       if (data.taskId !== taskId) {
         return;
       }
-
 
       this.comments.update((items) =>
         items.filter((item) => item._id !== data.commentId),
@@ -836,7 +829,29 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   getAttachmentName(attachment: Attachment): string {
     return attachment.originalName ?? attachment.fileName ?? 'Attachment';
   }
+  openAttachment(attachment: Attachment): void {
+    this.attachmentError.set('');
 
+    this.attachmentService.getAttachmentFile(attachment._id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+
+        window.open(url, '_blank');
+
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 60_000);
+      },
+
+      error: (error) => {
+        console.error('Open attachment error:', error);
+
+        this.attachmentError.set(
+          error?.error?.message ?? 'Unable to open attachment.',
+        );
+      },
+    });
+  }
   formatFileSize(size?: number): string {
     if (!size) {
       return 'Unknown size';

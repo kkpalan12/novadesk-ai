@@ -240,9 +240,9 @@
                 <div class="comment-actions">
 
                     <button type="button" class="primary-button" (click)="createComment()" [disabled]="
-                commentSaving() ||
-                !commentText.trim()
-              ">
+                            commentSaving() ||
+                            !commentText.trim()
+                        ">
 
                         @if (commentSaving()) {
                         Posting...
@@ -297,97 +297,105 @@
                 ) {
 
                 <article class="comment-card">
-                
+
                     <div class="comment-header">
-                
+
                         <strong>
                             {{ getCommentAuthorName(comment) }}
                         </strong>
-                
+
                         <small>
-                
+
                             {{ comment.createdAt | date:'medium' }}
-                
+
                             @if (comment.isEdited) {
                             <span>
                                 · edited
                             </span>
                             }
-                
+
                         </small>
-                
+
                     </div>
-                
-                
+
+
                     <!-- ==========================
                          VIEW MODE
                          ========================== -->
-                
+
                     @if (editingCommentId() !== comment._id) {
-                
+
                     <p>
                         {{ comment.content }}
                     </p>
-                
+
                     <div class="comment-actions-row">
-                
+
                         <button type="button" class="comment-action-button" (click)="startEditComment(comment)"
-                            [disabled]="commentSaving() || commentDeleting() === comment._id">
+                            [disabled]="
+                                commentSaving() ||
+                                commentDeleting() === comment._id
+                            ">
                             Edit
                         </button>
-                
+
                         <button type="button" class="comment-action-button danger" (click)="deleteComment(comment)"
-                            [disabled]="commentSaving() || commentDeleting() === comment._id">
+                            [disabled]="
+                                commentSaving() ||
+                                commentDeleting() === comment._id
+                            ">
+
                             @if (commentDeleting() === comment._id) {
                             Deleting...
                             } @else {
                             Delete
                             }
+
                         </button>
-                
+
                     </div>
-                
+
                     }
-                
-                
+
+
                     <!-- ==========================
                          EDIT MODE
                          ========================== -->
-                
+
                     @if (editingCommentId() === comment._id) {
-                
+
                     <div class="comment-edit-form">
-                
+
                         <textarea rows="3" [(ngModel)]="editingCommentText" [disabled]="commentSaving()"
                             placeholder="Edit your comment..."></textarea>
-                
-                
+
+
                         <div class="comment-actions-row">
-                
+
                             <button type="button" class="comment-action-button" (click)="cancelEditComment()"
                                 [disabled]="commentSaving()">
                                 Cancel
                             </button>
-                
+
                             <button type="button" class="primary-button" (click)="updateComment(comment)" [disabled]="
                                     commentSaving() ||
                                     !editingCommentText.trim()
                                 ">
-                
+
                                 @if (commentSaving()) {
                                 Saving...
                                 } @else {
                                 Save
                                 }
-                
+
                             </button>
-                
+
                         </div>
-                
+
                     </div>
-                
+
                     }
-                
+
                 </article>
 
                 }
@@ -483,44 +491,44 @@
                             {{ getHistoryUserName(item) }}
                         </p>
 
-@if (
-item.oldValue !== null &&
-item.oldValue !== undefined ||
-item.newValue !== null &&
-item.newValue !== undefined
-) {
+                        @if (
+                        item.oldValue !== null &&
+                        item.oldValue !== undefined ||
+                        item.newValue !== null &&
+                        item.newValue !== undefined
+                        ) {
 
-<div class="history-change">
+                        <div class="history-change">
 
-    @if (
-    item.oldValue !== null &&
-    item.oldValue !== undefined
-    ) {
+                            @if (
+                            item.oldValue !== null &&
+                            item.oldValue !== undefined
+                            ) {
 
-    <span class="history-old-value">
-        {{ formatHistoryValue(item.oldValue) }}
-    </span>
+                            <span class="history-old-value">
+                                {{ formatHistoryValue(item.oldValue) }}
+                            </span>
 
-    <span class="history-arrow">
-        →
-    </span>
+                            <span class="history-arrow">
+                                →
+                            </span>
 
-    }
+                            }
 
-    @if (
-    item.newValue !== null &&
-    item.newValue !== undefined
-    ) {
+                            @if (
+                            item.newValue !== null &&
+                            item.newValue !== undefined
+                            ) {
 
-    <span class="history-new-value">
-        {{ formatHistoryValue(item.newValue) }}
-    </span>
+                            <span class="history-new-value">
+                                {{ formatHistoryValue(item.newValue) }}
+                            </span>
 
-    }
+                            }
 
-</div>
+                        </div>
 
-}
+                        }
 
                     </div>
 
@@ -534,88 +542,308 @@ item.newValue !== undefined
 
         </section>
 
+
+        <!-- ==========================
+           ACTIVITY
+           ========================== -->
+
+        <section class="detail-section activity-section">
+
+            <h2>
+                Activity
+            </h2>
+
+            @if (activityError()) {
+
+            <div class="form-error">
+                {{ activityError() }}
+            </div>
+
+            }
+
+            @if (activityLoading()) {
+
+            <div class="state">
+                Loading activity...
+            </div>
+
+            }
+
+            @if (
+            !activityLoading() &&
+            !activityError() &&
+            activities().length === 0
+            ) {
+
+            <div class="placeholder">
+                No activity available.
+            </div>
+
+            }
+
+            @if (
+            !activityLoading() &&
+            activities().length > 0
+            ) {
+
+            <div class="activity-list">
+
+                @for (
+                activity of activities();
+                track activity._id
+                ) {
+
+                <article class="activity-item">
+
+                    <div class="activity-marker"></div>
+
+                    <div class="activity-content">
+
+                        <div class="activity-header">
+
+                            <strong>
+                                {{
+                                formatActivityAction(
+                                activity.action
+                                )
+                                }}
+                            </strong>
+
+                            <small>
+                                {{
+                                activity.createdAt
+                                | date:'medium'
+                                }}
+                            </small>
+
+                        </div>
+
+                        <p>
+                            {{
+                            getActivityUserName(
+                            activity
+                            )
+                            }}
+                        </p>
+
+                    </div>
+
+                </article>
+
+                }
+
+            </div>
+
+            }
+
+
+            <!-- ==========================
+               LOAD MORE
+               ========================== -->
+
+            @if (
+            !activityLoading() &&
+            !activityLoadingMore() &&
+            activities().length > 0 &&
+            activityPage() < activityTotalPages() ) { <div class="activity-load-more">
+
+                <button type="button" (click)="loadMoreActivity()">
+                    Load More
+                </button>
+
+</div>
+
+}
+
+@if (activityLoadingMore()) {
+
+<div class="state">
+    Loading more activity...
+</div>
+
+}
+
+</section>
+
+
 <!-- ==========================
-   ACTIVITY
-   ========================== -->
+           ATTACHMENTS
+           ========================== -->
 
-<section class="detail-section activity-section">
+<section class="detail-section attachments-section">
 
-    <h2>
-        Activity
-    </h2>
+    <div class="section-header">
 
-    @if (activityError()) {
+        <div>
+
+            <h2>
+                Attachments
+            </h2>
+
+            <p>
+                Files attached to this task.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    @if (attachmentError()) {
 
     <div class="form-error">
-        {{ activityError() }}
+        {{ attachmentError() }}
     </div>
 
     }
 
-    @if (activityLoading()) {
+
+    <!-- Upload -->
+
+    <div class="attachment-upload">
+
+        <input #fileInput type="file" (change)="onFileSelected($event)" [disabled]="attachmentUploading()" />
+
+
+        @if (selectedFile()) {
+
+        <div class="selected-file">
+
+            <span>
+                {{ selectedFile()!.name }}
+            </span>
+
+            <button type="button" class="remove-file-button" (click)="selectedFile.set(null)"
+                [disabled]="attachmentUploading()">
+                Remove
+            </button>
+
+        </div>
+
+        }
+
+
+        <button type="button" class="primary-button" (click)="uploadAttachment()" [disabled]="
+                        attachmentUploading() ||
+                        !selectedFile()
+                    ">
+
+            @if (attachmentUploading()) {
+            Uploading...
+            } @else {
+            Upload Attachment
+            }
+
+        </button>
+
+    </div>
+
+
+    <!-- Loading -->
+
+    @if (attachmentsLoading()) {
 
     <div class="state">
-        Loading activity...
+        Loading attachments...
     </div>
 
     }
 
+
+    <!-- Empty -->
+
     @if (
-    !activityLoading() &&
-    !activityError() &&
-    activities().length === 0
+    !attachmentsLoading() &&
+    !attachmentError() &&
+    attachments().length === 0
     ) {
 
     <div class="placeholder">
-        No activity available.
+        No attachments yet.
     </div>
 
     }
 
+
+    <!-- Attachment List -->
+
     @if (
-    !activityLoading() &&
-    activities().length > 0
+    !attachmentsLoading() &&
+    attachments().length > 0
     ) {
 
-    <div class="activity-list">
+    <div class="attachment-list">
 
         @for (
-        activity of activities();
-        track activity._id
+        attachment of attachments();
+        track attachment._id
         ) {
 
-        <article class="activity-item">
+        <article class="attachment-card">
 
-            <div class="activity-marker"></div>
+            <div class="attachment-icon">
+                📎
+            </div>
 
-            <div class="activity-content">
 
-                <div class="activity-header">
+            <div class="attachment-info">
 
-                    <strong>
-                        {{
-                        formatActivityAction(
-                        activity.action
-                        )
-                        }}
-                    </strong>
-
-                    <small>
-                        {{
-                        activity.createdAt
-                        | date:'medium'
-                        }}
-                    </small>
-
-                </div>
-
-                <p>
+                <strong>
                     {{
-                    getActivityUserName(
-                    activity
+                    getAttachmentName(
+                    attachment
                     )
                     }}
-                </p>
+                </strong>
+
+                <small>
+
+                    {{
+                    formatFileSize(
+                    attachment.size
+                    )
+                    }}
+
+                    @if (attachment.mimeType) {
+                    · {{ attachment.mimeType }}
+                    }
+
+                    ·
+
+                    {{
+                    attachment.createdAt
+                    | date:'medium'
+                    }}
+
+                </small>
+
+            </div>
+
+
+            <!-- Attachment Actions -->
+
+            <div class="attachment-actions">
+
+                <button type="button" class="action-button" (click)="openAttachment(attachment)">
+                    Open
+                </button>
+
+
+                <button type="button" class="delete-button" (click)="deleteAttachment(attachment)" [disabled]="
+                                attachmentDeleting() ===
+                                attachment._id
+                            ">
+
+                    @if (
+                    attachmentDeleting() ===
+                    attachment._id
+                    ) {
+                    Deleting...
+                    } @else {
+                    Delete
+                    }
+
+                </button>
 
             </div>
 
@@ -627,233 +855,10 @@ item.newValue !== undefined
 
     }
 
-    <!-- ==========================
-       LOAD MORE
-       ========================== -->
-
-    @if (
-    !activityLoading() &&
-    !activityLoadingMore() &&
-    activities().length > 0 &&
-    activityPage() < activityTotalPages() ) { <div class="activity-load-more">
-
-        <button type="button" (click)="loadMoreActivity()">
-            Load More
-        </button>
-
-        </div>
-
-        }
-
-        @if (activityLoadingMore()) {
-
-        <div class="state">
-            Loading more activity...
-        </div>
-
-        }
+</section>
 
 </section>
 
-        <!-- ==========================
-           ATTACHMENTS
-           ========================== -->
-
-        <section class="detail-section attachments-section">
-
-            <div class="section-header">
-
-                <div>
-
-                    <h2>
-                        Attachments
-                    </h2>
-
-                    <p>
-                        Files attached to this task.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            @if (attachmentError()) {
-
-            <div class="form-error">
-                {{ attachmentError() }}
-            </div>
-
-            }
-
-
-            <!-- Upload -->
-
-            <div class="attachment-upload">
-
-                <input #fileInput type="file" (change)="onFileSelected($event)" [disabled]="attachmentUploading()" />
-
-
-                @if (selectedFile()) {
-
-                <div class="selected-file">
-
-                    <span>
-                        {{ selectedFile()!.name }}
-                    </span>
-
-                    <button type="button" class="remove-file-button" (click)="selectedFile.set(null)"
-                        [disabled]="attachmentUploading()">
-                        Remove
-                    </button>
-
-                </div>
-
-                }
-
-
-                <button type="button" class="primary-button" (click)="uploadAttachment()" [disabled]="
-              attachmentUploading() ||
-              !selectedFile()
-            ">
-
-                    @if (attachmentUploading()) {
-                    Uploading...
-                    } @else {
-                    Upload Attachment
-                    }
-
-                </button>
-
-            </div>
-
-
-            <!-- Loading -->
-
-            @if (attachmentsLoading()) {
-
-            <div class="state">
-                Loading attachments...
-            </div>
-
-            }
-
-
-            <!-- Empty -->
-
-            @if (
-            !attachmentsLoading() &&
-            !attachmentError() &&
-            attachments().length === 0
-            ) {
-
-            <div class="placeholder">
-                No attachments yet.
-            </div>
-
-            }
-
-
-            <!-- Attachment List -->
-
-            @if (
-            !attachmentsLoading() &&
-            attachments().length > 0
-            ) {
-
-            <div class="attachment-list">
-
-                @for (
-                attachment of attachments();
-                track attachment._id
-                ) {
-
-                <article class="attachment-card">
-
-                    <div class="attachment-icon">
-                        📎
-                    </div>
-
-
-                    <div class="attachment-info">
-
-                        <strong>
-                            {{
-                            getAttachmentName(
-                            attachment
-                            )
-                            }}
-                        </strong>
-
-                        <small>
-
-                            {{
-                            formatFileSize(
-                            attachment.size
-                            )
-                            }}
-
-                            @if (attachment.mimeType) {
-                            · {{ attachment.mimeType }}
-                            }
-
-                            ·
-
-                            {{
-                            attachment.createdAt
-                            | date:'medium'
-                            }}
-
-                        </small>
-
-                    </div>
-
-
-                    <div class="attachment-actions">
-
-                        @if (attachment.url) {
-
-                        <a class="action-button" [href]="attachment.url" target="_blank" rel="noopener noreferrer">
-                            Open
-                        </a>
-
-                        }
-
-
-                        <button type="button" class="delete-button" (click)="
-                      deleteAttachment(
-                        attachment
-                      )
-                    " [disabled]="
-                      attachmentDeleting() ===
-                      attachment._id
-                    ">
-
-                            @if (
-                            attachmentDeleting() ===
-                            attachment._id
-                            ) {
-                            Deleting...
-                            } @else {
-                            Delete
-                            }
-
-                        </button>
-
-                    </div>
-
-                </article>
-
-                }
-
-            </div>
-
-            }
-
-        </section>
-
-    </section>
-
-    }
+}
 
 </div>
