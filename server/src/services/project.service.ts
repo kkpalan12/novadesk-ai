@@ -14,6 +14,13 @@ import { MembershipRepository } from "../repositories/membership.repository";
 import { MembershipRole } from "../interfaces/membership.interface";
 
 import { SocketService } from "../socket/socket.service";
+interface ProjectQuery {
+  page?: string | number;
+  limit?: string | number;
+  search?: string;
+  workspace?: string;
+  status?: string;
+}
 
 export class ProjectService {
   private readonly projectRepository = new ProjectRepository();
@@ -56,7 +63,7 @@ export class ProjectService {
   /**
    * Get All Projects
    */
-  async getAllProjects(query: any, userId: string) {
+  async getAllProjects(query: ProjectQuery, userId: string) {
     const workspaceIds =
       await this.workspaceRepository.findAccessibleWorkspaceIds(userId);
 

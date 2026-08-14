@@ -13,5 +13,5 @@ export interface ActivityEntity {
 
   description: string;
 
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

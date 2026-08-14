@@ -73,19 +73,13 @@ export class CommentService {
 
       await this.notificationService.create({
         recipient: this.getObjectId(task.assignedTo),
-
         sender: dto.createdBy,
-
         type: "COMMENT_ADDED",
-
         title: "New Comment",
-
         message: `${
           sender?.firstName || "Someone"
         } commented on "${task.title}"`,
-
         entityType: ENTITY_TYPES.TASK,
-
         entityId: task._id.toString(),
       });
     }
@@ -96,7 +90,7 @@ export class CommentService {
     const comments = await this.repository.findByTask(task._id.toString());
 
     const populatedComment = comments.find(
-      (item: any) => String(item._id) === String(comment._id),
+      (item) => String(item._id) === String(comment._id),
     );
 
     await this.socketService.sendCommentCreated(
@@ -261,9 +255,9 @@ export class CommentService {
    * Resolve ObjectId whether populated
    * or unpopulated.
    */
-  private getObjectId(value: any): string {
+  private getObjectId(value: unknown): string {
     if (value && typeof value === "object" && "_id" in value) {
-      return String(value._id);
+      return String((value as { _id: unknown })._id);
     }
 
     return String(value);

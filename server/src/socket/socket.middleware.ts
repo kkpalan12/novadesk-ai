@@ -24,8 +24,9 @@ export const socketAuth = (
       return next(new Error("Authentication required"));
     }
 
-    const decoded = jwt.verify(token, env.JWT_SECRET) as SocketUser;
-
+    const decoded = jwt.verify(token, env.JWT_SECRET, {
+      algorithms: ["HS256"],
+    }) as SocketUser;
     socket.user = decoded;
 
     next();

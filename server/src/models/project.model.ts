@@ -6,39 +6,30 @@ const projectSchema = new Schema<IProject>(
   {
     workspace: {
       type: Schema.Types.ObjectId,
-
       ref: "Workspace",
-
       required: true,
     },
 
     owner: {
       type: Schema.Types.ObjectId,
-
       ref: "User",
-
       required: true,
     },
 
     name: {
       type: String,
-
       required: true,
-
       trim: true,
     },
 
     description: {
       type: String,
-
       default: "",
     },
 
     status: {
       type: String,
-
       enum: ["ACTIVE", "ARCHIVED"],
-
       default: "ACTIVE",
     },
 
@@ -48,16 +39,17 @@ const projectSchema = new Schema<IProject>(
 
     isDeleted: {
       type: Boolean,
-
       default: false,
     },
   },
-
   {
     timestamps: true,
   },
 );
 
+/**
+ * Indexes
+ */
 projectSchema.index({
   workspace: 1,
 });
@@ -70,8 +62,18 @@ projectSchema.index({
   name: "text",
 });
 
-export const Project = mongoose.model<IProject>(
-  "Project",
+/**
+ * Project listing optimization
+ *
+ * Supports:
+ * - Workspace filtering
+ * - Soft-delete filtering
+ * - Created date sorting
+ */
+projectSchema.index({
+  workspace: 1,
+  isDeleted: 1,
+  createdAt: -1,
+});
 
-  projectSchema,
-);
+export const Project = mongoose.model<IProject>("Project", projectSchema);

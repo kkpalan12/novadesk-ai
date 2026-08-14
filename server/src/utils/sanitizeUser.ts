@@ -1,10 +1,18 @@
-export const sanitizeUser = (user: any) => {
-  const userObject =
-    typeof user?.toObject === "function" ? user.toObject() : user;
+type SanitizableUser =
+  | {
+      toObject?: () => Record<string, unknown>;
+    }
+  | Record<string, unknown>;
 
-  if (!userObject) {
-    return userObject;
+export const sanitizeUser = (user: SanitizableUser | null | undefined) => {
+  if (!user) {
+    return user;
   }
+
+  const userObject =
+    "toObject" in user && typeof user.toObject === "function"
+      ? user.toObject()
+      : user;
 
   const {
     password,

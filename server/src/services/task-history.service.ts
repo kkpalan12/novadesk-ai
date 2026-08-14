@@ -87,30 +87,26 @@ export class TaskHistoryService {
   /**
    * Resolve project ID from populated/unpopulated task.
    */
-  private getProjectId(task: any): string {
-    if (
-      task.project &&
-      typeof task.project === "object" &&
-      "_id" in task.project
-    ) {
-      return String(task.project._id);
+  private getProjectId(task: { project: unknown }): string {
+    const project = task.project;
+
+    if (project && typeof project === "object" && "_id" in project) {
+      return String((project as { _id: unknown })._id);
     }
 
-    return String(task.project);
+    return String(project);
   }
 
   /**
    * Resolve workspace ID from populated/unpopulated project.
    */
-  private getWorkspaceId(project: any): string {
-    if (
-      project.workspace &&
-      typeof project.workspace === "object" &&
-      "_id" in project.workspace
-    ) {
-      return String(project.workspace._id);
+  private getWorkspaceId(project: { workspace: unknown }): string {
+    const workspace = project.workspace;
+
+    if (workspace && typeof workspace === "object" && "_id" in workspace) {
+      return String((workspace as { _id: unknown })._id);
     }
 
-    return String(project.workspace);
+    return String(workspace);
   }
 }

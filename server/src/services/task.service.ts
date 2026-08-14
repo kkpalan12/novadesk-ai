@@ -23,6 +23,16 @@ import { WorkspaceRepository } from "../repositories/workspace.repository";
 import { MembershipRepository } from "../repositories/membership.repository";
 import { MembershipRole } from "../interfaces/membership.interface";
 
+interface TaskQuery {
+  page?: string | number;
+  limit?: string | number;
+  project?: string;
+  search?: string;
+  status?: string;
+  priority?: string;
+  sort?: string;
+}
+
 export class TaskService {
   private readonly taskRepository = new TaskRepository();
 
@@ -57,7 +67,6 @@ export class TaskService {
       throw new NotFoundError("Project not found");
     }
 
-    // Validate assignee when provided
     if (dto.assignedTo) {
       const workspaceId = this.getWorkspaceId(access.project);
 
@@ -90,7 +99,7 @@ export class TaskService {
   // GET ALL TASKS
   // =========================================
 
-  async getAllTasks(query: any, userId: string) {
+  async getAllTasks(query: TaskQuery, userId: string) {
     if (!query.project) {
       throw new NotFoundError("Project not found");
     }
@@ -179,12 +188,10 @@ export class TaskService {
         ? this.getUserId(existingTask.assignedTo)
         : null;
 
-      // Member can only update their own task
       if (assignedTo !== userId) {
         throw new NotFoundError("Task not found");
       }
 
-      // Member can only change status
       if (!dto.status) {
         throw new NotFoundError("Task not found");
       }
@@ -418,23 +425,25 @@ export class TaskService {
   // GET PROJECT ID
   // =========================================
 
-  private getProjectId(task: any): string {
-    if (typeof task.project === "string") {
-      return task.project;
+  private getProjectId(task: { project: unknown }): string {
+    const project = task.project;
+
+    if (typeof project === "string") {
+      return project;
     }
 
-    if (task.project?._id) {
-      return task.project._id.toString();
+    if (project && typeof project === "object" && "_id" in project) {
+      return String((project as { _id: unknown })._id);
     }
 
-    return task.project.toString();
+    return String(project);
   }
 
   // =========================================
   // GET USER ID
   // =========================================
 
-  private getUserId(user: any): string {
+  private getUserId(user: unknown): string {
     if (!user) {
       return "";
     }
@@ -443,29 +452,34 @@ export class TaskService {
       return user;
     }
 
-    if (user._id) {
-      return user._id.toString();
+    if (typeof user === "object" && "_id" in user) {
+      return String((user as { _id: unknown })._id);
     }
 
-    return user.toString();
+    return String(user);
   }
 
   // =========================================
   // GET WORKSPACE ID
   // =========================================
 
-  private getWorkspaceId(project: any): string {
+  private getWorkspaceId(project: { workspace?: unknown }): string {
     if (!project?.workspace) {
       throw new NotFoundError("Workspace not found");
     }
 
-    if (typeof project.workspace === "object" && "_id" in project.workspace) {
-      return String((project.workspace as any)._id);
+    const workspace = project.workspace;
+
+    if (
+      typeof workspace === "object" &&
+      workspace !== null &&
+      "_id" in workspace
+    ) {
+      return String((workspace as { _id: unknown })._id);
     }
 
-    return String(project.workspace);
+    return String(workspace);
   }
-
   // =========================================
   // VALIDATE WORKSPACE ASSIGNEE
   // =========================================
@@ -476,7 +490,6 @@ export class TaskService {
   ): Promise<void> {
     const [membership, isOwner] = await Promise.all([
       this.membershipRepository.findActiveMembership(workspaceId, userId),
-
       this.workspaceRepository.isOwner(workspaceId, userId),
     ]);
 

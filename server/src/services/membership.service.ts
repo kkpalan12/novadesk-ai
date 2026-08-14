@@ -4,6 +4,8 @@ import { NotFoundError } from "../common/errors/NotFoundError";
 import { CreateMembershipDto } from "../dto/membership/create-membership.dto";
 import { UpdateMembershipDto } from "../dto/membership/update-membership.dto";
 
+import { MembershipStatus } from "../interfaces/membership.interface";
+
 import { MembershipMapper } from "../mappers/membership.mapper";
 import { MembershipRepository } from "../repositories/membership.repository";
 import { WorkspaceRepository } from "../repositories/workspace.repository";
@@ -23,6 +25,9 @@ export class MembershipService {
    * - Workspace.members[]
    *
    * synchronized.
+   *
+   * If a previously removed membership exists,
+   * it is reactivated instead of creating a new document.
    */
   async createMembership(dto: CreateMembershipDto, actorUserId: string) {
     const isOwner = await this.workspaceRepository.isOwner(
@@ -39,10 +44,48 @@ export class MembershipService {
       dto.user,
     );
 
-    if (existing && existing.status === "ACTIVE") {
+    /**
+     * Already an active member.
+     */
+    if (existing && existing.status === MembershipStatus.ACTIVE) {
       throw new ConflictError("User is already a member of this workspace");
     }
 
+    /**
+     * Previously removed member.
+     *
+     * Reactivate the existing membership instead of
+     * creating a duplicate document because
+     * (workspace, user) is a unique index.
+     */
+    if (existing && existing.status === MembershipStatus.REMOVED) {
+      const membership = await this.membershipRepository.update(
+        existing._id.toString(),
+        {
+          status: MembershipStatus.ACTIVE,
+          role: dto.role,
+        },
+      );
+
+      if (!membership) {
+        throw new NotFoundError("Membership not found");
+      }
+
+      const workspace = await this.workspaceRepository.addMember(
+        dto.workspace,
+        dto.user,
+      );
+
+      if (!workspace) {
+        throw new NotFoundError("Workspace not found");
+      }
+
+      return membership;
+    }
+
+    /**
+     * New membership.
+     */
     const entity = MembershipMapper.toEntity(dto);
 
     const membership = await this.membershipRepository.create(entity);

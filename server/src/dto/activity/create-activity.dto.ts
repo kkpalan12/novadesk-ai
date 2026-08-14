@@ -13,5 +13,5 @@ export interface CreateActivityDto {
 
   description: string;
 
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

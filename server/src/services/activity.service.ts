@@ -7,6 +7,8 @@ import { WorkspaceRepository } from "../repositories/workspace.repository";
 import { MembershipRepository } from "../repositories/membership.repository";
 
 import { MembershipRole } from "../interfaces/membership.interface";
+import { IProject } from "../interfaces/project.interface";
+
 import { NotFoundError } from "../common/errors/NotFoundError";
 import { SocketService } from "../socket/socket.service";
 
@@ -150,30 +152,26 @@ export class ActivityService {
   /**
    * Get Project ID from Activity
    */
-  private getProjectId(activity: any): string {
-    if (
-      activity.project &&
-      typeof activity.project === "object" &&
-      "_id" in activity.project
-    ) {
-      return String(activity.project._id);
+  private getProjectId(activity: { project: unknown }): string {
+    const project = activity.project;
+
+    if (project && typeof project === "object" && "_id" in project) {
+      return String((project as { _id: unknown })._id);
     }
 
-    return String(activity.project);
+    return String(project);
   }
 
   /**
    * Get Workspace ID from Project
    */
-  private getWorkspaceId(project: any): string {
-    if (
-      project.workspace &&
-      typeof project.workspace === "object" &&
-      "_id" in project.workspace
-    ) {
-      return String(project.workspace._id);
+  private getWorkspaceId(project: IProject): string {
+    const workspace = project.workspace;
+
+    if (workspace && typeof workspace === "object" && "_id" in workspace) {
+      return String((workspace as { _id: unknown })._id);
     }
 
-    return String(project.workspace);
+    return String(workspace);
   }
 }

@@ -6,7 +6,7 @@ export class SocketService {
   // PROJECTS
   // =========================================
 
-  sendProjectCreated(workspaceId: string, project: any): void {
+  sendProjectCreated(workspaceId: string, project: unknown): void {
     try {
       const io = getIO();
 
@@ -21,7 +21,7 @@ export class SocketService {
     }
   }
 
-  sendProjectUpdated(workspaceId: string, project: any): void {
+  sendProjectUpdated(workspaceId: string, project: unknown): void {
     try {
       const io = getIO();
 
@@ -40,7 +40,7 @@ export class SocketService {
   // WORKSPACE UPDATED
   // =========================================
 
-  sendWorkspaceUpdated(workspaceId: string, workspace: any): void {
+  sendWorkspaceUpdated(workspaceId: string, workspace: unknown): void {
     try {
       const io = getIO();
 
@@ -59,7 +59,7 @@ export class SocketService {
   // TASK CREATED
   // =========================================
 
-  sendTaskCreated(projectId: string, task: any): void {
+  sendTaskCreated(projectId: string, task: unknown): void {
     try {
       const io = getIO();
 
@@ -78,7 +78,7 @@ export class SocketService {
   // TASK UPDATED
   // =========================================
 
-  sendTaskUpdate(projectId: string, task: any): void {
+  sendTaskUpdate(projectId: string, task: unknown): void {
     try {
       const io = getIO();
 
@@ -97,7 +97,7 @@ export class SocketService {
   // TASK STATUS CHANGED
   // =========================================
 
-  sendTaskStatusChanged(projectId: string, task: any): void {
+  sendTaskStatusChanged(projectId: string, task: unknown): void {
     try {
       const io = getIO();
 
@@ -116,7 +116,7 @@ export class SocketService {
   // TASK ASSIGNED
   // =========================================
 
-  sendTaskAssigned(projectId: string, task: any): void {
+  sendTaskAssigned(projectId: string, task: unknown): void {
     try {
       const io = getIO();
 
@@ -156,7 +156,11 @@ export class SocketService {
   // COMMENTS
   // =========================================
 
-  sendCommentCreated(projectId: string, taskId: string, comment: any): void {
+  sendCommentCreated(
+    projectId: string,
+    taskId: string,
+    comment: unknown,
+  ): void {
     try {
       const io = getIO();
 
@@ -174,7 +178,11 @@ export class SocketService {
     }
   }
 
-  sendCommentUpdated(projectId: string, taskId: string, comment: any): void {
+  sendCommentUpdated(
+    projectId: string,
+    taskId: string,
+    comment: unknown,
+  ): void {
     try {
       const io = getIO();
 
@@ -218,7 +226,7 @@ export class SocketService {
   // NOTIFICATIONS
   // =========================================
 
-  sendNotification(userId: string, notification: any): void {
+  sendNotification(userId: string, notification: unknown): void {
     try {
       const io = getIO();
 
@@ -254,7 +262,7 @@ export class SocketService {
   // ACTIVITY
   // =========================================
 
-  sendActivityCreated(projectId: string, activity: any): void {
+  sendActivityCreated(projectId: string, activity: unknown): void {
     try {
       const io = getIO();
 
@@ -273,7 +281,7 @@ export class SocketService {
   // WORKSPACE ACTIVITY
   // =========================================
 
-  sendWorkspaceActivityCreated(workspaceId: string, activity: any): void {
+  sendWorkspaceActivityCreated(workspaceId: string, activity: unknown): void {
     try {
       const io = getIO();
 

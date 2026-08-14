@@ -1,11 +1,14 @@
-import { FilterQuery, Model } from "mongoose";
+import { FilterQuery, Model, Query } from "mongoose";
+
 import { PaginationOptions, PaginationResult } from "./pagination.interface";
 
 export async function paginate<T>(
   model: Model<T>,
   filter: FilterQuery<T>,
   options: PaginationOptions,
-  queryBuilder?: (query: any) => any,
+  queryBuilder?: (
+    query: Query<unknown[], unknown>,
+  ) => Query<unknown[], unknown>,
 ): Promise<PaginationResult<T>> {
   const { page, limit } = options;
 
@@ -14,7 +17,7 @@ export async function paginate<T>(
   let query = model.find(filter);
 
   if (queryBuilder) {
-    query = queryBuilder(query);
+    query = queryBuilder(query as Query<unknown[], unknown>) as typeof query;
   }
 
   query.skip(skip).limit(limit);

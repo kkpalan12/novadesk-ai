@@ -195,14 +195,25 @@ export class NotificationService {
   /**
    * Add navigation context to task notifications.
    */
-  private async addNavigationContext(notification: any) {
+  private async addNavigationContext(notification: {
+    toObject?: () => {
+      entityType?: string;
+      entityId?: unknown;
+      [key: string]: unknown;
+    };
+    entityType?: string;
+    entityId?: unknown;
+  }) {
     const result = notification.toObject?.() ?? notification;
 
-    if (result.entityType?.toLowerCase() !== "task" || !result.entityId) {
+    const entityType =
+      typeof result.entityType === "string" ? result.entityType : "";
+
+    if (entityType.toLowerCase() !== "task" || !result.entityId) {
       return result;
     }
 
-    const task = await this.taskRepository.findById(result.entityId);
+    const task = await this.taskRepository.findById(String(result.entityId));
 
     if (!task) {
       return result;
@@ -217,9 +228,9 @@ export class NotificationService {
   /**
    * Resolve ObjectId from populated/unpopulated value.
    */
-  private getObjectId(value: any): string {
+  private getObjectId(value: unknown): string {
     if (value && typeof value === "object" && "_id" in value) {
-      return String(value._id);
+      return String((value as { _id: unknown })._id);
     }
 
     return String(value);

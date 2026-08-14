@@ -3,6 +3,7 @@ import { WorkspaceEntity } from "../entities/workspace.entity";
 import { UpdateWorkspaceDto } from "../dto/workspace/update-workspace.dto";
 import { Membership } from "../models/membership.model";
 import { paginate } from "../common/pagination/pagination.util";
+import { FilterQuery } from "mongoose";
 
 export class WorkspaceRepository {
   /**
@@ -40,7 +41,7 @@ export class WorkspaceRepository {
   }) {
     const { page, limit, search, userId } = filters;
 
-    const query: Record<string, any> = {
+    const query: FilterQuery<typeof Workspace> = {
       isDeleted: { $ne: true },
       $or: [{ owner: userId }, { members: userId }],
     };

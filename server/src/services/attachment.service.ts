@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 import { AttachmentRepository } from "../repositories/attachment.repository";
 import { AttachmentEntity } from "../entities/attachment.entity";
 import { CreateAttachmentDto } from "../dto/attachment/create-attachment.dto";
@@ -20,6 +18,36 @@ import { env } from "../config/env";
 
 import fs from "fs/promises";
 import path from "path";
+
+/**
+ * Reference that may be populated by Mongoose.
+ */
+type PopulatedReference = {
+  _id: string | { toString(): string };
+};
+
+/**
+ * Task reference used by this service.
+ */
+type TaskReference = {
+  project: string | PopulatedReference;
+};
+
+/**
+ * Project reference used by this service.
+ */
+type ProjectReference = {
+  workspace: string | PopulatedReference;
+};
+
+/**
+ * Attachment object used when generating
+ * the private attachment URL.
+ */
+type AttachmentUrlReference = {
+  _id: string | { toString(): string };
+  toObject?: () => Record<string, unknown>;
+};
 
 export class AttachmentService {
   private readonly attachmentRepository = new AttachmentRepository();
@@ -48,16 +76,7 @@ export class AttachmentService {
 
     const entity = new AttachmentEntity(dto);
 
-    const attachment = await this.attachmentRepository.create({
-      task: new Types.ObjectId(entity.task),
-      uploadedBy: new Types.ObjectId(entity.uploadedBy),
-      fileName: entity.fileName,
-      originalName: entity.originalName,
-      mimeType: entity.mimeType,
-      size: entity.size,
-      path: entity.path,
-      isDeleted: entity.isDeleted,
-    });
+    const attachment = await this.attachmentRepository.create(entity);
 
     await this.activityService.createActivity({
       project: this.getProjectId(task),
@@ -117,8 +136,8 @@ export class AttachmentService {
   /**
    * Get Private Attachment File
    *
-   * Authorization is performed before
-   * the physical file is served.
+   * Authorization is performed before the physical file
+   * is served.
    */
   async getAttachmentFile(id: string, userId: string) {
     const attachment = await this.attachmentRepository.findById(id);
@@ -207,7 +226,10 @@ export class AttachmentService {
   /**
    * Verify whether user can access the task.
    */
-  private async verifyTaskAccess(task: any, userId: string): Promise<void> {
+  private async verifyTaskAccess(
+    task: TaskReference,
+    userId: string,
+  ): Promise<void> {
     const projectId = this.getProjectId(task);
 
     const project = await this.projectRepository.findById(projectId);
@@ -237,11 +259,12 @@ export class AttachmentService {
   /**
    * Add private attachment URL.
    */
-  private addUrl(attachment: any) {
+  private addUrl(attachment: AttachmentUrlReference) {
     const attachmentObject = attachment.toObject?.() ?? attachment;
 
     return {
       ...attachmentObject,
+
       url: `${env.PUBLIC_API_URL}/api/v1/attachments/${attachment._id}/file`,
     };
   }
@@ -249,7 +272,7 @@ export class AttachmentService {
   /**
    * Resolve project ID.
    */
-  private getProjectId(task: any): string {
+  private getProjectId(task: TaskReference): string {
     if (
       task.project &&
       typeof task.project === "object" &&
@@ -264,7 +287,7 @@ export class AttachmentService {
   /**
    * Resolve workspace ID.
    */
-  private getWorkspaceId(project: any): string {
+  private getWorkspaceId(project: ProjectReference): string {
     if (
       project.workspace &&
       typeof project.workspace === "object" &&
@@ -279,7 +302,7 @@ export class AttachmentService {
   /**
    * Resolve ObjectId.
    */
-  private getObjectId(value: any): string {
+  private getObjectId(value: string | PopulatedReference): string {
     if (value && typeof value === "object" && "_id" in value) {
       return String(value._id);
     }
@@ -295,8 +318,13 @@ export class AttachmentService {
 
     try {
       await fs.unlink(absolutePath);
-    } catch (error: any) {
-      if (error?.code !== "ENOENT") {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code !== "ENOENT"
+      ) {
         throw error;
       }
     }

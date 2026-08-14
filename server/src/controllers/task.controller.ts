@@ -31,7 +31,7 @@ export class TaskController {
     const result = await this.taskService.getAllTasks(
       {
         ...req.query,
-        project: req.params.projectId,
+        project: String(req.params.projectId),
       },
       req.user!.userId,
     );

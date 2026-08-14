@@ -12,6 +12,11 @@ import { MembershipRole } from "../interfaces/membership.interface";
 import { NotFoundError } from "../common/errors/NotFoundError";
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from "../common/constants/constants";
 import { SocketService } from "../socket/socket.service";
+interface WorkspaceQuery {
+  page?: string | number;
+  limit?: string | number;
+  search?: string;
+}
 
 export class WorkspaceService {
   private readonly workspaceRepository = new WorkspaceRepository();
@@ -48,7 +53,7 @@ export class WorkspaceService {
   // Get All Workspaces
   // =========================================
 
-  async getAllWorkspaces(query: any, userId: string) {
+  async getAllWorkspaces(query: WorkspaceQuery, userId: string) {
     return this.workspaceRepository.findAll({
       page: Number(query.page) || DEFAULT_PAGE,
 

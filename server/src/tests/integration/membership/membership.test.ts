@@ -114,6 +114,40 @@ describe("Membership API", () => {
       expect(secondResponse.status).toBe(409);
       expect(secondResponse.body.success).toBe(false);
     });
+    it("should reactivate a removed membership", async () => {
+      const owner = await AuthHelper.createAuthenticatedUser();
+      const member = await AuthHelper.createAuthenticatedUser();
+
+      const workspace = await createWorkspace(owner.token);
+
+      const firstResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      expect(firstResponse.status).toBe(201);
+
+      const membershipId = firstResponse.body.data._id;
+
+      const removeResponse = await RequestHelper.delete(
+        `${membershipEndpoint}/${membershipId}`,
+        owner.token,
+      );
+
+      expect(removeResponse.status).toBe(200);
+
+      const reAddResponse = await createMembership(
+        owner.token,
+        workspace._id,
+        member.user._id,
+      );
+
+      expect(reAddResponse.status).toBe(201);
+      expect(reAddResponse.body.success).toBe(true);
+      expect(reAddResponse.body.data._id).toBe(membershipId);
+      expect(reAddResponse.body.data.status).toBe("ACTIVE");
+    });
   });
 
   describe("GET /api/v1/memberships/workspace/:workspaceId", () => {
