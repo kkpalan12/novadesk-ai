@@ -695,5 +695,212 @@
     </div>
 
     }
+    <!-- =========================================
+       ADD MEMBER MODAL
+       ========================================= -->
+    
+    @if (showAddMember()) {
+    
+    <div class="modal-backdrop">
+    
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="addMemberTitle">
+    
+            <div class="modal-header">
+    
+                <div>
+    
+                    <span class="section-eyebrow">
+                        TEAM MANAGEMENT
+                    </span>
+    
+                    <h2 id="addMemberTitle">
+                        Add Member
+                    </h2>
+    
+                    <p>
+                        Search for a user and add them to this workspace.
+                    </p>
+    
+                </div>
+    
+    
+                <button type="button" class="modal-close" (click)="closeAddMember()" [disabled]="memberActionLoading()">
+                    ×
+                </button>
+    
+            </div>
+    
+    
+            <!-- ERROR -->
+    
+            @if (memberError()) {
+    
+            <div class="member-error">
+                {{ memberError() }}
+            </div>
+    
+            }
+    
+    
+            <!-- SEARCH -->
+    
+            <div class="form-group">
+    
+                <label for="memberSearch">
+                    Search User
+                </label>
+    
+                <input id="memberSearch" type="text" [ngModel]="userSearchQuery()"
+                    (ngModelChange)="userSearchQuery.set($event); searchUsers()" placeholder="Search by name or email"
+                    autocomplete="off" [disabled]="memberActionLoading()" />
+    
+            </div>
+    
+    
+            <!-- SEARCH LOADING -->
+    
+            @if (userSearchLoading()) {
+    
+            <div class="empty-state">
+                Searching users...
+            </div>
+    
+            }
+    
+    
+            <!-- SEARCH RESULTS -->
+    
+            @if (
+            !userSearchLoading() &&
+            userSearchResults().length > 0
+            ) {
+    
+            <div class="user-search-results">
+    
+                @for (
+                user of userSearchResults();
+                track user._id
+                ) {
+    
+                <button type="button" class="user-search-result" (click)="selectUser(user)"
+                    [disabled]="memberActionLoading()">
+    
+                    <div class="member-avatar">
+    
+                        {{
+                        user.firstName
+                        .charAt(0)
+                        .toUpperCase()
+                        }}
+    
+                    </div>
+    
+    
+                    <div class="member-details">
+    
+                        <strong>
+                            {{ user.firstName }}
+                            {{ user.lastName }}
+                        </strong>
+    
+                        <span>
+                            {{ user.email }}
+                        </span>
+    
+                    </div>
+    
+                </button>
+    
+                }
+    
+            </div>
+    
+            }
+    
+    
+            <!-- SELECTED USER -->
+    
+            @if (selectedUser()) {
+    
+            <div class="selected-member">
+    
+                <span class="section-eyebrow">
+                    SELECTED USER
+                </span>
+    
+                <strong>
+                    {{ selectedUser()!.firstName }}
+                    {{ selectedUser()!.lastName }}
+                </strong>
+    
+                <span>
+                    {{ selectedUser()!.email }}
+                </span>
+    
+            </div>
+    
+            }
+    
+    
+            <!-- ROLE -->
+    
+            <div class="form-group">
+    
+                <label for="memberRole">
+                    Role
+                </label>
+    
+                <select id="memberRole" [value]="memberRole()" (change)="
+                        memberRole.set(
+                            $any($event.target).value
+                        )
+                    " [disabled]="memberActionLoading()">
+    
+                    @for (
+                    role of memberRoles;
+                    track role
+                    ) {
+    
+                    <option [value]="role">
+                        {{ role }}
+                    </option>
+    
+                    }
+    
+                </select>
+    
+            </div>
+    
+    
+            <!-- ACTIONS -->
+    
+            <div class="form-actions">
+    
+                <button type="button" class="secondary-button" (click)="closeAddMember()"
+                    [disabled]="memberActionLoading()">
+                    Cancel
+                </button>
+    
+    
+                <button type="button" class="primary-button" (click)="addMember()" [disabled]="
+                        memberActionLoading() ||
+                        !selectedUser()
+                    ">
+    
+                    @if (memberActionLoading()) {
+                    Adding...
+                    } @else {
+                    Add Member
+                    }
+    
+                </button>
+    
+            </div>
+    
+        </div>
+    
+    </div>
+    
+    }
 
 </div>
