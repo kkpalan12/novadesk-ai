@@ -625,3 +625,97 @@
 
     font-size: 10px;
 }
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 210px;
+    }
+
+    .main-area {
+        width: calc(100% - 210px);
+        margin-left: 210px;
+    }
+
+    .topbar {
+        padding: 0 20px;
+    }
+
+    .page-content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 700px) {
+    .sidebar {
+        position: fixed;
+
+        width: 64px;
+    }
+
+    .brand {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .brand-name,
+    .workspace-selector,
+    .nav-item>span:not(.nav-icon),
+    .logout-button>span:not(.nav-icon) {
+        display: none;
+    }
+
+    .navigation {
+        padding: 14px 8px;
+    }
+
+    .nav-item {
+        justify-content: center;
+        padding: 11px 8px;
+    }
+
+    .nav-icon {
+        margin: 0;
+    }
+
+    .sidebar-bottom {
+        padding: 8px;
+    }
+
+    .main-area {
+        width: calc(100% - 64px);
+        margin-left: 64px;
+    }
+
+    .topbar {
+        height: 64px;
+        padding: 0 14px;
+    }
+
+    .page-content {
+        min-height: calc(100vh - 64px);
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar-title {
+        font-size: 14px;
+    }
+
+    .topbar-actions {
+        gap: 8px;
+    }
+
+    .notification-button,
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .page-content {
+        padding: 12px;
+    }
+}
