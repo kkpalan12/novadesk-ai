@@ -1,15 +1,19 @@
-import {
-  Schema,
-  model,
-  Types,
-  InferSchemaType,
-  HydratedDocument,
-} from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
-const commentSchema = new Schema(
+export interface IComment extends Document {
+  task: Types.ObjectId;
+  content: string;
+  createdBy: Types.ObjectId;
+  isEdited: boolean;
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const commentSchema = new Schema<IComment>(
   {
     task: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Task",
       required: true,
     },
@@ -21,7 +25,7 @@ const commentSchema = new Schema(
     },
 
     createdBy: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -59,8 +63,4 @@ commentSchema.index({
   createdBy: 1,
 });
 
-export type CommentDocument = HydratedDocument<
-  InferSchemaType<typeof commentSchema>
->;
-
-export const Comment = model("Comment", commentSchema);
+export const Comment = model<IComment>("Comment", commentSchema);

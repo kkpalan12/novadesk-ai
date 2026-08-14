@@ -1,7 +1,34 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
+
 import { NOTIFICATION_TYPES } from "../common/constants/notification.constants";
 
-const notificationSchema = new Schema(
+export interface INotification extends Document {
+  recipient: Types.ObjectId;
+  sender: Types.ObjectId;
+
+  type:
+    | "TASK_ASSIGNED"
+    | "TASK_UPDATED"
+    | "TASK_COMPLETED"
+    | "COMMENT_ADDED"
+    | "PROJECT_CREATED"
+    | "WORKSPACE_INVITATION"
+    | "TASK_STATUS_CHANGED";
+
+  title: string;
+  message: string;
+
+  entityType: string;
+  entityId: Types.ObjectId;
+
+  isRead: boolean;
+  isDeleted: boolean;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const notificationSchema = new Schema<INotification>(
   {
     recipient: {
       type: Schema.Types.ObjectId,
@@ -68,4 +95,7 @@ notificationSchema.index({
   isRead: 1,
 });
 
-export const Notification = model("Notification", notificationSchema);
+export const Notification = model<INotification>(
+  "Notification",
+  notificationSchema,
+);

@@ -3,18 +3,11 @@ import { ClientSession } from "mongoose";
 import { BaseRepository } from "../common/repositories/base.repository";
 
 import { Attachment } from "../models/attachment.model";
-import { AttachmentEntity } from "../entities/attachment.entity";
+import { IAttachment } from "../interfaces/attachment.interface";
 
-export class AttachmentRepository extends BaseRepository<any> {
+export class AttachmentRepository extends BaseRepository<IAttachment> {
   constructor() {
     super(Attachment);
-  }
-
-  /**
-   * Create Attachment
-   */
-  async create(entity: AttachmentEntity, session?: ClientSession) {
-    return super.create(entity, session);
   }
 
   /**

@@ -82,7 +82,10 @@ export class ProjectService {
     const workspaceIds =
       await this.workspaceRepository.findAccessibleWorkspaceIds(userId);
 
-    const project = await this.projectRepository.findById(id, workspaceIds);
+    const project = await this.projectRepository.findByIdWithWorkspaceAccess(
+      id,
+      workspaceIds,
+    );
 
     if (!project) {
       throw new NotFoundError("Project not found");

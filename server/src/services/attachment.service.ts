@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 import { AttachmentRepository } from "../repositories/attachment.repository";
 import { AttachmentEntity } from "../entities/attachment.entity";
 import { CreateAttachmentDto } from "../dto/attachment/create-attachment.dto";
@@ -46,7 +48,16 @@ export class AttachmentService {
 
     const entity = new AttachmentEntity(dto);
 
-    const attachment = await this.attachmentRepository.create(entity);
+    const attachment = await this.attachmentRepository.create({
+      task: new Types.ObjectId(entity.task),
+      uploadedBy: new Types.ObjectId(entity.uploadedBy),
+      fileName: entity.fileName,
+      originalName: entity.originalName,
+      mimeType: entity.mimeType,
+      size: entity.size,
+      path: entity.path,
+      isDeleted: entity.isDeleted,
+    });
 
     await this.activityService.createActivity({
       project: this.getProjectId(task),
@@ -106,7 +117,8 @@ export class AttachmentService {
   /**
    * Get Private Attachment File
    *
-   * Authorization is performed before the physical file is served.
+   * Authorization is performed before
+   * the physical file is served.
    */
   async getAttachmentFile(id: string, userId: string) {
     const attachment = await this.attachmentRepository.findById(id);

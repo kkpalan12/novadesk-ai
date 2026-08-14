@@ -6,8 +6,9 @@ import { paginate } from "../common/pagination/pagination.util";
 import { Project } from "../models/project.model";
 import { ProjectEntity } from "../entities/project.entity";
 import { UpdateProjectDto } from "../dto/project/update-project.dto";
+import { IProject } from "../interfaces/project.interface";
 
-export class ProjectRepository extends BaseRepository<any> {
+export class ProjectRepository extends BaseRepository<IProject> {
   constructor() {
     super(Project);
   }
@@ -15,30 +16,47 @@ export class ProjectRepository extends BaseRepository<any> {
   /**
    * Create Project
    */
-  async create(entity: ProjectEntity, session?: ClientSession) {
+  async create(
+    entity: ProjectEntity,
+    session?: ClientSession,
+  ): Promise<IProject> {
     return super.create(entity, session);
   }
 
   /**
    * Get Project By Id
    *
-   * If workspaceIds are provided, the project
-   * must belong to one of those workspaces.
+   * Returns only non-deleted project.
+   *
+   * Workspace access filtering is handled
+   * separately by findByIdWithWorkspaceAccess().
    */
-  async findById(id: string, workspaceIds?: string[]) {
-    const query: Record<string, any> = {
-      _id: id,
-      isDeleted: { $ne: true },
-    };
-
-    if (workspaceIds) {
-      query.workspace = {
-        $in: workspaceIds,
-      };
-    }
-
+  override async findById(id: string): Promise<IProject | null> {
     return this.model
-      .findOne(query)
+      .findOne({
+        _id: id,
+        isDeleted: { $ne: true },
+      })
+      .populate("workspace", "name")
+      .populate("owner", "firstName lastName email")
+      .exec();
+  }
+
+  /**
+   * Get Project By Id With Workspace Access
+   *
+   * The project must belong to one of the
+   * supplied accessible workspaces.
+   */
+  async findByIdWithWorkspaceAccess(id: string, workspaceIds: string[]) {
+    return this.model
+      .findOne({
+        _id: id,
+        workspace: {
+          $in: workspaceIds,
+        },
+        isDeleted: { $ne: true },
+      })
       .populate("workspace", "name")
       .populate("owner", "firstName lastName email")
       .exec();
@@ -63,7 +81,7 @@ export class ProjectRepository extends BaseRepository<any> {
   }) {
     const { page, limit, search, workspaceIds, workspace, status } = filters;
 
-    const query: Record<string, any> = {
+    const query: Record<string, unknown> = {
       isDeleted: { $ne: true },
       workspace: {
         $in: workspaceIds,
