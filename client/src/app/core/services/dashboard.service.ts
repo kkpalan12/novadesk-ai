@@ -16,7 +16,7 @@ export interface DashboardPriorityStats {
   LOW: number;
   MEDIUM: number;
   HIGH: number;
-  URGENT: number;
+  CRITICAL: number;
 }
 
 export interface DashboardData {

@@ -174,8 +174,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Load workspaces error:', error);
-
         this.loading.set(false);
 
         this.errorMessage.set(
@@ -215,8 +213,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Load members error:', error);
-
         this.members.set([]);
 
         this.membersLoading.set(false);
@@ -349,8 +345,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('User search error:', error);
-
         this.userSearchResults.set([]);
 
         this.userSearchLoading.set(false);
@@ -423,8 +417,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Add member error:', error);
-
           this.memberActionLoading.set(false);
 
           this.memberError.set(
@@ -475,8 +467,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Remove member error:', error);
-
         this.memberActionLoading.set(false);
 
         this.memberError.set(
@@ -534,8 +524,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Update member role error:', error);
-
           this.memberActionLoading.set(false);
 
           this.memberError.set(
@@ -611,8 +599,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Create workspace error:', error);
-
           this.createWorkspaceLoading.set(false);
 
           this.createWorkspaceError.set(
@@ -701,8 +687,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Update workspace failed:', error);
-
           this.editWorkspaceLoading.set(false);
 
           this.editWorkspaceError.set(
@@ -738,8 +722,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Delete workspace failed:', error);
-
         this.errorMessage.set(
           error?.error?.message ?? 'Unable to delete workspace.',
         );
@@ -752,8 +734,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
 
   private initializeWorkspaceRealtime(): void {
     this.socketService.onWorkspaceUpdated((updatedWorkspace) => {
-      console.log('🏢 REAL-TIME WORKSPACE UPDATED:', updatedWorkspace);
-
       if (!updatedWorkspace?._id) {
         return;
       }
@@ -786,8 +766,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onOnlineUsers((userIds) => {
-      console.log('🟢 REAL-TIME ONLINE USERS:', userIds);
-
       this.onlineUsers.set(new Set(userIds));
     });
 
@@ -799,8 +777,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       if (!data?.userId) {
         return;
       }
-
-      console.log('🟢 REAL-TIME USER ONLINE:', data.userId);
 
       this.onlineUsers.update((users) => {
         const updated = new Set(users);
@@ -819,8 +795,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       if (!data?.userId) {
         return;
       }
-
-      console.log('🔴 REAL-TIME USER OFFLINE:', data.userId);
 
       this.onlineUsers.update((users) => {
         const updated = new Set(users);
@@ -842,12 +816,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
 
     const online = this.onlineUsers().has(userId);
 
-    console.log('👤 PRESENCE CHECK:', {
-      userId,
-      online,
-      onlineUsers: Array.from(this.onlineUsers()),
-    });
-
     return online;
   }
   // =========================================
@@ -858,9 +826,5 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     this.socketService.removeWorkspaceListeners();
 
     this.socketService.removePresenceListeners();
-
-    console.log('🧹 Workspace socket listeners removed');
-
-    console.log('🧹 Presence socket listeners removed');
   }
 }

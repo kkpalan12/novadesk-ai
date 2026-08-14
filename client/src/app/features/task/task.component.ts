@@ -110,10 +110,6 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     const workspaceId = this.route.snapshot.queryParamMap.get('workspace');
 
-    console.log('Task page project:', projectId);
-
-    console.log('Task page workspace:', workspaceId);
-
     if (!projectId) {
       this.loading.set(false);
       this.errorMessage.set('Project is required.');
@@ -142,8 +138,6 @@ export class TaskComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onTaskCreated((createdTask) => {
-      console.log('🆕 REAL-TIME TASK CREATED:', createdTask);
-
       const createdProjectId =
         typeof createdTask?.project === 'string'
           ? createdTask.project
@@ -163,8 +157,6 @@ export class TaskComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onTaskUpdated((updatedTask) => {
-      console.log('🔄 REAL-TIME TASK UPDATED:', updatedTask);
-
       const updatedProjectId =
         typeof updatedTask?.project === 'string'
           ? updatedTask.project
@@ -182,8 +174,6 @@ export class TaskComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onTaskAssigned((assignedTask) => {
-      console.log('👤 REAL-TIME TASK ASSIGNED:', assignedTask);
-
       const assignedProjectId =
         typeof assignedTask?.project === 'string'
           ? assignedTask.project
@@ -200,8 +190,6 @@ export class TaskComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onTaskStatusChanged((updatedTask) => {
-      console.log('🔄 REAL-TIME TASK STATUS CHANGED:', updatedTask);
-
       const updatedProjectId =
         typeof updatedTask?.project === 'string'
           ? updatedTask.project
@@ -218,8 +206,6 @@ export class TaskComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onTaskDeleted((data) => {
-      console.log('🗑️ REAL-TIME TASK DELETED:', data);
-
       if (!data?.taskId) {
         return;
       }
@@ -263,8 +249,6 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     this.taskService.getTasks(projectId, this.page(), this.limit()).subscribe({
       next: (response) => {
-        console.log('Tasks response:', response);
-
         const data = response?.data;
 
         this.tasks.set(data?.tasks ?? []);
@@ -277,8 +261,6 @@ export class TaskComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Load tasks failed:', error);
-
         this.loading.set(false);
 
         this.errorMessage.set(error?.error?.message ?? 'Unable to load tasks.');
@@ -297,8 +279,6 @@ export class TaskComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Load members failed:', error);
-
         this.members.set([]);
       },
     });
@@ -437,8 +417,6 @@ export class TaskComponent implements OnInit, OnDestroy {
           },
 
           error: (error) => {
-            console.error('Update task failed:', error);
-
             this.saving.set(false);
 
             this.formError.set(
@@ -492,8 +470,6 @@ export class TaskComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Create task failed:', error);
-
           this.saving.set(false);
 
           this.formError.set(error?.error?.message ?? 'Unable to create task.');
@@ -523,8 +499,6 @@ export class TaskComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Assign task failed:', error);
-
           this.saving.set(false);
 
           this.formError.set(
@@ -574,8 +548,6 @@ export class TaskComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Change task status failed:', error);
-
         this.tasks.update((items) =>
           items.map((item) =>
             item._id === task._id
@@ -637,8 +609,6 @@ export class TaskComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Delete task failed:', error);
-
         this.deleting.set(null);
 
         this.errorMessage.set(
@@ -708,8 +678,6 @@ export class TaskComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Load filtered tasks failed:', error);
-
           this.loading.set(false);
 
           this.errorMessage.set(
@@ -901,7 +869,5 @@ export class TaskComponent implements OnInit, OnDestroy {
     }
 
     this.socketService.removeTaskListeners();
-
-    console.log('🧹 Task component destroyed');
   }
 }

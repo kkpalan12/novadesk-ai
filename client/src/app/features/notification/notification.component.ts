@@ -67,8 +67,6 @@ export class NotificationComponent implements OnInit {
       },
 
       error: (error) => {
-        console.error('Load notifications error:', error);
-
         this.loading.set(false);
 
         this.errorMessage.set(
@@ -107,8 +105,6 @@ export class NotificationComponent implements OnInit {
       },
 
       error: (error) => {
-        console.error('Mark notification read error:', error);
-
         this.actionLoading.set(null);
 
         this.errorMessage.set(
@@ -145,8 +141,6 @@ export class NotificationComponent implements OnInit {
       },
 
       error: (error) => {
-        console.error('Mark all notifications read error:', error);
-
         this.actionLoading.set(null);
 
         this.errorMessage.set(
@@ -184,8 +178,6 @@ export class NotificationComponent implements OnInit {
       },
 
       error: (error) => {
-        console.error('Delete notification error:', error);
-
         this.actionLoading.set(null);
 
         this.errorMessage.set(

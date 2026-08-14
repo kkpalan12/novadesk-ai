@@ -96,8 +96,6 @@ export class ProjectComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onProjectCreated((project) => {
-      console.log('📁 REAL-TIME PROJECT CREATED:', project);
-
       const projectWorkspaceId =
         typeof project?.workspace === 'string'
           ? project.workspace
@@ -115,8 +113,6 @@ export class ProjectComponent implements OnInit, OnDestroy {
     // =========================================
 
     this.socketService.onProjectUpdated((project) => {
-      console.log('📁 REAL-TIME PROJECT UPDATED:', project);
-
       const projectWorkspaceId =
         typeof project?.workspace === 'string'
           ? project.workspace
@@ -151,8 +147,6 @@ export class ProjectComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Load projects failed:', error);
-
         this.loading.set(false);
 
         this.errorMessage.set(
@@ -240,8 +234,6 @@ export class ProjectComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
-          console.error('Create project failed:', error);
-
           this.saving.set(false);
 
           this.formError.set(
@@ -269,10 +261,6 @@ export class ProjectComponent implements OnInit, OnDestroy {
 
       return;
     }
-
-    console.log('Opening project:', projectId);
-
-    console.log('Workspace:', workspaceId);
 
     this.router.navigate(['/tasks'], {
       queryParams: {
@@ -357,8 +345,6 @@ export class ProjectComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Update project failed:', error);
-
         this.saving.set(false);
 
         this.formError.set(
@@ -397,8 +383,6 @@ export class ProjectComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Delete project failed:', error);
-
         this.deleting.set(null);
 
         this.errorMessage.set(
@@ -415,7 +399,5 @@ export class ProjectComponent implements OnInit, OnDestroy {
     }
 
     this.socketService.removeProjectListeners();
-
-    console.log('🧹 Project component destroyed');
   }
 }

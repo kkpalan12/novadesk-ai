@@ -80,8 +80,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('📝 REAL-TIME DASHBOARD ACTIVITY:', activity);
-
       // =========================================
       // TASK ACTIVITY
       // =========================================
@@ -143,8 +141,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
-        console.error('Load dashboard error:', error);
-
         this.loading.set(false);
 
         this.errorMessage.set(
@@ -199,7 +195,5 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.socketService.removeActivityListeners();
-
-    console.log('🧹 Dashboard realtime listeners removed');
   }
 }

@@ -89,7 +89,6 @@ export class NotificationService {
 
   initializeRealtime(): void {
     if (this.realtimeInitialized) {
-      console.log('🔔 Notification realtime already initialized');
       return;
     }
 
@@ -102,8 +101,6 @@ export class NotificationService {
     // =======================================
 
     this.socketService.onNotification((notification: Notification) => {
-      console.log('🔔 REAL-TIME NOTIFICATION:', notification);
-
       this.notifications.update((items) => [notification, ...items]);
 
       /*
@@ -119,8 +116,6 @@ export class NotificationService {
     // =======================================
 
     this.socketService.onUnreadCount((data: { count: number }) => {
-      console.log('🔔 REAL-TIME UNREAD COUNT:', data.count);
-
       this.unreadCount.set(data?.count ?? 0);
     });
 

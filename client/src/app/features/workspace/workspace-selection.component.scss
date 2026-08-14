@@ -3,7 +3,7 @@
     min-height: 100vh;
 }
 
-.workspace-page {
+.workspace-selection-page {
     min-height: 100vh;
 
     display: flex;
@@ -15,19 +15,17 @@
     background: #f8fafc;
 }
 
-.workspace-container {
+.workspace-selection-card {
     width: 100%;
     max-width: 620px;
 }
-
 
 /* =========================================
    HEADER
    ========================================= */
 
-.workspace-header {
+.selection-header {
     text-align: center;
-
     margin-bottom: 32px;
 }
 
@@ -50,7 +48,7 @@
     font-weight: 700;
 }
 
-.workspace-header h1 {
+.selection-header h1 {
     margin: 0;
 
     color: #111827;
@@ -59,14 +57,13 @@
     font-weight: 700;
 }
 
-.workspace-header p {
+.selection-header p {
     margin: 10px 0 0;
 
     color: #6b7280;
 
     font-size: 15px;
 }
-
 
 /* =========================================
    WORKSPACE LIST
@@ -75,10 +72,8 @@
 .workspace-list {
     display: flex;
     flex-direction: column;
-
     gap: 12px;
 }
-
 
 /* =========================================
    WORKSPACE CARD
@@ -98,7 +93,6 @@
     border-radius: 12px;
 
     background: #ffffff;
-
     color: #111827;
 
     text-align: left;
@@ -114,8 +108,7 @@
 .workspace-card:hover {
     border-color: #93c5fd;
 
-    box-shadow:
-        0 8px 24px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 
     transform: translateY(-1px);
 }
@@ -123,16 +116,14 @@
 .workspace-card:focus-visible {
     outline: none;
 
-    box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-
 /* =========================================
-   LOGO
+   WORKSPACE ICON
    ========================================= */
 
-.workspace-logo {
+.workspace-icon {
     width: 52px;
     height: 52px;
 
@@ -141,8 +132,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
-    overflow: hidden;
 
     border-radius: 10px;
 
@@ -153,21 +142,12 @@
     font-weight: 700;
 }
 
-.workspace-logo img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-
 /* =========================================
-   INFO
+   WORKSPACE INFO
    ========================================= */
 
 .workspace-info {
     min-width: 0;
-
     flex: 1;
 }
 
@@ -190,16 +170,13 @@
     font-size: 13px;
 
     text-overflow: ellipsis;
-
     white-space: nowrap;
 }
 
-.workspace-info span {
+.workspace-members {
     color: #9ca3af;
-
     font-size: 12px;
 }
-
 
 /* =========================================
    ARROW
@@ -219,17 +196,17 @@
 
 .workspace-card:hover .workspace-arrow {
     color: #2563eb;
-
     transform: translateX(3px);
 }
 
-
 /* =========================================
-   LOADING
+   STATES
    ========================================= */
 
-.loading-state {
-    padding: 48px;
+.state,
+.error-state,
+.empty-state {
+    padding: 42px 24px;
 
     text-align: center;
 
@@ -239,7 +216,11 @@
     border-radius: 12px;
 }
 
-.spinner {
+/* =========================================
+   LOADING
+   ========================================= */
+
+.loading-spinner {
     width: 28px;
     height: 28px;
 
@@ -253,7 +234,7 @@
     animation: spin 0.8s linear infinite;
 }
 
-.loading-state p {
+.state p {
     margin: 0;
 
     color: #6b7280;
@@ -267,48 +248,61 @@
     }
 }
 
-
 /* =========================================
-   ERROR / EMPTY
+   ERROR
    ========================================= */
 
-.error-state,
-.empty-state {
-    padding: 42px 24px;
+.workspace-error {
+    margin-top: 8px;
 
-    text-align: center;
+    color: #dc2626;
 
-    background: #ffffff;
-
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    font-size: 12px;
 }
 
-.error-state h3,
-.empty-state h3 {
-    margin: 12px 0 6px;
+.error-message {
+    margin-bottom: 18px;
 
-    color: #111827;
-
-    font-size: 17px;
-}
-
-.error-state p,
-.empty-state p {
-    margin: 0 0 20px;
-
-    color: #6b7280;
+    color: #dc2626;
 
     font-size: 14px;
 }
 
+/* =========================================
+   EMPTY STATE
+   ========================================= */
+
 .empty-icon {
     color: #9ca3af;
-
     font-size: 32px;
+    margin-bottom: 8px;
 }
 
-.retry-button {
+.empty-state h2 {
+    margin: 12px 0 8px;
+
+    color: #111827;
+
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.empty-state p {
+    max-width: 440px;
+
+    margin: 0 auto 20px;
+
+    color: #6b7280;
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* =========================================
+   BUTTON
+   ========================================= */
+
+.primary-button {
     padding: 10px 18px;
 
     border: none;
@@ -322,23 +316,38 @@
     font-weight: 600;
 
     cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
 }
 
-.retry-button:hover {
+.primary-button:hover:not(:disabled) {
     background: #1d4ed8;
+    transform: translateY(-1px);
 }
 
+.primary-button:focus-visible {
+    outline: none;
+
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.primary-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 
 /* =========================================
    MOBILE
    ========================================= */
 
 @media (max-width: 600px) {
-    .workspace-page {
+    .workspace-selection-page {
         padding: 24px 14px;
     }
 
-    .workspace-header h1 {
+    .selection-header h1 {
         font-size: 24px;
     }
 
@@ -346,7 +355,7 @@
         padding: 14px;
     }
 
-    .workspace-logo {
+    .workspace-icon {
         width: 46px;
         height: 46px;
 

@@ -26,7 +26,7 @@ export const workspaceGuard: CanActivateFn = (
    * Send the user to workspace selection.
    */
 
-  return router.createUrlTree(['/workspaces'], {
+  return router.createUrlTree(['/workspace/select'], {
     queryParams: {
       returnUrl: state.url,
     },

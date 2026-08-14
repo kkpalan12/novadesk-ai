@@ -163,7 +163,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
     this.socketService.removeActivityListeners();
 
-    console.log('🧹 Task detail component destroyed');
   }
 
   // =========================================================
@@ -183,7 +182,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('📝 REAL-TIME ACTIVITY CREATED:', activity);
 
       let added = false;
 
@@ -221,7 +219,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('🔄 REAL-TIME TASK DETAIL UPDATED:', updatedTask);
 
       this.task.set(updatedTask);
 
@@ -239,7 +236,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('🗑️ REAL-TIME TASK DETAIL DELETED:', taskId);
 
       this.router.navigate(['/tasks'], {
         queryParams: {
@@ -267,7 +263,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('💬 REAL-TIME COMMENT CREATED:', data.comment);
 
       this.comments.update((items) => {
         const exists = items.some((item) => item._id === data.comment._id);
@@ -297,7 +292,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('💬 REAL-TIME COMMENT UPDATED:', data.comment);
 
       this.comments.update((items) =>
         items.map((item) =>
@@ -321,7 +315,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('🗑️ REAL-TIME COMMENT DELETED:', data.commentId);
 
       this.comments.update((items) =>
         items.filter((item) => item._id !== data.commentId),

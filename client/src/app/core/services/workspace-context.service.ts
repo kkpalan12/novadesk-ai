@@ -57,8 +57,6 @@ export class WorkspaceContextService {
       },
 
       error: (error) => {
-        console.error('Load workspaces error:', error);
-
         this.loading.set(false);
 
         this.errorMessage.set(
