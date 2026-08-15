@@ -208,7 +208,147 @@
             </div>
 
         </section>
+<!-- ==========================
+     AI ASSIST
+     ========================== -->
 
+<section class="detail-section ai-section">
+
+    <div class="ai-header">
+
+        <div>
+            <h2>AI Assist</h2>
+
+            <p>
+                Get practical recommendations for this task.
+            </p>
+        </div>
+
+        <button type="button" class="primary-button" (click)="analyzeTask()" [disabled]="aiLoading()">
+            @if (aiLoading()) {
+            Analyzing...
+            } @else {
+            Analyze Task
+            }
+        </button>
+
+    </div>
+
+    @if (aiError()) {
+    <div class="form-error">
+        {{ aiError() }}
+    </div>
+    }
+
+    @if (aiLoading()) {
+    <div class="ai-loading">
+        Analyzing task with AI...
+    </div>
+    }
+
+    @if (aiAnalysis(); as analysis) {
+
+    <div class="ai-result">
+
+        <div class="ai-result-block">
+            <span class="ai-label">
+                Summary
+            </span>
+
+            <p>
+                {{ analysis.summary }}
+            </p>
+        </div>
+
+        <div class="ai-result-block">
+            <span class="ai-label">
+                Suggested Priority
+            </span>
+
+            <span class="ai-priority">
+                {{ analysis.suggestedPriority }}
+            </span>
+        </div>
+
+        <div class="ai-result-block">
+
+            <span class="ai-label">
+                Suggested Subtasks
+            </span>
+
+            @if (analysis.suggestedSubtasks.length > 0) {
+
+            <ul class="ai-list">
+
+                @for (
+                subtask of analysis.suggestedSubtasks;
+                track $index
+                ) {
+                <li>
+                    {{ subtask }}
+                </li>
+                }
+
+            </ul>
+
+            } @else {
+
+            <p class="ai-empty">
+                No subtasks suggested.
+            </p>
+
+            }
+
+        </div>
+
+        <div class="ai-result-block">
+
+            <span class="ai-label">
+                Risks
+            </span>
+
+            @if (analysis.risks.length > 0) {
+
+            <ul class="ai-list ai-risk-list">
+
+                @for (
+                risk of analysis.risks;
+                track $index
+                ) {
+                <li>
+                    {{ risk }}
+                </li>
+                }
+
+            </ul>
+
+            } @else {
+
+            <p class="ai-empty">
+                No significant risks identified.
+            </p>
+
+            }
+
+        </div>
+
+        <div class="ai-result-block">
+
+            <span class="ai-label">
+                Next Action
+            </span>
+
+            <p>
+                {{ analysis.nextAction }}
+            </p>
+
+        </div>
+
+    </div>
+
+    }
+
+</section>
 
         <!-- ==========================
            COMMENTS

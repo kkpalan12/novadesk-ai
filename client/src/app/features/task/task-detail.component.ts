@@ -16,6 +16,9 @@ import { Comment } from '../../core/models/comment.model';
 import { TaskHistory } from '../../core/models/task-history.model';
 import { Activity } from '../../core/models/activity.model';
 import { Attachment } from '../../core/models/attachment.model';
+import { TaskAiService } from '../../core/services/task-ai.service';
+
+import { TaskAiAnalysis } from '../../core/models/task-ai.model';
 
 @Component({
   selector: 'app-task-detail',
@@ -44,6 +47,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   private readonly attachmentService = inject(AttachmentService);
 
   private readonly socketService = inject(SocketService);
+  private readonly taskAiService = inject(TaskAiService);
 
   // =========================================================
   // Task
@@ -74,6 +78,11 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   readonly editingCommentId = signal<string | null>(null);
 
   readonly commentError = signal('');
+  readonly aiAnalysis = signal<TaskAiAnalysis | null>(null);
+
+  readonly aiLoading = signal(false);
+
+  readonly aiError = signal('');
 
   commentText = '';
 
@@ -896,6 +905,35 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
               workspace: workspaceId,
             }
           : {}),
+      },
+    });
+  }
+  analyzeTask(): void {
+    const taskId = this.task()?._id;
+    const projectId = this.projectId();
+
+    if (!taskId || !projectId) {
+      return;
+    }
+
+    this.aiLoading.set(true);
+    this.aiError.set('');
+    this.aiAnalysis.set(null);
+
+    this.taskAiService.analyzeTask(projectId, taskId).subscribe({
+      next: (response) => {
+        this.aiAnalysis.set(response.data);
+        this.aiLoading.set(false);
+      },
+
+      error: (error) => {
+        console.error('Task AI analysis error:', error);
+
+        this.aiLoading.set(false);
+
+        this.aiError.set(
+          error?.error?.message ?? 'Unable to analyze this task.',
+        );
       },
     });
   }
