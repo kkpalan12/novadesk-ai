@@ -40,6 +40,7 @@ export class TaskComponent implements OnInit, OnDestroy {
   readonly projectId = signal('');
 
   readonly workspaceId = signal('');
+  readonly projectName = signal('');
 
   // =========================================
   // TASK STATE
@@ -251,8 +252,11 @@ export class TaskComponent implements OnInit, OnDestroy {
       next: (response) => {
         const data = response?.data;
 
-        this.tasks.set(data?.tasks ?? []);
+        const tasks = data?.tasks ?? [];
 
+        this.tasks.set(tasks);
+
+        this.setProjectName(tasks);
         this.total.set(data?.total ?? 0);
 
         this.totalPages.set(data?.totalPages ?? 1);
@@ -668,8 +672,11 @@ export class TaskComponent implements OnInit, OnDestroy {
         next: (response) => {
           const data = response?.data;
 
-          this.tasks.set(data?.tasks ?? []);
+          const tasks = data?.tasks ?? [];
 
+          this.tasks.set(tasks);
+
+          this.setProjectName(tasks);
           this.total.set(data?.total ?? 0);
 
           this.totalPages.set(data?.totalPages ?? 1);
@@ -852,7 +859,13 @@ export class TaskComponent implements OnInit, OnDestroy {
       },
     });
   }
+  private setProjectName(tasks: Task[]): void {
+    const firstTask = tasks[0];
 
+    if (firstTask?.project && typeof firstTask.project !== 'string') {
+      this.projectName.set(firstTask.project.name ?? '');
+    }
+  }
   // =========================================
   // SOCKET CLEANUP
   // =========================================

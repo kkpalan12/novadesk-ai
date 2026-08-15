@@ -17,14 +17,15 @@
             </span>
 
             <h1>
-                Tasks
+                {{ projectName() || 'Tasks' }}
             </h1>
 
             <p>
-                Create and manage tasks for this project.
+                Tasks
             </p>
 
         </div>
+
 
         <button type="button" class="primary-button" (click)="openCreateForm()" [disabled]="showCreateForm()">
             <span>+</span>
@@ -89,9 +90,7 @@
         }
 
 
-        <!-- ========================================= -->
         <!-- TITLE -->
-        <!-- ========================================= -->
 
         <div class="form-group">
 
@@ -105,9 +104,7 @@
         </div>
 
 
-        <!-- ========================================= -->
         <!-- DESCRIPTION -->
-        <!-- ========================================= -->
 
         <div class="form-group">
 
@@ -121,9 +118,7 @@
         </div>
 
 
-        <!-- ========================================= -->
         <!-- PRIORITY / STATUS / ASSIGNEE / DUE DATE -->
-        <!-- ========================================= -->
 
         <div class="form-row">
 
@@ -243,9 +238,7 @@
         </div>
 
 
-        <!-- ========================================= -->
         <!-- FORM ACTIONS -->
-        <!-- ========================================= -->
 
         <div class="form-actions">
 
@@ -523,12 +516,10 @@
 
                 <div class="task-actions">
 
-                    <select [value]="task.status" (change)="
-                            changeStatus(
-                                task,
-                                $any($event.target).value
-                            )
-                        ">
+                    <select [value]="task.status" (change)="changeStatus(
+                            task,
+                            $any($event.target).value
+                        )" [disabled]="deleting() === task._id">
 
                         <option value="TODO">
                             To Do
@@ -547,20 +538,26 @@
                         </option>
 
                     </select>
+<button type="button" class="view-button" (click)="openTaskDetail(task)" [disabled]="deleting() === task._id">
+    View
+</button>
 
-
-                    <button type="button" class="view-button" (click)="openTaskDetail(task)">
-                        View
-                    </button>
-
-
-                    <button type="button" class="edit-button" (click)="openEditForm(task)">
+                    <button type="button" class="edit-button" (click)="openEditForm(task)"
+                        [disabled]="deleting() === task._id">
                         Edit
                     </button>
 
 
-                    <button type="button" class="delete-button" (click)="deleteTask(task)" [disabled]="deleting()">
+
+                    <button type="button" class="delete-button" (click)="deleteTask(task)"
+                        [disabled]="deleting() === task._id">
+
+                        @if (deleting() === task._id) {
+                        Deleting...
+                        } @else {
                         Delete
+                        }
+
                     </button>
 
                 </div>
@@ -571,34 +568,35 @@
 
         </div>
 
-
-        <!-- ========================================= -->
-        <!-- PAGINATION -->
-        <!-- ========================================= -->
-
-        @if (totalPages() > 1) {
-
-        <div class="pagination">
-
-            <button type="button" class="secondary-button" (click)="previousPage()" [disabled]="page() === 1">
-                ← Previous
-            </button>
-
-
-            <span>
-                Page {{ page() }} of {{ totalPages() }}
-            </span>
-
-
-            <button type="button" class="secondary-button" (click)="nextPage()" [disabled]="page() === totalPages()">
-                Next →
-            </button>
-
-        </div>
-
-        }
-
     </section>
+
+    }
+
+
+    <!-- ========================================= -->
+    <!-- PAGINATION -->
+    <!-- ========================================= -->
+
+    @if (
+    !loading() &&
+    tasks().length > 0
+    ) {
+
+    <div class="pagination">
+
+        <button type="button" class="secondary-button" (click)="previousPage()" [disabled]="page() <= 1">
+            ← Previous
+        </button>
+
+        <span class="pagination-info">
+            Page {{ page() }} of {{ totalPages() }}
+        </span>
+
+        <button type="button" class="secondary-button" (click)="nextPage()" [disabled]="page() >= totalPages()">
+            Next →
+        </button>
+
+    </div>
 
     }
 

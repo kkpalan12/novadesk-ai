@@ -6,17 +6,15 @@
 
     <aside class="sidebar">
 
-        <!-- Brand -->
+        <!-- BRAND -->
 
         <div class="brand">
 
-            <div class="brand-icon">
-                N
-            </div>
+            <img src="novadesk-ai-icon.png" alt="NovaDesk AI" class="brand-logo" />
 
-            <div class="brand-name">
+            <span class="brand-name">
                 NovaDesk
-            </div>
+            </span>
 
         </div>
 
@@ -31,13 +29,8 @@
                 WORKSPACE
             </label>
 
-            <select id="workspace" class="workspace-select" [value]="
-          workspaceContext.activeWorkspace()?._id ?? ''
-        " (change)="
-          selectWorkspace(
-            $any($event.target).value
-          )
-        " [disabled]="workspaceContext.loading()">
+            <select id="workspace" class="workspace-select" [value]="workspaceContext.activeWorkspace()?._id ?? ''"
+                (change)="selectWorkspace($any($event.target).value)" [disabled]="workspaceContext.loading()">
 
                 @if (workspaceContext.loading()) {
 
@@ -89,47 +82,75 @@
 
 
         <!-- =======================================
-         NAVIGATION
+         DESKTOP NAVIGATION
          ======================================= -->
 
-    <nav class="navigation">
-    
-        <button type="button" class="nav-item" (click)="goToDashboard()">
-            <span class="nav-icon">⌂</span>
-            <span>Dashboard</span>
-        </button>
-    
-    
-        <button type="button" class="nav-item" (click)="goToProjects()">
-            <span class="nav-icon">▣</span>
-            <span>Projects</span>
-        </button>
-    
-    
-        <!-- WORKSPACE -->
-<button type="button" class="nav-item" (click)="goToWorkspace()">
-    <span class="nav-icon">◫</span>
-    <span>Workspace</span>
-</button>
-    
-    
-<button type="button" class="nav-item" (click)="goToNotifications()">
-    <span class="nav-icon">♢</span>
+        <nav class="navigation">
 
-    <span>Notifications</span>
+            <button type="button" class="nav-item" (click)="goToDashboard()">
+                <span class="nav-icon">
+                    ⌂
+                </span>
 
-    @if (unreadNotificationCount() > 0) {
-    <span class="notification-badge">
-        {{
-        unreadNotificationCount() > 99
-        ? '99+'
-        : unreadNotificationCount()
-        }}
-    </span>
-    }
-</button>
-    
-    </nav>
+                <span>
+                    Dashboard
+                </span>
+            </button>
+
+
+            <button type="button" class="nav-item" (click)="goToProjects()">
+                <span class="nav-icon">
+                    ▣
+                </span>
+
+                <span>
+                    Projects
+                </span>
+            </button>
+
+
+            <!-- WORKSPACE -->
+
+            <button type="button" class="nav-item" (click)="goToWorkspace()">
+                <span class="nav-icon">
+                    ◫
+                </span>
+
+                <span>
+                    Workspace
+                </span>
+            </button>
+
+
+            <!-- NOTIFICATIONS -->
+
+            <button type="button" class="nav-item" (click)="goToNotifications()">
+
+                <span class="nav-icon">
+                    ♢
+                </span>
+
+                <span>
+                    Notifications
+                </span>
+
+                @if (unreadNotificationCount() > 0) {
+
+                <span class="notification-badge">
+
+                    {{
+                    unreadNotificationCount() > 99
+                    ? '99+'
+                    : unreadNotificationCount()
+                    }}
+
+                </span>
+
+                }
+
+            </button>
+
+        </nav>
 
 
         <!-- =======================================
@@ -161,7 +182,9 @@
 
     <main class="main-area">
 
-        <!-- TOPBAR -->
+        <!-- =======================================
+         TOPBAR
+         ======================================= -->
 
         <header class="topbar">
 
@@ -170,37 +193,101 @@
             </div>
 
 
+            <!-- ===================================
+             MOBILE WORKSPACE SELECTOR
+             =================================== -->
+
+            <div class="mobile-workspace-selector">
+
+                <label for="mobile-workspace">
+                    WORKSPACE
+                </label>
+
+                <select id="mobile-workspace" [value]="workspaceContext.activeWorkspace()?._id ?? ''"
+                    (change)="selectWorkspace($any($event.target).value)" [disabled]="workspaceContext.loading()">
+
+                    @if (workspaceContext.loading()) {
+
+                    <option value="">
+                        Loading...
+                    </option>
+
+                    }
+
+                    @else if (
+                    workspaceContext.workspaces().length === 0
+                    ) {
+
+                    <option value="">
+                        No workspaces
+                    </option>
+
+                    }
+
+                    @else {
+
+                    @for (
+                    workspace of workspaceContext.workspaces();
+                    track workspace._id
+                    ) {
+
+                    <option [value]="workspace._id">
+                        {{ workspace.name }}
+                    </option>
+
+                    }
+
+                    }
+
+                </select>
+
+            </div>
+
+
+            <!-- ===================================
+             TOPBAR ACTIONS
+             =================================== -->
+
             <div class="topbar-actions">
 
                 <!-- Notifications -->
 
-            <button type="button" class="notification-button" (click)="goToNotifications()" aria-label="Notifications">
-                ♢
-            
-                @if (unreadNotificationCount() > 0) {
-                <span class="notification-badge notification-badge-top">
-                    {{
-                    unreadNotificationCount() > 99
-                    ? '99+'
-                    : unreadNotificationCount()
-                    }}
-                </span>
-                }
-            </button>
+                <button type="button" class="notification-button" (click)="goToNotifications()"
+                    aria-label="Notifications">
+
+                    ♢
+
+                    @if (unreadNotificationCount() > 0) {
+
+                    <span class="notification-badge notification-badge-top">
+
+                        {{
+                        unreadNotificationCount() > 99
+                        ? '99+'
+                        : unreadNotificationCount()
+                        }}
+
+                    </span>
+
+                    }
+
+                </button>
 
 
                 <!-- User -->
-<button type="button" class="user-avatar" [attr.aria-label]="
-    user
-      ? 'Open profile for ' + user.firstName
-      : 'Open profile'
-  " [title]="
-    user
-      ? user.firstName + ' ' + user.lastName
-      : 'Profile'
-  " (click)="goToProfile()">
-    {{ userInitial }}
-</button>
+
+                <button type="button" class="user-avatar" [attr.aria-label]="
+                        user
+                            ? 'Open profile for ' + user.firstName
+                            : 'Open profile'
+                    " [title]="
+                        user
+                            ? user.firstName + ' ' + user.lastName
+                            : 'Profile'
+                    " (click)="goToProfile()">
+                    {{ userInitial }}
+                </button>
+
             </div>
 
         </header>
@@ -217,5 +304,89 @@
         </section>
 
     </main>
+
+
+    <!-- =========================================
+       MOBILE BOTTOM NAVIGATION
+       ========================================= -->
+
+    <nav class="mobile-navigation">
+
+        <!-- Dashboard -->
+
+        <button type="button" class="mobile-nav-item" (click)="goToDashboard()">
+
+            <span class="mobile-nav-icon">
+                ⌂
+            </span>
+
+            <span>
+                Dashboard
+            </span>
+
+        </button>
+
+
+        <!-- Projects -->
+
+        <button type="button" class="mobile-nav-item" (click)="goToProjects()">
+
+            <span class="mobile-nav-icon">
+                ▣
+            </span>
+
+            <span>
+                Projects
+            </span>
+
+        </button>
+
+
+        <!-- Workspace -->
+
+        <button type="button" class="mobile-nav-item" (click)="goToWorkspace()">
+
+            <span class="mobile-nav-icon">
+                ◫
+            </span>
+
+            <span>
+                Workspace
+            </span>
+
+        </button>
+
+
+        <!-- Notifications -->
+
+        <button type="button" class="mobile-nav-item" (click)="goToNotifications()">
+
+            <span class="mobile-nav-icon">
+
+                ♢
+
+                @if (unreadNotificationCount() > 0) {
+
+                <span class="mobile-notification-badge">
+
+                    {{
+                    unreadNotificationCount() > 99
+                    ? '99+'
+                    : unreadNotificationCount()
+                    }}
+
+                </span>
+
+                }
+
+            </span>
+
+            <span>
+                Notifications
+            </span>
+
+        </button>
+
+    </nav>
 
 </div>
