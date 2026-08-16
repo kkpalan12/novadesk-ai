@@ -18,6 +18,7 @@ import { SearchUser } from '../../core/models/search.model';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { SocketService } from '../../core/services/socket.service';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-workspace',
@@ -37,6 +38,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   private readonly socketService = inject(SocketService);
 
   private readonly fb = inject(FormBuilder);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   // =========================================
   // Current User
@@ -430,7 +432,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   // Remove Member
   // =========================================
 
-  removeMember(member: Membership): void {
+  async removeMember(member: Membership): Promise<void> {
     if (!this.isCurrentUserWorkspaceOwner()) {
       return;
     }
@@ -447,11 +449,17 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (
-      !confirm(
-        `Remove ${member.user?.firstName ?? 'this member'} from the workspace?`,
-      )
-    ) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Remove workspace member?',
+      message: `Are you sure you want to remove ${
+        member.user?.firstName ?? 'this member'
+      } from the workspace?`,
+      confirmText: 'Remove member',
+      cancelText: 'Keep member',
+      variant: 'warning',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -695,7 +703,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
         },
       });
   }
-  deleteWorkspace(): void {
+  async deleteWorkspace(): Promise<void> {
     const workspace = this.selectedWorkspace();
 
     if (!workspace) {
@@ -706,9 +714,13 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const confirmed = confirm(
-      `Delete "${workspace.name}"? This action cannot be undone.`,
-    );
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete workspace?',
+      message: `Are you sure you want to delete "${workspace.name}"? This action cannot be undone.`,
+      confirmText: 'Delete workspace',
+      cancelText: 'Keep workspace',
+      variant: 'danger',
+    });
 
     if (!confirmed) {
       return;

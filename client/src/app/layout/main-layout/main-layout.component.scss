@@ -901,7 +901,7 @@
         height: 68px;
 
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
 
         padding-bottom: env(safe-area-inset-bottom);
 
@@ -947,7 +947,11 @@
         color: #ffffff;
         background: #1f2937;
     }
-
+.mobile-logout-item:hover,
+.mobile-logout-item:focus-visible {
+    color: #ffffff;
+    background: #7f1d1d;
+}
     .mobile-nav-item:focus-visible {
         outline: none;
     }

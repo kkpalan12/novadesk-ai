@@ -10,6 +10,7 @@ import { SocketService } from '../../core/services/socket.service';
 import { Task, TaskPriority, TaskStatus } from '../../core/models/task.model';
 
 import { Membership } from '../../core/models/membership.model';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-task',
@@ -32,6 +33,7 @@ export class TaskComponent implements OnInit, OnDestroy {
   private readonly membershipService = inject(MembershipService);
 
   private readonly socketService = inject(SocketService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   // =========================================
   // PROJECT / WORKSPACE
@@ -574,12 +576,17 @@ export class TaskComponent implements OnInit, OnDestroy {
   // DELETE TASK
   // =========================================
 
-  deleteTask(task: Task): void {
+  async deleteTask(task: Task): Promise<void> {
     if (this.deleting()) {
       return;
     }
-
-    const confirmed = window.confirm(`Delete "${task.title}"?`);
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete task?',
+      message: `Are you sure you want to delete "${task.title}" ? This action cannot be undone.`,
+      confirmText: 'Delete task',
+      cancelText: 'Keep task',
+      variant: 'danger',
+    });
 
     if (!confirmed) {
       return;

@@ -1,4 +1,5 @@
 <div class="app-shell">
+    <app-confirm-dialog></app-confirm-dialog>
 
     <!-- =========================================
        SIDEBAR
@@ -310,83 +311,102 @@
        MOBILE BOTTOM NAVIGATION
        ========================================= -->
 
+    <!-- =========================================
+         MOBILE BOTTOM NAVIGATION
+         ========================================= -->
+    
     <nav class="mobile-navigation">
-
+    
         <!-- Dashboard -->
-
-        <button type="button" class="mobile-nav-item" (click)="goToDashboard()">
-
+    
+        <button type="button" class="mobile-nav-item" (click)="goToDashboard()" aria-label="Dashboard">
+    
             <span class="mobile-nav-icon">
                 ⌂
             </span>
-
+    
             <span>
                 Dashboard
             </span>
-
+    
         </button>
-
-
+    
+    
         <!-- Projects -->
-
-        <button type="button" class="mobile-nav-item" (click)="goToProjects()">
-
+    
+        <button type="button" class="mobile-nav-item" (click)="goToProjects()" aria-label="Projects">
+    
             <span class="mobile-nav-icon">
                 ▣
             </span>
-
+    
             <span>
                 Projects
             </span>
-
+    
         </button>
-
-
+    
+    
         <!-- Workspace -->
-
-        <button type="button" class="mobile-nav-item" (click)="goToWorkspace()">
-
+    
+        <button type="button" class="mobile-nav-item" (click)="goToWorkspace()" aria-label="Workspace">
+    
             <span class="mobile-nav-icon">
                 ◫
             </span>
-
+    
             <span>
                 Workspace
             </span>
-
+    
         </button>
-
-
+    
+    
         <!-- Notifications -->
-
-        <button type="button" class="mobile-nav-item" (click)="goToNotifications()">
-
+    
+        <button type="button" class="mobile-nav-item" (click)="goToNotifications()" aria-label="Notifications">
+    
             <span class="mobile-nav-icon">
-
+    
                 ♢
-
+    
                 @if (unreadNotificationCount() > 0) {
-
+    
                 <span class="mobile-notification-badge">
-
+    
                     {{
                     unreadNotificationCount() > 99
                     ? '99+'
                     : unreadNotificationCount()
                     }}
-
+    
                 </span>
-
+    
                 }
-
+    
             </span>
-
+    
             <span>
                 Notifications
             </span>
-
+    
         </button>
-
+    
+    
+        <!-- Logout -->
+    
+        <button type="button" class="mobile-nav-item mobile-logout-item" (click)="logout()" aria-label="Logout">
+    
+            <span class="mobile-nav-icon">
+                ↪
+            </span>
+    
+            <span>
+                Logout
+            </span>
+    
+        </button>
+    
     </nav>
 
 </div>

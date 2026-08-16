@@ -722,6 +722,17 @@
 }
 
 // =========================================
+// HEADER ACTIONS
+// =========================================
+
+.workspace-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+// =========================================
 // RESPONSIVE
 // =========================================
 
@@ -769,7 +780,6 @@
     .member-row {
         grid-template-columns: 1fr;
         gap: 10px;
-
         padding: 16px 0;
     }
 
@@ -789,6 +799,15 @@
 
     .modal-card {
         padding: 22px;
+    }
+
+    .workspace-header-actions {
+        width: 100%;
+        flex-direction: column;
+
+        button {
+            width: 100%;
+        }
     }
 }
 
@@ -828,23 +847,11 @@
         }
     }
 }
-.workspace-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
 
-@media (max-width: 700px) {
-    .workspace-header-actions {
-        width: 100%;
-        flex-direction: column;
+// =========================================
+// MEMBER DETAILS / PRESENCE
+// =========================================
 
-        button {
-            width: 100%;
-        }
-    }
-}
 .member-details {
     display: flex;
     flex-direction: column;
@@ -878,6 +885,11 @@
 .presence-status.online .presence-dot {
     background: #22c55e;
 }
+
+// =========================================
+// USER SEARCH
+// =========================================
+
 .user-search-results {
     display: flex;
     flex-direction: column;
@@ -924,9 +936,10 @@
     color: #6b7280;
     font-size: 13px;
 }
-/* =========================================
-   ADD MEMBER - ROLE SELECT
-   ========================================= */
+
+// =========================================
+// ADD MEMBER - ROLE SELECT
+// =========================================
 
 .form-group select {
     width: 100%;

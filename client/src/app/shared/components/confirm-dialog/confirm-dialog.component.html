@@ -1,0 +1,53 @@
+@if (dialog.visible()) {
+
+<div class="confirm-backdrop" role="presentation" (click)="onBackdropClick($event)">
+
+    <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-message">
+
+        <!-- ICON -->
+
+        <div class="confirm-icon" [class.confirm-icon-warning]="dialog.variant() === 'warning'" aria-hidden="true">
+            @if (dialog.variant() === 'danger') {
+            !
+            } @else {
+            !
+            }
+        </div>
+
+
+        <!-- CONTENT -->
+
+        <div class="confirm-content">
+
+            <h2 id="confirm-dialog-title">
+                {{ dialog.title() }}
+            </h2>
+
+            <p id="confirm-dialog-message">
+                {{ dialog.message() }}
+            </p>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="confirm-actions">
+
+            <button type="button" class="confirm-button cancel-button" (click)="dialog.cancel()">
+                {{ dialog.cancelText() }}
+            </button>
+
+            <button type="button" class="confirm-button" [class.danger-button]="dialog.variant() === 'danger'"
+                [class.warning-button]="dialog.variant() === 'warning'" (click)="dialog.confirmAction()">
+                {{ dialog.confirmText() }}
+            </button>
+
+        </div>
+
+    </section>
+
+</div>
+
+}

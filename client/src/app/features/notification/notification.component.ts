@@ -9,6 +9,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { Notification } from '../../core/models/notification.model';
 
 import { WorkspaceContextService } from '../../core/services/workspace-context.service';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-notification',
@@ -23,6 +24,7 @@ export class NotificationComponent implements OnInit {
   private readonly router = inject(Router);
 
   private readonly workspaceContext = inject(WorkspaceContextService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   // =========================================
   // State
@@ -154,10 +156,14 @@ export class NotificationComponent implements OnInit {
   // Delete Notification
   // =========================================
 
-  deleteNotification(notification: Notification): void {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this notification?',
-    );
+  async deleteNotification(notification: Notification): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete notification?',
+      message: 'Are you sure you want to delete this notification?',
+      confirmText: 'Delete',
+      cancelText: 'Keep',
+      variant: 'danger',
+    });
 
     if (!confirmed) {
       return;

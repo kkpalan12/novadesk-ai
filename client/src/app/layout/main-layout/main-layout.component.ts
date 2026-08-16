@@ -6,12 +6,14 @@ import { WorkspaceContextService } from '../../core/services/workspace-context.s
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { SocketService } from '../../core/services/socket.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
 
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, ConfirmDialogComponent],
 
   templateUrl: './main-layout.component.html',
 
@@ -30,6 +32,7 @@ export class MainLayoutComponent implements OnInit {
 
   private readonly notificationService = inject(NotificationService);
   private readonly socketService = inject(SocketService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   // =========================================
   // Current User
@@ -170,7 +173,19 @@ export class MainLayoutComponent implements OnInit {
   // Logout
   // =========================================
 
-  logout(): void {
+  async logout(): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Log out of NovaDesk?',
+      message: 'Are you sure you want to log out of your account?',
+      confirmText: 'Logout',
+      cancelText: 'Stay logged in',
+      variant: 'danger',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
     this.workspaceContext.clearWorkspace();
 
     this.notificationService.clear();

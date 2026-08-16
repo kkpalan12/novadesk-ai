@@ -19,6 +19,7 @@ import { Attachment } from '../../core/models/attachment.model';
 import { TaskAiService } from '../../core/services/task-ai.service';
 
 import { TaskAiAnalysis } from '../../core/models/task-ai.model';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-task-detail',
@@ -48,6 +49,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   private readonly socketService = inject(SocketService);
   private readonly taskAiService = inject(TaskAiService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   // =========================================================
   // Task
@@ -522,10 +524,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  deleteComment(comment: Comment): void {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this comment?',
-    );
+  async deleteComment(comment: Comment): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete comment?',
+      message: 'Are you sure you want to delete this comment?',
+      confirmText: 'Delete comment',
+      cancelText: 'Keep comment',
+      variant: 'danger',
+    });
 
     if (!confirmed) {
       return;
@@ -799,10 +805,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteAttachment(attachment: Attachment): void {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${this.getAttachmentName(attachment)}"?`,
-    );
+  async deleteAttachment(attachment: Attachment): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete attachment?',
+      message: `Are you sure you want to delete "${this.getAttachmentName(attachment)}"? This action cannot be undone.`,
+      confirmText: 'Delete attachment',
+      cancelText: 'Keep attachment',
+      variant: 'danger',
+    });
 
     if (!confirmed) {
       return;

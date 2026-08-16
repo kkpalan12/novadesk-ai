@@ -9,6 +9,7 @@ import { ProjectService } from '../../core/services/project.service';
 
 import { Project, UpdateProjectRequest } from '../../core/models/project.model';
 import { SocketService } from '../../core/services/socket.service';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-project',
@@ -28,7 +29,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
 
   private readonly projectService = inject(ProjectService);
   private readonly socketService = inject(SocketService);
-
+  private readonly confirmDialog = inject(ConfirmDialogService);
   // =========================================
   // State
   // =========================================
@@ -358,12 +359,18 @@ export class ProjectComponent implements OnInit, OnDestroy {
   // Delete Project
   // =========================================
 
-  deleteProject(project: Project): void {
+  async deleteProject(project: Project): Promise<void> {
     if (this.deleting()) {
       return;
     }
 
-    const confirmed = window.confirm(`Delete "${project.name}"?`);
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete project?',
+      message: `Are you sure you want to delete "${project.name}" ? This action cannot be undone.`,
+      confirmText: 'Delete project',
+      cancelText: 'Keep project',
+      variant: 'danger',
+    });
 
     if (!confirmed) {
       return;
