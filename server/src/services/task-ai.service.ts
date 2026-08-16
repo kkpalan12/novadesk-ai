@@ -9,6 +9,10 @@ import { GeminiService } from "./gemini.service";
 
 import { BadRequestError } from "../common/errors/BadRequestError";
 import { NotFoundError } from "../common/errors/NotFoundError";
+import { UnauthorizedError } from "../common/errors/UnauthorizedError";
+import { ForbiddenError } from "../common/errors/ForbiddenError";
+import { ServiceUnavailableError } from "../common/errors/ServiceUnavailableError";
+import { TooManyRequestsError } from "../common/errors/TooManyRequestsError";
 
 const taskAiAnalysisSchema = z.object({
   summary: z.string(),
@@ -92,7 +96,44 @@ Rules:
     } catch (error: unknown) {
       console.error("Gemini API Error:", error);
 
-      throw new BadRequestError("AI analysis is currently unavailable");
+      const status =
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        typeof (error as { status?: unknown }).status === "number"
+          ? (error as { status: number }).status
+          : undefined;
+
+      switch (status) {
+        case 401:
+          throw new UnauthorizedError("AI provider authentication failed");
+
+        case 403:
+          throw new ForbiddenError("AI provider access is not available");
+
+        case 404:
+          throw new ServiceUnavailableError(
+            "AI model is currently unavailable",
+          );
+
+        case 429:
+          throw new TooManyRequestsError(
+            "Too many AI requests. Please try again later.",
+          );
+
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          throw new ServiceUnavailableError(
+            "AI service is temporarily unavailable. Please try again later.",
+          );
+
+        default:
+          throw new ServiceUnavailableError(
+            "AI analysis is currently unavailable",
+          );
+      }
     }
 
     const responseText = response.text;
