@@ -1,1004 +1,1061 @@
 <div class="task-detail-page">
-
-    <!-- ==============================
+  <!-- ==============================
        HEADER
        ============================== -->
 
-    <header class="page-header">
+  <header class="page-header">
+    <button type="button" class="back-button" (click)="goBack()">
+      ← Back to Tasks
+    </button>
+  </header>
 
-        <button type="button" class="back-button" (click)="goBack()">
-            ← Back to Tasks
-        </button>
-
-    </header>
-
-
-    <!-- ==============================
+  <!-- ==============================
        LOADING
        ============================== -->
 
-    @if (loading()) {
+  @if (loading()) {
+    <div class="state">Loading task...</div>
+  }
 
-    <div class="state">
-        Loading task...
-    </div>
-
-    }
-
-
-    <!-- ==============================
+  <!-- ==============================
        ERROR
        ============================== -->
 
-    @if (
-    !loading() &&
-    errorMessage()
-    ) {
-
+  @if (!loading() && errorMessage()) {
     <section class="error-state">
+      <h2>Unable to load task</h2>
 
-        <h2>
-            Unable to load task
-        </h2>
+      <p>
+        {{ errorMessage() }}
+      </p>
 
-        <p>
-            {{ errorMessage() }}
-        </p>
-
-        <button type="button" class="primary-button" (click)="goBack()">
-            Back to Tasks
-        </button>
-
+      <button type="button" class="primary-button" (click)="goBack()">
+        Back to Tasks
+      </button>
     </section>
+  }
 
-    }
-
-
-    <!-- ==============================
+  <!-- ==============================
        TASK DETAILS
        ============================== -->
 
-    @if (
-    !loading() &&
-    task()
-    ) {
-
+  @if (!loading() && task()) {
     <section class="task-detail-card">
-
-        <!-- ==========================
+      <!-- ==========================
            TASK HEADER
            ========================== -->
 
-        <div class="task-header">
+      <div class="task-header">
+        <div class="task-title-area">
+          <h1>
+            {{ task()!.title }}
+          </h1>
 
-            <div>
+          <p class="task-id">
+            Task ID:
+            {{ task()!._id }}
+          </p>
 
-                <h1>
-                    {{ task()!.title }}
-                </h1>
+          <div class="task-badges">
+            <span class="status-badge" [class]="task()!.status.toLowerCase()">
+              {{ formatStatus(task()!.status) }}
+            </span>
 
-                <p class="task-id">
-                    Task ID:
-                    {{ task()!._id }}
-                </p>
-
-            </div>
-
+            <span
+              class="priority-badge"
+              [class]="task()!.priority.toLowerCase()"
+            >
+              {{ task()!.priority }}
+            </span>
+          </div>
         </div>
+        <div class="task-actions">
+          @if (!editMode()) {
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="startEditTask()"
+            >
+              Edit Task
+            </button>
 
+            <div class="status-action">
+              <button
+                type="button"
+                class="primary-button"
+                (click)="toggleStatusMenu()"
+                [disabled]="updatingStatus()"
+              >
+                @if (updatingStatus()) {
+                  Updating...
+                } @else {
+                  Change Status
+                }
+              </button>
 
-        <!-- ==========================
+              @if (showStatusMenu()) {
+                <div class="status-menu">
+                  <button (click)="changeTaskStatus('TODO')">To Do</button>
+
+                  <button (click)="changeTaskStatus('IN_PROGRESS')">
+                    In Progress
+                  </button>
+
+                  <button (click)="changeTaskStatus('REVIEW')">Review</button>
+
+                  <button (click)="changeTaskStatus('DONE')">Done</button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (editMode()) {
+            <button
+              class="primary-button"
+              (click)="saveTask()"
+              [disabled]="savingTask()"
+            >
+              @if (savingTask()) {
+                Saving...
+              } @else {
+                Save Changes
+              }
+            </button>
+
+            <button class="secondary-button" (click)="cancelEditTask()">
+              Cancel
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- ==========================
            DESCRIPTION
            ========================== -->
 
-        <section class="detail-section">
+      <section class="detail-section">
+        <h2>Description</h2>
 
-            <h2>
-                Description
-            </h2>
+        @if (editMode()) {
+          <textarea class="edit-input" rows="5" [(ngModel)]="editDescription">
+          </textarea>
+        } @else {
+          <p>
+            {{ task()!.description || "No description provided." }}
+          </p>
+        }
+      </section>
 
-            <p>
-                {{
-                task()!.description ||
-                'No description provided.'
-                }}
+      <!-- ==========================
+     TASK INFORMATION
+     ========================== -->
+
+      <section class="detail-section task-information-section">
+        <div class="section-heading-row">
+          <div>
+            <h2>Task Information</h2>
+
+            <p class="section-description">
+              Key details and ownership information for this task.
             </p>
+          </div>
+        </div>
 
-        </section>
+        <div class="detail-grid">
+          <!-- STATUS -->
 
+          <div class="detail-item">
+            <span class="label"> Status </span>
 
-        <!-- ==========================
-           TASK INFORMATION
-           ========================== -->
+            <div class="detail-value-row">
+              <span
+                class="info-status-dot"
+                [class]="task()!.status.toLowerCase()"
+              ></span>
 
-        <section class="detail-section">
-
-            <h2>
-                Task Information
-            </h2>
-
-            <div class="detail-grid">
-
-                <!-- Status -->
-
-                <div class="detail-item">
-
-                    <span class="label">
-                        Status
-                    </span>
-
-                    <span class="value status">
-                        {{ formatStatus(task()!.status) }}
-                    </span>
-
-                </div>
-
-
-                <!-- Priority -->
-
-                <div class="detail-item">
-
-                    <span class="label">
-                        Priority
-                    </span>
-
-                    <span class="value priority">
-                        {{ task()!.priority }}
-                    </span>
-
-                </div>
-
-
-                <!-- Assigned -->
-
-                <div class="detail-item">
-
-                    <span class="label">
-                        Assigned To
-                    </span>
-
-                    <span class="value">
-                        {{ getAssignedUserName() }}
-                    </span>
-
-                </div>
-
-
-                <!-- Created -->
-
-                <div class="detail-item">
-
-                    <span class="label">
-                        Created
-                    </span>
-
-                    <span class="value">
-
-                        @if (task()!.createdAt) {
-                        {{ task()!.createdAt | date:'medium' }}
-                        } @else {
-                        —
-                        }
-
-                    </span>
-
-                </div>
-
-
-                <!-- Updated -->
-
-                <div class="detail-item">
-
-                    <span class="label">
-                        Updated
-                    </span>
-
-                    <span class="value">
-
-                        @if (task()!.updatedAt) {
-                        {{ task()!.updatedAt | date:'medium' }}
-                        } @else {
-                        —
-                        }
-
-                    </span>
-
-                </div>
-
+              <span class="value status">
+                {{ formatStatus(task()!.status) }}
+              </span>
             </div>
+          </div>
 
-        </section>
-<!-- ==========================
+          <!-- PRIORITY -->
+
+          <div class="detail-item">
+            <span class="label"> Priority </span>
+
+            <div class="detail-value-row">
+              <span
+                class="priority-indicator"
+                [class]="task()!.priority.toLowerCase()"
+              ></span>
+
+              <span class="value priority">
+                {{ task()!.priority }}
+              </span>
+            </div>
+          </div>
+
+          <!-- ASSIGNED TO -->
+
+          <div class="detail-item">
+            <span class="label"> Assigned To </span>
+
+            <div class="detail-value-row">
+              <span class="user-mini-avatar">
+                {{ getAssignedUserInitials() }}
+              </span>
+
+              <span class="value">
+                {{ getAssignedUserName() }}
+              </span>
+            </div>
+          </div>
+
+          <!-- PROJECT -->
+
+          <div class="detail-item">
+            <span class="label"> Project </span>
+
+            <span class="value">
+              {{ getProjectName() }}
+            </span>
+          </div>
+
+          <!-- CREATED -->
+
+          <div class="detail-item">
+            <span class="label"> Created </span>
+
+            <span class="value detail-date">
+              @if (task()!.createdAt) {
+                {{ task()!.createdAt | date: "medium" }}
+              } @else {
+                —
+              }
+            </span>
+          </div>
+
+          <!-- UPDATED -->
+
+          <div class="detail-item">
+            <span class="label"> Last Updated </span>
+
+            <span class="value detail-date">
+              @if (task()!.updatedAt) {
+                {{ task()!.updatedAt | date: "medium" }}
+              } @else {
+                —
+              }
+            </span>
+          </div>
+
+          <!-- DUE DATE -->
+
+          <div class="detail-item">
+            <span class="label"> Due Date </span>
+
+            <span class="value detail-date" [class.overdue]="isTaskOverdue()">
+              @if (task()!.dueDate) {
+                {{ task()!.dueDate | date: "mediumDate" }}
+              } @else {
+                —
+              }
+            </span>
+          </div>
+
+          <!-- TASK ID -->
+
+          <div class="detail-item">
+            <span class="label"> Task ID </span>
+
+            <span class="value detail-id" [title]="task()!._id">
+              {{ task()!._id }}
+            </span>
+          </div>
+        </div>
+      </section>
+      <!-- ==========================
      AI ASSIST
      ========================== -->
 
-<section class="detail-section ai-section">
+      <section class="detail-section ai-section">
+        <div class="ai-header">
+          <div class="ai-header-content">
+            <div class="ai-title-row">
+              <span class="ai-sparkle">✦</span>
 
-    <div class="ai-header">
+              <div>
+                <h2>AI Assist</h2>
 
-        <div>
-            <h2>AI Assist</h2>
+                <p>Get practical recommendations and insights for this task.</p>
+              </div>
+            </div>
+          </div>
 
-            <p>
-                Get practical recommendations for this task.
-            </p>
-        </div>
-
-        <button type="button" class="primary-button" (click)="analyzeTask()" [disabled]="aiLoading()">
+          <button
+            type="button"
+            class="primary-button ai-analyze-button"
+            (click)="analyzeTask()"
+            [disabled]="aiLoading()"
+          >
             @if (aiLoading()) {
-            Analyzing...
+              <span class="ai-button-spinner"></span>
+              Analyzing...
             } @else {
-            Analyze Task
+              <span>✦</span>
+              Analyze Task
             }
-        </button>
-
-    </div>
-
-    @if (aiError()) {
-    <div class="form-error">
-        {{ aiError() }}
-    </div>
-    }
-
-    @if (aiLoading()) {
-    <div class="ai-loading">
-        Analyzing task with AI...
-    </div>
-    }
-
-    @if (aiAnalysis(); as analysis) {
-
-    <div class="ai-result">
-
-        <div class="ai-result-block">
-            <span class="ai-label">
-                Summary
-            </span>
-
-            <p>
-                {{ analysis.summary }}
-            </p>
+          </button>
         </div>
 
-        <div class="ai-result-block">
-            <span class="ai-label">
-                Suggested Priority
+        <!-- AI ERROR -->
+
+        @if (aiError()) {
+          <div class="ai-error">
+            <div class="ai-error-icon">!</div>
+
+            <div class="ai-error-content">
+              <strong>AI analysis unavailable</strong>
+
+              <p>
+                {{ aiError() }}
+              </p>
+
+              <button
+                type="button"
+                class="ai-retry-button"
+                (click)="analyzeTask()"
+                [disabled]="aiLoading()"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- AI LOADING -->
+
+        @if (aiLoading()) {
+          <div class="ai-loading-state">
+            <div class="ai-loading-header">
+              <span class="ai-loading-icon">✦</span>
+
+              <div>
+                <strong>Analyzing task...</strong>
+                <span>AI is preparing recommendations.</span>
+              </div>
+            </div>
+
+            <div class="ai-skeleton summary"></div>
+
+            <div class="ai-skeleton priority"></div>
+
+            <div class="ai-skeleton-list">
+              <div class="ai-skeleton"></div>
+              <div class="ai-skeleton"></div>
+              <div class="ai-skeleton"></div>
+            </div>
+          </div>
+        }
+
+        <!-- AI RESULT -->
+
+        @if (!aiLoading() && aiAnalysis()) {
+          <div class="ai-result">
+            <!-- SUMMARY -->
+
+            <div class="ai-result-card ai-summary-card">
+              <div class="ai-card-header">
+                <div class="ai-card-icon">✦</div>
+
+                <div>
+                  <span class="ai-label"> Summary </span>
+
+                  <small> AI-generated task assessment </small>
+                </div>
+              </div>
+
+              <p class="ai-summary">
+                {{ aiAnalysis()!.summary }}
+              </p>
+            </div>
+
+            <!-- PRIORITY -->
+
+            <div class="ai-result-card">
+              <span class="ai-label"> Suggested Priority </span>
+
+              <div class="ai-priority-row">
+                <span
+                  class="ai-priority"
+                  [class]="
+                    'priority-' + aiAnalysis()!.suggestedPriority.toLowerCase()
+                  "
+                >
+                  {{ aiAnalysis()!.suggestedPriority }}
+                </span>
+
+                <span class="ai-priority-description">
+                  Recommended based on the task analysis.
+                </span>
+              </div>
+            </div>
+
+            <!-- SUBTASKS -->
+
+            <div class="ai-result-card">
+              <div class="ai-card-heading">
+                <span class="ai-label"> Suggested Subtasks </span>
+
+                <span class="ai-count">
+                  {{ aiAnalysis()!.suggestedSubtasks.length }}
+                </span>
+              </div>
+
+              @if (aiAnalysis()!.suggestedSubtasks.length > 0) {
+                <div class="ai-subtasks">
+                  @for (
+                    subtask of aiAnalysis()!.suggestedSubtasks;
+                    track $index
+                  ) {
+                    <div class="ai-subtask">
+                      <span class="ai-subtask-number">
+                        {{ $index + 1 }}
+                      </span>
+
+                      <span class="ai-subtask-text">
+                        {{ subtask }}
+                      </span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="ai-empty">No subtasks were suggested.</p>
+              }
+            </div>
+
+            <!-- RISKS -->
+
+            <div class="ai-result-card ai-risk-card">
+              <div class="ai-card-heading">
+                <span class="ai-label"> Risks </span>
+
+                <span class="ai-warning-icon"> ! </span>
+              </div>
+
+              @if (aiAnalysis()!.risks.length > 0) {
+                <div class="ai-risks">
+                  @for (risk of aiAnalysis()!.risks; track $index) {
+                    <div class="ai-risk">
+                      <span class="ai-risk-icon"> ! </span>
+
+                      <span>
+                        {{ risk }}
+                      </span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="ai-empty">No significant risks identified.</p>
+              }
+            </div>
+
+            <!-- NEXT ACTION -->
+
+            <div class="ai-result-card ai-next-action">
+              <div class="ai-next-action-icon">→</div>
+
+              <div>
+                <span class="ai-label"> Recommended Next Action </span>
+
+                <p>
+                  {{ aiAnalysis()!.nextAction }}
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- INITIAL STATE -->
+
+        @if (!aiLoading() && !aiAnalysis() && !aiError()) {
+          <div class="ai-empty-state">
+            <div class="ai-empty-icon">✦</div>
+
+            <strong> No AI analysis yet </strong>
+
+            <span>
+              Analyze this task to get priorities, subtasks, risks and a
+              recommended next action.
             </span>
 
-            <span class="ai-priority">
-                {{ analysis.suggestedPriority }}
-            </span>
-        </div>
-
-        <div class="ai-result-block">
-
-            <span class="ai-label">
-                Suggested Subtasks
-            </span>
-
-            @if (analysis.suggestedSubtasks.length > 0) {
-
-            <ul class="ai-list">
-
-                @for (
-                subtask of analysis.suggestedSubtasks;
-                track $index
-                ) {
-                <li>
-                    {{ subtask }}
-                </li>
-                }
-
-            </ul>
-
-            } @else {
-
-            <p class="ai-empty">
-                No subtasks suggested.
-            </p>
-
-            }
-
-        </div>
-
-        <div class="ai-result-block">
-
-            <span class="ai-label">
-                Risks
-            </span>
-
-            @if (analysis.risks.length > 0) {
-
-            <ul class="ai-list ai-risk-list">
-
-                @for (
-                risk of analysis.risks;
-                track $index
-                ) {
-                <li>
-                    {{ risk }}
-                </li>
-                }
-
-            </ul>
-
-            } @else {
-
-            <p class="ai-empty">
-                No significant risks identified.
-            </p>
-
-            }
-
-        </div>
-
-        <div class="ai-result-block">
-
-            <span class="ai-label">
-                Next Action
-            </span>
-
-            <p>
-                {{ analysis.nextAction }}
-            </p>
-
-        </div>
-
-    </div>
-
-    }
-
-</section>
-
-        <!-- ==========================
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="analyzeTask()"
+            >
+              Analyze Task
+            </button>
+          </div>
+        }
+      </section>
+      <!-- ==========================
            COMMENTS
            ========================== -->
 
-        <section class="detail-section comments-section">
+      <section class="detail-section comments-section">
+        <div class="comments-section-header">
+          <div>
+            <h2>Comments</h2>
+            <p class="section-description">
+              Keep the conversation and decisions attached to this task.
+            </p>
+          </div>
 
-            <h2>
-                Comments
-            </h2>
+          @if (comments().length > 0) {
+            <span class="comments-count">
+              {{ comments().length }}
+            </span>
+          }
+        </div>
 
+        @if (commentError()) {
+          <div class="form-error">
+            {{ commentError() }}
+          </div>
+        }
 
-            @if (commentError()) {
+        <!-- Add Comment -->
 
-            <div class="form-error">
-                {{ commentError() }}
+        <div class="comment-composer">
+          <div class="comment-composer-avatar">You</div>
+
+          <div class="comment-composer-body">
+            <textarea
+              rows="3"
+              [(ngModel)]="commentText"
+              placeholder="Write a comment..."
+              [disabled]="commentSaving()"
+              aria-label="Write a comment"
+            ></textarea>
+
+            <div class="comment-composer-footer">
+              <span class="comment-hint">
+                Keep comments clear and actionable.
+              </span>
+
+              <button
+                type="button"
+                class="primary-button"
+                (click)="createComment()"
+                [disabled]="commentSaving() || !commentText.trim()"
+              >
+                @if (commentSaving()) {
+                  Posting...
+                } @else {
+                  Add Comment
+                }
+              </button>
             </div>
+          </div>
+        </div>
 
-            }
+        <!-- Loading -->
 
+        @if (commentsLoading()) {
+          <div class="comments-loading">
+            <div class="comment-skeleton"></div>
+            <div class="comment-skeleton"></div>
+          </div>
+        }
 
-            <!-- Add Comment -->
+        <!-- Empty -->
 
-            <div class="comment-form">
+        @if (!commentsLoading() && comments().length === 0) {
+          <div class="comments-empty">
+            <div class="comments-empty-icon">💬</div>
+            <strong>No comments yet</strong>
+            <span>Start the conversation about this task.</span>
+          </div>
+        }
 
-                <textarea rows="3" [(ngModel)]="commentText" placeholder="Write a comment..."
-                    [disabled]="commentSaving()"></textarea>
+        <!-- Comment List -->
 
-                <div class="comment-actions">
-
-                    <button type="button" class="primary-button" (click)="createComment()" [disabled]="
-                            commentSaving() ||
-                            !commentText.trim()
-                        ">
-
-                        @if (commentSaving()) {
-                        Posting...
-                        } @else {
-                        Add Comment
-                        }
-
-                    </button>
-
+        @if (!commentsLoading() && comments().length > 0) {
+          <div class="comments-list">
+            @for (comment of comments(); track comment._id) {
+              <article class="comment-card">
+                <div class="comment-avatar" aria-hidden="true">
+                  {{ getCommentInitials(comment) }}
                 </div>
 
-            </div>
+                <div class="comment-body">
+                  <div class="comment-header">
+                    <div class="comment-author">
+                      <strong>
+                        {{ getCommentAuthorName(comment) }}
+                      </strong>
 
-
-            <!-- Loading -->
-
-            @if (commentsLoading()) {
-
-            <div class="state">
-                Loading comments...
-            </div>
-
-            }
-
-
-            <!-- Empty -->
-
-            @if (
-            !commentsLoading() &&
-            comments().length === 0
-            ) {
-
-            <div class="placeholder">
-                No comments yet.
-            </div>
-
-            }
-
-
-            <!-- Comment List -->
-
-            @if (
-            !commentsLoading() &&
-            comments().length > 0
-            ) {
-
-            <div class="comments-list">
-
-                @for (
-                comment of comments();
-                track comment._id
-                ) {
-
-                <article class="comment-card">
-
-                    <div class="comment-header">
-
-                        <strong>
-                            {{ getCommentAuthorName(comment) }}
-                        </strong>
-
-                        <small>
-
-                            {{ comment.createdAt | date:'medium' }}
-
-                            @if (comment.isEdited) {
-                            <span>
-                                · edited
-                            </span>
-                            }
-
-                        </small>
-
+                      <small>
+                        {{ comment.createdAt | date: "medium" }}
+                      </small>
                     </div>
 
+                    @if (comment.isEdited) {
+                      <span class="comment-edited">Edited</span>
+                    }
+                  </div>
 
-                    <!-- ==========================
-                         VIEW MODE
-                         ========================== -->
+                  <!-- VIEW MODE -->
 
-                    @if (editingCommentId() !== comment._id) {
-
-                    <p>
-                        {{ comment.content }}
+                  @if (editingCommentId() !== comment._id) {
+                    <p class="comment-content">
+                      {{ comment.content }}
                     </p>
 
                     <div class="comment-actions-row">
+                      <button
+                        type="button"
+                        class="comment-action-button"
+                        (click)="startEditComment(comment)"
+                        [disabled]="
+                          commentSaving() || commentDeleting() === comment._id
+                        "
+                      >
+                        Edit
+                      </button>
 
-                        <button type="button" class="comment-action-button" (click)="startEditComment(comment)"
-                            [disabled]="
-                                commentSaving() ||
-                                commentDeleting() === comment._id
-                            ">
-                            Edit
-                        </button>
-
-                        <button type="button" class="comment-action-button danger" (click)="deleteComment(comment)"
-                            [disabled]="
-                                commentSaving() ||
-                                commentDeleting() === comment._id
-                            ">
-
-                            @if (commentDeleting() === comment._id) {
-                            Deleting...
-                            } @else {
-                            Delete
-                            }
-
-                        </button>
-
+                      <button
+                        type="button"
+                        class="comment-action-button danger"
+                        (click)="deleteComment(comment)"
+                        [disabled]="
+                          commentSaving() || commentDeleting() === comment._id
+                        "
+                      >
+                        @if (commentDeleting() === comment._id) {
+                          Deleting...
+                        } @else {
+                          Delete
+                        }
+                      </button>
                     </div>
+                  }
 
-                    }
+                  <!-- EDIT MODE -->
 
-
-                    <!-- ==========================
-                         EDIT MODE
-                         ========================== -->
-
-                    @if (editingCommentId() === comment._id) {
-
+                  @if (editingCommentId() === comment._id) {
                     <div class="comment-edit-form">
+                      <textarea
+                        rows="3"
+                        [(ngModel)]="editingCommentText"
+                        [disabled]="commentSaving()"
+                        placeholder="Edit your comment..."
+                        aria-label="Edit comment"
+                      ></textarea>
 
-                        <textarea rows="3" [(ngModel)]="editingCommentText" [disabled]="commentSaving()"
-                            placeholder="Edit your comment..."></textarea>
-
+                      <div class="comment-edit-footer">
+                        <span class="comment-hint">
+                          Update the comment and save your changes.
+                        </span>
 
                         <div class="comment-actions-row">
+                          <button
+                            type="button"
+                            class="comment-action-button"
+                            (click)="cancelEditComment()"
+                            [disabled]="commentSaving()"
+                          >
+                            Cancel
+                          </button>
 
-                            <button type="button" class="comment-action-button" (click)="cancelEditComment()"
-                                [disabled]="commentSaving()">
-                                Cancel
-                            </button>
-
-                            <button type="button" class="primary-button" (click)="updateComment(comment)" [disabled]="
-                                    commentSaving() ||
-                                    !editingCommentText.trim()
-                                ">
-
-                                @if (commentSaving()) {
-                                Saving...
-                                } @else {
-                                Save
-                                }
-
-                            </button>
-
+                          <button
+                            type="button"
+                            class="primary-button"
+                            (click)="updateComment(comment)"
+                            [disabled]="
+                              commentSaving() || !editingCommentText.trim()
+                            "
+                          >
+                            @if (commentSaving()) {
+                              Saving...
+                            } @else {
+                              Save
+                            }
+                          </button>
                         </div>
-
+                      </div>
                     </div>
-
-                    }
-
-                </article>
-
-                }
-
-            </div>
-
+                  }
+                </div>
+              </article>
             }
+          </div>
+        }
+      </section>
 
-        </section>
-
-
-        <!-- ==========================
+      <!-- ==========================
            HISTORY
            ========================== -->
 
-        <section class="detail-section history-section">
+      <section class="detail-section history-section">
+        <h2>History</h2>
 
-            <h2>
-                History
-            </h2>
+        @if (historyError()) {
+          <div class="form-error">
+            {{ historyError() }}
+          </div>
+        }
 
+        @if (historyLoading()) {
+          <div class="state">Loading history...</div>
+        }
 
-            @if (historyError()) {
+        @if (!historyLoading() && !historyError() && history().length === 0) {
+          <div class="placeholder">No history available.</div>
+        }
 
-            <div class="form-error">
-                {{ historyError() }}
-            </div>
+        @if (!historyLoading() && history().length > 0) {
+          <div class="history-list">
+            @for (item of history(); track item._id) {
+              <article class="history-item">
+                <div class="history-marker"></div>
 
-            }
+                <div class="history-content">
+                  <div class="history-header">
+                    <strong>
+                      {{ formatHistoryAction(item.action) }}
+                    </strong>
 
+                    <small>
+                      {{ item.createdAt | date: "medium" }}
+                    </small>
+                  </div>
 
-            @if (historyLoading()) {
+                  <p>
+                    {{ getHistoryUserName(item) }}
+                  </p>
 
-            <div class="state">
-                Loading history...
-            </div>
+                  @if (
+                    (item.oldValue !== null && item.oldValue !== undefined) ||
+                    (item.newValue !== null && item.newValue !== undefined)
+                  ) {
+                    <div class="history-change">
+                      @if (
+                        item.oldValue !== null && item.oldValue !== undefined
+                      ) {
+                        <span class="history-old-value">
+                          {{ formatHistoryValue(item.oldValue) }}
+                        </span>
 
-            }
+                        <span class="history-arrow"> → </span>
+                      }
 
-
-            @if (
-            !historyLoading() &&
-            !historyError() &&
-            history().length === 0
-            ) {
-
-            <div class="placeholder">
-                No history available.
-            </div>
-
-            }
-
-
-            @if (
-            !historyLoading() &&
-            history().length > 0
-            ) {
-
-            <div class="history-list">
-
-                @for (
-                item of history();
-                track item._id
-                ) {
-
-                <article class="history-item">
-
-                    <div class="history-marker"></div>
-
-                    <div class="history-content">
-
-                        <div class="history-header">
-
-                            <strong>
-                                {{
-                                formatHistoryAction(
-                                item.action
-                                )
-                                }}
-                            </strong>
-
-                            <small>
-                                {{
-                                item.createdAt
-                                | date:'medium'
-                                }}
-                            </small>
-
-                        </div>
-
-
-                        <p>
-                            {{ getHistoryUserName(item) }}
-                        </p>
-
-                        @if (
-                        item.oldValue !== null &&
-                        item.oldValue !== undefined ||
-                        item.newValue !== null &&
-                        item.newValue !== undefined
-                        ) {
-
-                        <div class="history-change">
-
-                            @if (
-                            item.oldValue !== null &&
-                            item.oldValue !== undefined
-                            ) {
-
-                            <span class="history-old-value">
-                                {{ formatHistoryValue(item.oldValue) }}
-                            </span>
-
-                            <span class="history-arrow">
-                                →
-                            </span>
-
-                            }
-
-                            @if (
-                            item.newValue !== null &&
-                            item.newValue !== undefined
-                            ) {
-
-                            <span class="history-new-value">
-                                {{ formatHistoryValue(item.newValue) }}
-                            </span>
-
-                            }
-
-                        </div>
-
-                        }
-
+                      @if (
+                        item.newValue !== null && item.newValue !== undefined
+                      ) {
+                        <span class="history-new-value">
+                          {{ formatHistoryValue(item.newValue) }}
+                        </span>
+                      }
                     </div>
-
-                </article>
-
-                }
-
-            </div>
-
+                  }
+                </div>
+              </article>
             }
+          </div>
+        }
+      </section>
 
-        </section>
-
-
-        <!-- ==========================
+      <!-- ==========================
            ACTIVITY
            ========================== -->
 
-        <section class="detail-section activity-section">
+      <section class="detail-section activity-section">
+        <div class="activity-section-header">
+          <div>
+            <h2>Activity</h2>
+            <p class="section-description">
+              A live timeline of changes and actions on this task.
+            </p>
+          </div>
 
-            <h2>
-                Activity
-            </h2>
+          @if (activityTotal() > 0) {
+            <span class="activity-count">{{ activityTotal() }}</span>
+          }
+        </div>
 
-            @if (activityError()) {
+        @if (activityError()) {
+          <div class="form-error">{{ activityError() }}</div>
+        }
 
-            <div class="form-error">
-                {{ activityError() }}
-            </div>
+        @if (activityLoading()) {
+          <div class="activity-skeleton-list">
+            <div class="activity-skeleton"></div>
+            <div class="activity-skeleton"></div>
+            <div class="activity-skeleton"></div>
+          </div>
+        }
 
-            }
+        @if (
+          !activityLoading() && !activityError() && activities().length === 0
+        ) {
+          <div class="activity-empty">
+            <div class="activity-empty-icon">↻</div>
+            <strong>No activity yet</strong>
+            <span>Task activity will appear here.</span>
+          </div>
+        }
 
-            @if (activityLoading()) {
-
-            <div class="state">
-                Loading activity...
-            </div>
-
-            }
-
-            @if (
-            !activityLoading() &&
-            !activityError() &&
-            activities().length === 0
+        @if (!activityLoading() && activities().length > 0) {
+          <div class="activity-timeline">
+            @for (
+              activity of activities();
+              track activity._id;
+              let last = $last
             ) {
+              <article class="activity-timeline-item">
+                <div class="activity-timeline-rail">
+                  <div class="activity-avatar">
+                    {{ getActivityInitials(activity) }}
+                  </div>
 
-            <div class="placeholder">
-                No activity available.
-            </div>
+                  @if (!last) {
+                    <span class="activity-connector"></span>
+                  }
+                </div>
 
-            }
-
-            @if (
-            !activityLoading() &&
-            activities().length > 0
-            ) {
-
-            <div class="activity-list">
-
-                @for (
-                activity of activities();
-                track activity._id
-                ) {
-
-                <article class="activity-item">
-
-                    <div class="activity-marker"></div>
-
-                    <div class="activity-content">
-
-                        <div class="activity-header">
-
-                            <strong>
-                                {{
-                                formatActivityAction(
-                                activity.action
-                                )
-                                }}
-                            </strong>
-
-                            <small>
-                                {{
-                                activity.createdAt
-                                | date:'medium'
-                                }}
-                            </small>
-
-                        </div>
-
-                        <p>
-                            {{
-                            getActivityUserName(
-                            activity
-                            )
-                            }}
-                        </p>
-
+                <div class="activity-card">
+                  <div class="activity-card-header">
+                    <div class="activity-user">
+                      <strong>{{ getActivityUserName(activity) }}</strong>
+                      <span>{{
+                        getActivityRelativeTime(activity.createdAt)
+                      }}</span>
                     </div>
 
-                </article>
+                    <span class="activity-action">
+                      {{ formatActivityAction(activity.action) }}
+                    </span>
+                  </div>
 
-                }
-
-            </div>
-
+                  @if (getActivityDescription(activity)) {
+                    <p class="activity-description">
+                      {{ getActivityDescription(activity) }}
+                    </p>
+                  }
+                </div>
+              </article>
             }
+          </div>
+        }
 
+        @if (
+          !activityLoading() &&
+          !activityLoadingMore() &&
+          activities().length > 0 &&
+          activityPage() < activityTotalPages()
+        ) {
+          <div class="activity-load-more">
+            <button type="button" (click)="loadMoreActivity()">
+              Load More Activity
+            </button>
+          </div>
+        }
 
-            <!-- ==========================
-               LOAD MORE
-               ========================== -->
+        @if (activityLoadingMore()) {
+          <div class="state">Loading more activity...</div>
+        }
+      </section>
 
-            @if (
-            !activityLoading() &&
-            !activityLoadingMore() &&
-            activities().length > 0 &&
-            activityPage() < activityTotalPages() ) { <div class="activity-load-more">
-
-                <button type="button" (click)="loadMoreActivity()">
-                    Load More
-                </button>
-
-</div>
-
-}
-
-@if (activityLoadingMore()) {
-
-<div class="state">
-    Loading more activity...
-</div>
-
-}
-
-</section>
-
-
-<!-- ==========================
+      <!-- ==========================
            ATTACHMENTS
            ========================== -->
 
-<section class="detail-section attachments-section">
+      <section class="detail-section attachments-section">
+        <div class="attachments-header">
+          <div>
+            <div class="attachments-title-row">
+              <h2>Attachments</h2>
 
-    <div class="section-header">
+              @if (attachments().length > 0) {
+                <span class="attachments-count">
+                  {{ attachments().length }}
+                </span>
+              }
+            </div>
 
-        <div>
-
-            <h2>
-                Attachments
-            </h2>
-
-            <p>
-                Files attached to this task.
-            </p>
-
+            <p class="section-description">Files attached to this task.</p>
+          </div>
         </div>
 
-    </div>
+        @if (attachmentError()) {
+          <div class="form-error">
+            {{ attachmentError() }}
+          </div>
+        }
 
+        <!-- Upload -->
 
-    @if (attachmentError()) {
+        <div
+          class="attachment-dropzone"
+          [class.has-file]="selectedFile()"
+          [class.uploading]="attachmentUploading()"
+        >
+          <div class="attachment-upload-icon">↑</div>
 
-    <div class="form-error">
-        {{ attachmentError() }}
-    </div>
-
-    }
-
-
-    <!-- Upload -->
-
-    <div class="attachment-upload">
-
-        <input #fileInput type="file" (change)="onFileSelected($event)" [disabled]="attachmentUploading()" />
-
-
-        @if (selectedFile()) {
-
-        <div class="selected-file">
+          <div class="attachment-upload-copy">
+            <strong>
+              @if (selectedFile()) {
+                {{ selectedFile()!.name }}
+              } @else {
+                Choose a file to attach
+              }
+            </strong>
 
             <span>
-                {{ selectedFile()!.name }}
+              @if (selectedFile()) {
+                {{ formatFileSize(selectedFile()!.size) }}
+                · Ready to upload
+              } @else {
+                Select a file from your device
+              }
             </span>
+          </div>
 
-            <button type="button" class="remove-file-button" (click)="selectedFile.set(null)"
-                [disabled]="attachmentUploading()">
-                Remove
+          <input
+            #fileInput
+            class="attachment-file-input"
+            type="file"
+            (change)="onFileSelected($event)"
+            [disabled]="attachmentUploading()"
+          />
+
+          <div class="attachment-upload-actions">
+            <button
+              type="button"
+              class="secondary-button attachment-select-button"
+              (click)="fileInput.click()"
+              [disabled]="attachmentUploading()"
+            >
+              @if (selectedFile()) {
+                Change File
+              } @else {
+                Choose File
+              }
             </button>
 
+            @if (selectedFile()) {
+              <button
+                type="button"
+                class="primary-button"
+                (click)="uploadAttachment()"
+                [disabled]="attachmentUploading()"
+              >
+                @if (attachmentUploading()) {
+                  Uploading...
+                } @else {
+                  Upload Attachment
+                }
+              </button>
+
+              <button
+                type="button"
+                class="attachment-clear-button"
+                (click)="clearSelectedFile(fileInput)"
+                [disabled]="attachmentUploading()"
+              >
+                Clear
+              </button>
+            }
+          </div>
         </div>
 
+        <!-- Loading -->
+
+        @if (attachmentsLoading()) {
+          <div class="attachment-skeleton-list">
+            <div class="attachment-skeleton"></div>
+            <div class="attachment-skeleton"></div>
+          </div>
         }
 
+        <!-- Empty -->
 
-        <button type="button" class="primary-button" (click)="uploadAttachment()" [disabled]="
-                        attachmentUploading() ||
-                        !selectedFile()
-                    ">
-
-            @if (attachmentUploading()) {
-            Uploading...
-            } @else {
-            Upload Attachment
-            }
-
-        </button>
-
-    </div>
-
-
-    <!-- Loading -->
-
-    @if (attachmentsLoading()) {
-
-    <div class="state">
-        Loading attachments...
-    </div>
-
-    }
-
-
-    <!-- Empty -->
-
-    @if (
-    !attachmentsLoading() &&
-    !attachmentError() &&
-    attachments().length === 0
-    ) {
-
-    <div class="placeholder">
-        No attachments yet.
-    </div>
-
-    }
-
-
-    <!-- Attachment List -->
-
-    @if (
-    !attachmentsLoading() &&
-    attachments().length > 0
-    ) {
-
-    <div class="attachment-list">
-
-        @for (
-        attachment of attachments();
-        track attachment._id
+        @if (
+          !attachmentsLoading() &&
+          !attachmentError() &&
+          attachments().length === 0
         ) {
+          <div class="attachments-empty">
+            <div class="attachments-empty-icon">📎</div>
+            <strong>No attachments yet</strong>
+            <span>Upload a file to keep it with this task.</span>
+          </div>
+        }
 
-        <article class="attachment-card">
+        <!-- Attachment List -->
 
-            <div class="attachment-icon">
-                📎
-            </div>
+        @if (!attachmentsLoading() && attachments().length > 0) {
+          <div class="attachment-list">
+            @for (attachment of attachments(); track attachment._id) {
+              <article class="attachment-card">
+                <div
+                  class="attachment-file-icon"
+                  [class]="getAttachmentIconClass(attachment)"
+                  aria-hidden="true"
+                >
+                  {{ getAttachmentIcon(attachment) }}
+                </div>
 
+                <div class="attachment-info">
+                  <strong [title]="getAttachmentName(attachment)">
+                    {{ getAttachmentName(attachment) }}
+                  </strong>
 
-            <div class="attachment-info">
-
-                <strong>
-                    {{
-                    getAttachmentName(
-                    attachment
-                    )
-                    }}
-                </strong>
-
-                <small>
-
-                    {{
-                    formatFileSize(
-                    attachment.size
-                    )
-                    }}
+                  <div class="attachment-meta">
+                    <span>{{ formatFileSize(attachment.size) }}</span>
 
                     @if (attachment.mimeType) {
-                    · {{ attachment.mimeType }}
+                      <span>·</span>
+                      <span>{{ getAttachmentTypeLabel(attachment) }}</span>
                     }
 
-                    ·
+                    @if (attachment.createdAt) {
+                      <span>·</span>
+                      <span>{{ attachment.createdAt | date: "medium" }}</span>
+                    }
+                  </div>
+                </div>
 
-                    {{
-                    attachment.createdAt
-                    | date:'medium'
-                    }}
-
-                </small>
-
-            </div>
-
-
-            <!-- Attachment Actions -->
-
-            <div class="attachment-actions">
-
-                <button type="button" class="action-button" (click)="openAttachment(attachment)">
+                <div class="attachment-actions">
+                  <button
+                    type="button"
+                    class="action-button"
+                    (click)="openAttachment(attachment)"
+                  >
                     Open
-                </button>
+                  </button>
 
-
-                <button type="button" class="delete-button" (click)="deleteAttachment(attachment)" [disabled]="
-                                attachmentDeleting() ===
-                                attachment._id
-                            ">
-
-                    @if (
-                    attachmentDeleting() ===
-                    attachment._id
-                    ) {
-                    Deleting...
+                  <button
+                    type="button"
+                    class="delete-button"
+                    (click)="deleteAttachment(attachment)"
+                    [disabled]="attachmentDeleting() === attachment._id"
+                  >
+                    @if (attachmentDeleting() === attachment._id) {
+                      Deleting...
                     } @else {
-                    Delete
+                      Delete
                     }
-
-                </button>
-
-            </div>
-
-        </article>
-
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
         }
-
-    </div>
-
-    }
-
-</section>
-
-</section>
-
-}
-
+      </section>
+    </section>
+  }
 </div>

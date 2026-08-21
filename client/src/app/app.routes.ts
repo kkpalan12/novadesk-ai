@@ -88,10 +88,30 @@ export const routes: Routes = [
       // /tasks?project=PROJECT_ID&workspace=WORKSPACE_ID
       // =====================================
 
+      // =====================================
+      // TASKS
+      //
+      // /tasks?project=PROJECT_ID&workspace=WORKSPACE_ID
+      // =====================================
+
       {
         path: 'tasks',
         loadComponent: () =>
           import('./features/task/task.component').then((m) => m.TaskComponent),
+      },
+
+      // =====================================
+      // TASK BOARD
+      //
+      // /tasks/board?project=PROJECT_ID&workspace=WORKSPACE_ID
+      // =====================================
+
+      {
+        path: 'tasks/board',
+        loadComponent: () =>
+          import('./features/task/task-board/task-board.component').then(
+            (m) => m.TaskBoardComponent,
+          ),
       },
 
       // =====================================

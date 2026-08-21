@@ -11,7 +11,7 @@ import { ActivityService } from '../../core/services/activity.service';
 import { AttachmentService } from '../../core/services/attachment.service';
 import { SocketService } from '../../core/services/socket.service';
 
-import { Task } from '../../core/models/task.model';
+import { Task, TaskStatus, TaskPriority } from '../../core/models/task.model';
 import { Comment } from '../../core/models/comment.model';
 import { TaskHistory } from '../../core/models/task-history.model';
 import { Activity } from '../../core/models/activity.model';
@@ -132,6 +132,28 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   readonly activityTotal = signal(0);
 
   readonly selectedFile = signal<File | null>(null);
+  readonly showStatusMenu = signal(false);
+
+  readonly updatingStatus = signal(false);
+  // =========================================================
+  // Edit Task
+  // =========================================================
+
+  readonly editMode = signal(false);
+
+  readonly savingTask = signal(false);
+
+  readonly editError = signal('');
+
+  editTitle = '';
+
+  editDescription = '';
+
+  editPriority: TaskPriority = 'MEDIUM';
+
+  editDueDate = '';
+
+  editAssignedTo = '';
 
   // =========================================================
   // Lifecycle
@@ -576,6 +598,17 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     return `${comment.createdBy.firstName} ${comment.createdBy.lastName}`;
   }
 
+  getCommentInitials(comment: Comment): string {
+    if (!comment.createdBy || typeof comment.createdBy === 'string') {
+      return 'U';
+    }
+
+    const first = comment.createdBy.firstName?.trim().charAt(0) ?? '';
+    const last = comment.createdBy.lastName?.trim().charAt(0) ?? '';
+
+    return `${first}${last}`.toUpperCase() || 'U';
+  }
+
   // =========================================================
   // History
   // =========================================================
@@ -731,6 +764,108 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     }
 
     return `${activity.user.firstName} ${activity.user.lastName}`;
+  }
+
+  getActivityInitials(activity: Activity): string {
+    if (!activity.user || typeof activity.user === 'string') {
+      return 'S';
+    }
+
+    const first = activity.user.firstName?.trim().charAt(0) ?? '';
+    const last = activity.user.lastName?.trim().charAt(0) ?? '';
+
+    return `${first}${last}`.toUpperCase() || 'U';
+  }
+
+  getActivityDescription(activity: Activity): string {
+    const action = activity.action ?? '';
+    const raw = activity as Activity & {
+      description?: string;
+      metadata?: Record<string, unknown>;
+      details?: string;
+      oldValue?: unknown;
+      newValue?: unknown;
+    };
+
+    if (raw.description) {
+      return raw.description;
+    }
+
+    if (raw.details) {
+      return raw.details;
+    }
+
+    if (raw.oldValue !== undefined || raw.newValue !== undefined) {
+      const oldValue = this.formatHistoryValue(raw.oldValue);
+      const newValue = this.formatHistoryValue(raw.newValue);
+
+      return `${oldValue} → ${newValue}`;
+    }
+
+    const metadata = raw.metadata;
+    if (metadata) {
+      const oldValue = metadata['oldValue'];
+      const newValue = metadata['newValue'];
+
+      if (oldValue !== undefined || newValue !== undefined) {
+        return `${this.formatHistoryValue(oldValue)} → ${this.formatHistoryValue(newValue)}`;
+      }
+    }
+
+    if (action.toUpperCase().includes('COMMENT')) {
+      return 'Comment activity';
+    }
+
+    if (action.toUpperCase().includes('ATTACHMENT')) {
+      return 'Attachment activity';
+    }
+
+    return '';
+  }
+
+  getActivityRelativeTime(value?: string | Date): string {
+    if (!value) {
+      return 'Just now';
+    }
+
+    const timestamp = new Date(value).getTime();
+
+    if (Number.isNaN(timestamp)) {
+      return 'Just now';
+    }
+
+    const diffSeconds = Math.max(
+      0,
+      Math.floor((Date.now() - timestamp) / 1000),
+    );
+
+    if (diffSeconds < 10) {
+      return 'Just now';
+    }
+
+    if (diffSeconds < 60) {
+      return `${diffSeconds}s ago`;
+    }
+
+    const minutes = Math.floor(diffSeconds / 60);
+
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
+
+    const days = Math.floor(hours / 24);
+
+    if (days < 7) {
+      return `${days}d ago`;
+    }
+
+    return new Date(value).toLocaleDateString();
   }
 
   // =========================================================
@@ -891,6 +1026,79 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
 
+  clearSelectedFile(input?: HTMLInputElement): void {
+    this.selectedFile.set(null);
+
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  getAttachmentIcon(attachment: Attachment): string {
+    const mimeType = (attachment.mimeType ?? '').toLowerCase();
+    const name = this.getAttachmentName(attachment).toLowerCase();
+
+    if (mimeType.includes('pdf') || name.endsWith('.pdf')) {
+      return 'PDF';
+    }
+
+    if (
+      mimeType.includes('image') ||
+      /\.(png|jpe?g|gif|webp|svg)$/i.test(name)
+    ) {
+      return 'IMG';
+    }
+
+    if (mimeType.includes('word') || /\.(doc|docx)$/i.test(name)) {
+      return 'DOC';
+    }
+
+    if (
+      mimeType.includes('excel') ||
+      mimeType.includes('spreadsheet') ||
+      /\.(xls|xlsx|csv)$/i.test(name)
+    ) {
+      return 'XLS';
+    }
+
+    if (
+      mimeType.includes('zip') ||
+      mimeType.includes('compressed') ||
+      /\.(zip|rar|7z)$/i.test(name)
+    ) {
+      return 'ZIP';
+    }
+
+    if (mimeType.includes('text') || /\.(txt|md)$/i.test(name)) {
+      return 'TXT';
+    }
+
+    return 'FILE';
+  }
+
+  getAttachmentIconClass(attachment: Attachment): string {
+    const type = this.getAttachmentIcon(attachment).toLowerCase();
+
+    return `attachment-type-${type}`;
+  }
+
+  getAttachmentTypeLabel(attachment: Attachment): string {
+    const mimeType = (attachment.mimeType ?? '').toLowerCase();
+
+    if (mimeType.includes('/')) {
+      const subtype = mimeType.split('/')[1];
+
+      if (subtype) {
+        return subtype.toUpperCase();
+      }
+    }
+
+    const name = this.getAttachmentName(attachment);
+    const extension = name.includes('.') ? name.split('.').pop() : '';
+
+    return extension ? extension.toUpperCase() : 'FILE';
+  }
+
   // =========================================================
   // Navigation
   // =========================================================
@@ -946,5 +1154,175 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         );
       },
     });
+  }
+  // =========================================================
+  // Edit Task
+  // =========================================================
+
+  startEditTask(): void {
+    const current = this.task();
+
+    if (!current) {
+      return;
+    }
+
+    this.editTitle = current.title;
+
+    this.editDescription = current.description ?? '';
+
+    this.editPriority = current.priority;
+
+    this.editDueDate = current.dueDate ?? '';
+
+    this.editAssignedTo =
+      typeof current.assignedTo === 'string'
+        ? current.assignedTo
+        : (current.assignedTo?._id ?? '');
+
+    this.editError.set('');
+
+    this.editMode.set(true);
+  }
+
+  cancelEditTask(): void {
+    this.editMode.set(false);
+
+    this.editError.set('');
+  }
+  private getTaskProjectId(task: Task): string {
+    if (typeof task.project === 'string') {
+      return task.project;
+    }
+
+    return task.project?._id ?? '';
+  }
+  saveTask(): void {
+    const current = this.task();
+
+    if (!current) {
+      return;
+    }
+
+    const projectId = this.getTaskProjectId(current);
+
+    if (!projectId) {
+      this.editError.set('Task project is missing.');
+      return;
+    }
+
+    this.savingTask.set(true);
+    this.editError.set('');
+
+    this.taskService
+      .updateTask(projectId, current._id, {
+        title: this.editTitle.trim(),
+
+        description: this.editDescription.trim() || undefined,
+
+        priority: this.editPriority,
+
+        dueDate: this.editDueDate || undefined,
+
+        assignedTo: this.editAssignedTo || undefined,
+      })
+      .subscribe({
+        next: (response) => {
+          this.task.set(response.data);
+
+          this.editMode.set(false);
+
+          this.savingTask.set(false);
+        },
+
+        error: (error) => {
+          console.error('Update task error:', error);
+
+          this.savingTask.set(false);
+
+          this.editError.set(error?.error?.message ?? 'Unable to update task.');
+        },
+      });
+  }
+  changeTaskStatus(status: TaskStatus): void {
+    const current = this.task();
+
+    if (!current) {
+      return;
+    }
+
+    const projectId = this.getTaskProjectId(current);
+
+    if (!projectId) {
+      return;
+    }
+
+    this.updatingStatus.set(true);
+
+    this.taskService
+      .updateTaskStatus(projectId, current._id, status)
+      .subscribe({
+        next: (response) => {
+          this.task.set(response.data);
+
+          this.showStatusMenu.set(false);
+
+          this.updatingStatus.set(false);
+        },
+
+        error: (error) => {
+          console.error('Update task status error:', error);
+
+          this.updatingStatus.set(false);
+        },
+      });
+  }
+  toggleStatusMenu(): void {
+    this.showStatusMenu.update((value) => !value);
+  }
+  getAssignedUserInitials(): string {
+    const currentTask = this.task();
+
+    if (
+      !currentTask?.assignedTo ||
+      typeof currentTask.assignedTo === 'string'
+    ) {
+      return 'U';
+    }
+
+    const first = currentTask.assignedTo.firstName?.trim().charAt(0) ?? '';
+
+    const last = currentTask.assignedTo.lastName?.trim().charAt(0) ?? '';
+
+    return `${first}${last}`.toUpperCase() || 'U';
+  }
+
+  getProjectName(): string {
+    const currentTask = this.task();
+
+    if (!currentTask?.project) {
+      return 'Unknown Project';
+    }
+
+    if (typeof currentTask.project === 'string') {
+      return 'Project';
+    }
+
+    return currentTask.project.name || 'Unknown Project';
+  }
+
+  isTaskOverdue(): boolean {
+    const currentTask = this.task();
+
+    if (!currentTask?.dueDate || currentTask.status === 'DONE') {
+      return false;
+    }
+
+    const dueDate = new Date(currentTask.dueDate);
+
+    if (Number.isNaN(dueDate.getTime())) {
+      return false;
+    }
+
+    return dueDate.getTime() < Date.now();
   }
 }

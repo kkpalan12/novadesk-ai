@@ -1,0 +1,213 @@
+<article class="task-card" (click)="openTask()">
+
+
+    <!-- HEADER -->
+
+    <div class="card-header">
+
+        <h4 class="task-title">
+
+            {{ task().title }}
+
+        </h4>
+
+
+        <span class="menu">
+
+            ⋮
+
+        </span>
+
+
+    </div>
+
+
+
+    <!-- DESCRIPTION -->
+
+    @if(task().description) {
+
+    <p class="task-description">
+
+        {{ task().description }}
+
+    </p>
+
+    }
+
+
+
+    <!-- BADGES -->
+
+    <div class="card-badges">
+
+
+        <span class="priority" [class]="task().priority.toLowerCase()">
+
+
+            @switch(task().priority) {
+
+
+            @case('CRITICAL') {
+
+            🔥 Critical
+
+            }
+
+
+            @case('HIGH') {
+
+            🔴 High
+
+            }
+
+
+            @case('MEDIUM') {
+
+            🟡 Medium
+
+            }
+
+
+            @case('LOW') {
+
+            🟢 Low
+
+            }
+
+
+            }
+
+
+        </span>
+
+
+
+
+        <span class="status">
+
+            {{ getStatusLabel(task().status) }}
+
+        </span>
+
+
+
+    </div>
+
+
+
+
+    <!-- USER + DATE -->
+
+    <div class="card-meta">
+
+
+
+        <div class="assignee">
+
+
+            @if(getAssigneeInitials()) {
+
+
+            <span class="avatar">
+
+                {{ getAssigneeInitials() }}
+
+            </span>
+
+
+            }
+
+
+
+            @if(getAssigneeName()) {
+
+
+            <span class="assignee-name">
+
+                {{ getAssigneeName() }}
+
+            </span>
+
+
+            }
+
+
+
+        </div>
+
+
+
+
+
+        @if(formatDueDate()) {
+
+
+        <span class="due-date">
+
+            📅 {{ formatDueDate() }}
+
+        </span>
+
+
+        }
+
+
+
+    </div>
+
+
+
+
+    <!-- COUNTS -->
+
+    <div class="task-stats">
+
+
+        @if(task().commentsCount) {
+
+
+        <span>
+
+            💬 {{ task().commentsCount }}
+
+        </span>
+
+
+        }
+
+
+
+        @if(task().attachmentsCount) {
+
+
+        <span>
+
+            📎 {{ task().attachmentsCount }}
+
+        </span>
+
+
+        }
+
+
+
+        @if(task().priority === 'CRITICAL') {
+
+
+        <span class="ai-badge">
+
+            🤖 AI
+
+        </span>
+
+
+        }
+
+
+
+    </div>
+
+
+
+</article>

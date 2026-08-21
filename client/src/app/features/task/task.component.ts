@@ -1,7 +1,12 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+} from '@angular/router';
 
 import { TaskService } from '../../core/services/task.service';
 import { MembershipService } from '../../core/services/membership.service';
@@ -15,7 +20,7 @@ import { ConfirmDialogService } from '../../shared/services/confirm-dialog.servi
 @Component({
   selector: 'app-task',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './task.component.html',
   styleUrl: './task.component.scss',
 })

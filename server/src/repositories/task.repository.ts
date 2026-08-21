@@ -6,6 +6,8 @@ import { paginate } from "../common/pagination/pagination.util";
 import { Task } from "../models/task.model";
 import { ITask } from "../interfaces/task.interface";
 import { UpdateTaskDto } from "../dto/task/update-task.dto";
+import { Comment } from "../models/comment.model";
+import { Attachment } from "../models/attachment.model";
 
 export class TaskRepository extends BaseRepository<ITask> {
   constructor() {
@@ -58,7 +60,9 @@ export class TaskRepository extends BaseRepository<ITask> {
     const { page, limit, project, search, status, priority, sort } = filters;
 
     const query: FilterQuery<ITask> = {
-      isDeleted: { $ne: true },
+      isDeleted: {
+        $ne: true,
+      },
     };
 
     if (project) {
@@ -68,6 +72,7 @@ export class TaskRepository extends BaseRepository<ITask> {
     if (search) {
       query.title = {
         $regex: search,
+
         $options: "i",
       };
     }
@@ -82,28 +87,72 @@ export class TaskRepository extends BaseRepository<ITask> {
 
     const result = await paginate(
       this.model,
+
       query,
+
       {
         page,
         limit,
       },
+
       (queryBuilder) =>
         queryBuilder
+
           .populate("project", "name")
+
           .populate("assignedTo", "firstName lastName email")
+
           .populate("createdBy", "firstName lastName email")
-          .sort(sort ? { [sort]: 1 } : { createdAt: -1 }),
+
+          .sort(
+            sort
+              ? {
+                  [sort]: 1,
+                }
+              : {
+                  createdAt: -1,
+                },
+          ),
+    );
+
+    const tasksWithMetadata = await Promise.all(
+      result.data.map(async (task) => {
+        const [commentsCount, attachmentsCount] = await Promise.all([
+          Comment.countDocuments({
+            task: task._id,
+
+            isDeleted: false,
+          }),
+
+          Attachment.countDocuments({
+            task: task._id,
+
+            isDeleted: false,
+          }),
+        ]);
+
+        return {
+          ...task.toObject(),
+
+          commentsCount,
+
+          attachmentsCount,
+        };
+      }),
     );
 
     return {
-      tasks: result.data,
+      tasks: tasksWithMetadata,
+
       total: result.total,
+
       page: result.page,
+
       limit: result.limit,
+
       totalPages: result.totalPages,
     };
   }
-
   /**
    * Update Task
    */

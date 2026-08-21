@@ -33,6 +33,10 @@ export interface Task {
 
   dueDate?: string;
 
+  commentsCount?: number;
+
+  attachmentsCount?: number;
+
   isDeleted: boolean;
 
   createdAt?: string;
