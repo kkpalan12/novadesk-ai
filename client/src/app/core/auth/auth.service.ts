@@ -12,6 +12,15 @@ import {
   RegisterResponse,
 } from './auth.model';
 
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -48,16 +57,37 @@ export class AuthService {
             return;
           }
 
+          this.storeSession(
+            response.data.accessToken,
+            response.data.refreshToken,
+            response.data.user,
+          );
+        }),
+      );
+  }
+
+  // =========================================
+  // REFRESH TOKEN
+  // =========================================
+
+  refreshAccessToken(): Observable<RefreshTokenResponse> {
+    const refreshToken = this.getRefreshToken();
+
+    return this.http
+      .post<RefreshTokenResponse>(`${this.apiUrl}/auth/refresh`, {
+        refreshToken,
+      })
+      .pipe(
+        tap((response) => {
+          if (!response.success || !response.data) {
+            return;
+          }
+
           localStorage.setItem(this.tokenKey, response.data.accessToken);
 
           localStorage.setItem(
             this.refreshTokenKey,
             response.data.refreshToken,
-          );
-
-          localStorage.setItem(
-            this.userKey,
-            JSON.stringify(response.data.user),
           );
         }),
       );
@@ -68,6 +98,14 @@ export class AuthService {
   // =========================================
 
   logout(): void {
+    this.clearSession();
+  }
+
+  // =========================================
+  // CLEAR SESSION
+  // =========================================
+
+  clearSession(): void {
     localStorage.removeItem(this.tokenKey);
 
     localStorage.removeItem(this.refreshTokenKey);
@@ -101,6 +139,8 @@ export class AuthService {
     try {
       return JSON.parse(user) as AuthUser;
     } catch {
+      this.clearSession();
+
       return null;
     }
   }
@@ -112,6 +152,11 @@ export class AuthService {
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
+
+  // =========================================
+  // FORGOT PASSWORD
+  // =========================================
+
   forgotPassword(email: string): Observable<{
     success: boolean;
     message: string;
@@ -131,6 +176,10 @@ export class AuthService {
       email,
     });
   }
+
+  // =========================================
+  // RESET PASSWORD
+  // =========================================
 
   resetPassword(
     token: string,
@@ -152,5 +201,21 @@ export class AuthService {
       token,
       password,
     });
+  }
+
+  // =========================================
+  // PRIVATE SESSION STORAGE
+  // =========================================
+
+  private storeSession(
+    accessToken: string,
+    refreshToken: string,
+    user: AuthUser,
+  ): void {
+    localStorage.setItem(this.tokenKey, accessToken);
+
+    localStorage.setItem(this.refreshTokenKey, refreshToken);
+
+    localStorage.setItem(this.userKey, JSON.stringify(user));
   }
 }

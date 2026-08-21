@@ -73,14 +73,25 @@
   <!-- ========================================= -->
   <!-- ERROR -->
   <!-- ========================================= -->
-
-  @if (errorMessage()) {
+  @if (errorMessage() && !loading()) {
     <div class="error-banner">
       <span class="error-icon">!</span>
 
-      <span>
-        {{ errorMessage() }}
-      </span>
+      <div class="error-content">
+        <strong>Unable to load tasks</strong>
+
+        <span>
+          {{ errorMessage() }}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-button error-retry-button"
+        (click)="retryLoadTasks()"
+      >
+        Try Again
+      </button>
     </div>
   }
 
@@ -329,7 +340,9 @@
   <!-- EMPTY -->
   <!-- ========================================= -->
 
-  @if (!loading() && !showCreateForm() && tasks().length === 0) {
+  @if (
+    !loading() && !errorMessage() && !showCreateForm() && tasks().length === 0
+  ) {
     <section class="empty-state">
       <div class="empty-icon">✓</div>
 

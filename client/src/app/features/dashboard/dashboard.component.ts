@@ -5,7 +5,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+
 import { SocketService } from '../../core/services/socket.service';
+
 import { Activity } from '../../core/models/activity.model';
 
 import {
@@ -13,8 +15,13 @@ import {
   DashboardService,
 } from '../../core/services/dashboard.service';
 
+import { Subject } from 'rxjs';
+
+import { distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
+
 @Component({
   selector: 'app-dashboard',
+
   standalone: true,
 
   imports: [CommonModule],
@@ -24,6 +31,10 @@ import {
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  // =========================================
+  // SERVICES
+  // =========================================
+
   private readonly authService = inject(AuthService);
 
   private readonly dashboardService = inject(DashboardService);
@@ -31,16 +42,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
 
   private readonly route = inject(ActivatedRoute);
+
   private readonly socketService = inject(SocketService);
 
   // =========================================
-  // User
+  // DESTROY
+  // =========================================
+
+  private readonly destroy$ = new Subject<void>();
+
+  // =========================================
+  // USER
   // =========================================
 
   readonly user = this.authService.getCurrentUser();
 
   // =========================================
-  // State
+  // STATE
   // =========================================
 
   readonly loading = signal(true);
@@ -52,20 +70,56 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly workspaceId = signal('');
 
   // =========================================
-  // Lifecycle
+  // LIFECYCLE
   // =========================================
 
   ngOnInit(): void {
-    const workspaceId = this.route.snapshot.queryParamMap.get('workspace');
+    this.route.queryParamMap
+      .pipe(
+        map((params) => params.get('workspace')),
 
-    if (workspaceId) {
-      this.workspaceId.set(workspaceId);
+        filter((workspaceId): workspaceId is string => !!workspaceId),
 
-      this.initializeRealtime(workspaceId);
+        distinctUntilChanged(),
+
+        takeUntil(this.destroy$),
+      )
+      .subscribe((workspaceId) => {
+        this.handleWorkspaceChange(workspaceId);
+      });
+  }
+
+  // =========================================
+  // WORKSPACE CHANGE
+  // =========================================
+
+  private handleWorkspaceChange(workspaceId: string): void {
+    // Leave previous workspace socket room
+    const previousWorkspaceId = this.workspaceId();
+
+    if (previousWorkspaceId && previousWorkspaceId !== workspaceId) {
+      this.socketService.leaveWorkspace(previousWorkspaceId);
+
+      this.socketService.removeActivityListeners();
     }
 
+    // Update current workspace
+    this.workspaceId.set(workspaceId);
+
+    // Clear old workspace data immediately
+    this.dashboard.set(null);
+
+    this.errorMessage.set('');
+
+    this.loading.set(true);
+
+    // Join new workspace
+    this.initializeRealtime(workspaceId);
+
+    // Load new workspace dashboard
     this.loadDashboard();
   }
+
   // =========================================
   // REALTIME
   // =========================================
@@ -80,9 +134,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // =========================================
+      // =====================================
       // TASK ACTIVITY
-      // =========================================
+      // =====================================
 
       if (
         activity.action === 'TASK_CREATED' ||
@@ -95,9 +149,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // =========================================
+      // =====================================
       // OTHER ACTIVITY
-      // =========================================
+      // =====================================
 
       this.dashboard.update((current) => {
         if (!current) {
@@ -125,22 +179,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // Load Dashboard
+  // LOAD DASHBOARD
   // =========================================
 
   private loadDashboard(): void {
+    const workspaceId = this.workspaceId();
+
+    if (!workspaceId) {
+      return;
+    }
+
     this.loading.set(true);
 
     this.errorMessage.set('');
 
     this.dashboardService.getDashboard().subscribe({
       next: (response) => {
+        // Ignore a response that belongs
+        // to an old workspace request.
+
+        if (this.workspaceId() !== workspaceId) {
+          return;
+        }
+
         this.dashboard.set(response.data);
 
         this.loading.set(false);
       },
 
       error: (error) => {
+        if (this.workspaceId() !== workspaceId) {
+          return;
+        }
+
         this.loading.set(false);
 
         this.errorMessage.set(
@@ -151,7 +222,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // Projects
+  // PROJECTS
   // =========================================
 
   goToProjects(): void {
@@ -163,7 +234,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/projects'], {
+    void this.router.navigate(['/projects'], {
       queryParams: {
         workspace: workspaceId,
       },
@@ -171,22 +242,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // Notifications
+  // NOTIFICATIONS
   // =========================================
 
   goToNotifications(): void {
-    this.router.navigate(['/notifications']);
+    void this.router.navigate(['/notifications']);
   }
 
   // =========================================
-  // Logout
+  // LOGOUT
   // =========================================
 
   logout(): void {
     this.authService.logout();
 
-    this.router.navigate(['/login']);
+    void this.router.navigate(['/login']);
   }
+
+  // =========================================
+  // DESTROY
+  // =========================================
+
   ngOnDestroy(): void {
     const workspaceId = this.workspaceId();
 
@@ -195,5 +271,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.socketService.removeActivityListeners();
+
+    this.destroy$.next();
+
+    this.destroy$.complete();
   }
 }

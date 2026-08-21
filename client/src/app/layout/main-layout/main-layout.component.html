@@ -1,412 +1,302 @@
 <div class="app-shell">
-    <app-confirm-dialog></app-confirm-dialog>
+  <app-confirm-dialog></app-confirm-dialog>
 
-    <!-- =========================================
+  <!-- =========================================
        SIDEBAR
        ========================================= -->
 
-    <aside class="sidebar">
+  <aside class="sidebar">
+    <!-- BRAND -->
 
-        <!-- BRAND -->
+    <div class="brand">
+      <img src="novadesk-ai-icon.png" alt="NovaDesk AI" class="brand-logo" />
 
-        <div class="brand">
+      <span class="brand-name"> NovaDesk </span>
+    </div>
 
-            <img src="novadesk-ai-icon.png" alt="NovaDesk AI" class="brand-logo" />
-
-            <span class="brand-name">
-                NovaDesk
-            </span>
-
-        </div>
-
-
-        <!-- =======================================
+    <!-- =======================================
          WORKSPACE SELECTOR
          ======================================= -->
 
-        <div class="workspace-selector">
+    <div class="workspace-selector">
+      <label for="workspace" class="workspace-label"> WORKSPACE </label>
 
-            <label for="workspace" class="workspace-label">
-                WORKSPACE
-            </label>
+      <select
+        id="workspace"
+        class="workspace-select"
+        [value]="workspaceContext.activeWorkspace()?._id ?? ''"
+        (change)="selectWorkspace($any($event.target).value)"
+        [disabled]="workspaceContext.loading()"
+      >
+        @if (workspaceContext.loading()) {
+          <option value="">Loading...</option>
 
-            <select id="workspace" class="workspace-select" [value]="workspaceContext.activeWorkspace()?._id ?? ''"
-                (change)="selectWorkspace($any($event.target).value)" [disabled]="workspaceContext.loading()">
+        } @else if (workspaceContext.workspaces().length === 0) {
+          <option value="">No workspaces</option>
 
-                @if (workspaceContext.loading()) {
+        } @else {
+          @for (
+            workspace of workspaceContext.workspaces();
+            track workspace._id
+          ) {
+            <option [value]="workspace._id">
+              {{ workspace.name }}
+            </option>
+          }
+        }
+      </select>
 
-                <option value="">
-                    Loading...
-                </option>
+      <!-- Workspace Error -->
 
-                }
+      @if (workspaceContext.errorMessage()) {
+        <div class="workspace-error">
+          <span>
+            {{ workspaceContext.errorMessage() }}
+          </span>
 
-                @else if (
-                workspaceContext.workspaces().length === 0
-                ) {
-
-                <option value="">
-                    No workspaces
-                </option>
-
-                }
-
-                @else {
-
-                @for (
-                workspace of workspaceContext.workspaces();
-                track workspace._id
-                ) {
-
-                <option [value]="workspace._id">
-                    {{ workspace.name }}
-                </option>
-
-                }
-
-                }
-
-            </select>
-
-
-            <!-- Workspace Error -->
-
-            @if (workspaceContext.errorMessage()) {
-
-            <div class="workspace-error">
-                {{ workspaceContext.errorMessage() }}
-            </div>
-
-            }
-
+          <button
+            type="button"
+            class="workspace-retry"
+            (click)="retryWorkspaces()"
+          >
+            Retry
+          </button>
         </div>
+      }
+    </div>
 
-
-        <!-- =======================================
+    <!-- =======================================
          DESKTOP NAVIGATION
          ======================================= -->
 
-        <nav class="navigation">
+    <nav class="navigation">
+      <button type="button" class="nav-item" (click)="goToDashboard()">
+        <span class="nav-icon"> ⌂ </span>
 
-            <button type="button" class="nav-item" (click)="goToDashboard()">
-                <span class="nav-icon">
-                    ⌂
-                </span>
+        <span> Dashboard </span>
+      </button>
 
-                <span>
-                    Dashboard
-                </span>
-            </button>
+      <button type="button" class="nav-item" (click)="goToProjects()">
+        <span class="nav-icon"> ▣ </span>
 
+        <span> Projects </span>
+      </button>
 
-            <button type="button" class="nav-item" (click)="goToProjects()">
-                <span class="nav-icon">
-                    ▣
-                </span>
+      <!-- WORKSPACE -->
 
-                <span>
-                    Projects
-                </span>
-            </button>
+      <button type="button" class="nav-item" (click)="goToWorkspace()">
+        <span class="nav-icon"> ◫ </span>
 
+        <span> Workspace </span>
+      </button>
 
-            <!-- WORKSPACE -->
+      <!-- NOTIFICATIONS -->
 
-            <button type="button" class="nav-item" (click)="goToWorkspace()">
-                <span class="nav-icon">
-                    ◫
-                </span>
+      <button type="button" class="nav-item" (click)="goToNotifications()">
+        <span class="nav-icon"> ♢ </span>
 
-                <span>
-                    Workspace
-                </span>
-            </button>
+        <span> Notifications </span>
 
+        @if (unreadNotificationCount() > 0) {
+          <span class="notification-badge">
+            {{
+              unreadNotificationCount() > 99 ? "99+" : unreadNotificationCount()
+            }}
+          </span>
+        }
+      </button>
+    </nav>
 
-            <!-- NOTIFICATIONS -->
-
-            <button type="button" class="nav-item" (click)="goToNotifications()">
-
-                <span class="nav-icon">
-                    ♢
-                </span>
-
-                <span>
-                    Notifications
-                </span>
-
-                @if (unreadNotificationCount() > 0) {
-
-                <span class="notification-badge">
-
-                    {{
-                    unreadNotificationCount() > 99
-                    ? '99+'
-                    : unreadNotificationCount()
-                    }}
-
-                </span>
-
-                }
-
-            </button>
-
-        </nav>
-
-
-        <!-- =======================================
+    <!-- =======================================
          SIDEBAR BOTTOM
          ======================================= -->
 
-        <div class="sidebar-bottom">
+    <div class="sidebar-bottom">
+      <button type="button" class="nav-item logout-button" (click)="logout()">
+        <span class="nav-icon"> ↪ </span>
 
-            <button type="button" class="nav-item logout-button" (click)="logout()">
+        <span> Logout </span>
+      </button>
+    </div>
+  </aside>
 
-                <span class="nav-icon">
-                    ↪
-                </span>
-
-                <span>
-                    Logout
-                </span>
-
-            </button>
-
-        </div>
-
-    </aside>
-
-
-    <!-- =========================================
+  <!-- =========================================
        MAIN AREA
        ========================================= -->
 
-    <main class="main-area">
-
-        <!-- =======================================
+  <main class="main-area">
+    <!-- =======================================
          TOPBAR
          ======================================= -->
 
-        <header class="topbar">
+    <header class="topbar">
+      <div class="topbar-title">NovaDesk AI</div>
 
-            <div class="topbar-title">
-                NovaDesk AI
-            </div>
-
-
-            <!-- ===================================
+      <!-- ===================================
              MOBILE WORKSPACE SELECTOR
              =================================== -->
 
-            <div class="mobile-workspace-selector">
+      <div class="mobile-workspace-selector">
+        <label for="mobile-workspace"> WORKSPACE </label>
 
-                <label for="mobile-workspace">
-                    WORKSPACE
-                </label>
+        <select
+          id="mobile-workspace"
+          [value]="workspaceContext.activeWorkspace()?._id ?? ''"
+          (change)="selectWorkspace($any($event.target).value)"
+          [disabled]="workspaceContext.loading()"
+        >
+          @if (workspaceContext.loading()) {
+            <option value="">Loading...</option>
 
-                <select id="mobile-workspace" [value]="workspaceContext.activeWorkspace()?._id ?? ''"
-                    (change)="selectWorkspace($any($event.target).value)" [disabled]="workspaceContext.loading()">
+          } @else if (workspaceContext.workspaces().length === 0) {
+            <option value="">No workspaces</option>
 
-                    @if (workspaceContext.loading()) {
+          } @else {
+            @for (
+              workspace of workspaceContext.workspaces();
+              track workspace._id
+            ) {
+              <option [value]="workspace._id">
+                {{ workspace.name }}
+              </option>
+            }
+          }
+        </select>
+      </div>
 
-                    <option value="">
-                        Loading...
-                    </option>
-
-                    }
-
-                    @else if (
-                    workspaceContext.workspaces().length === 0
-                    ) {
-
-                    <option value="">
-                        No workspaces
-                    </option>
-
-                    }
-
-                    @else {
-
-                    @for (
-                    workspace of workspaceContext.workspaces();
-                    track workspace._id
-                    ) {
-
-                    <option [value]="workspace._id">
-                        {{ workspace.name }}
-                    </option>
-
-                    }
-
-                    }
-
-                </select>
-
-            </div>
-
-
-            <!-- ===================================
+      <!-- ===================================
              TOPBAR ACTIONS
              =================================== -->
 
-            <div class="topbar-actions">
+      <div class="topbar-actions">
+        <!-- Notifications -->
 
-                <!-- Notifications -->
+        <button
+          type="button"
+          class="notification-button"
+          (click)="goToNotifications()"
+          aria-label="Notifications"
+        >
+          ♢
 
-                <button type="button" class="notification-button" (click)="goToNotifications()"
-                    aria-label="Notifications">
+          @if (unreadNotificationCount() > 0) {
+            <span class="notification-badge notification-badge-top">
+              {{
+                unreadNotificationCount() > 99
+                  ? "99+"
+                  : unreadNotificationCount()
+              }}
+            </span>
+          }
+        </button>
 
-                    ♢
+        <!-- User -->
 
-                    @if (unreadNotificationCount() > 0) {
+        <button
+          type="button"
+          class="user-avatar"
+          [attr.aria-label]="
+            user ? 'Open profile for ' + user.firstName : 'Open profile'
+          "
+          [title]="user ? user.firstName + ' ' + user.lastName : 'Profile'"
+          (click)="goToProfile()"
+        >
+          {{ userInitial }}
+        </button>
+      </div>
+    </header>
 
-                    <span class="notification-badge notification-badge-top">
-
-                        {{
-                        unreadNotificationCount() > 99
-                        ? '99+'
-                        : unreadNotificationCount()
-                        }}
-
-                    </span>
-
-                    }
-
-                </button>
-
-
-                <!-- User -->
-
-                <button type="button" class="user-avatar" [attr.aria-label]="
-                        user
-                            ? 'Open profile for ' + user.firstName
-                            : 'Open profile'
-                    " [title]="
-                        user
-                            ? user.firstName + ' ' + user.lastName
-                            : 'Profile'
-                    " (click)="goToProfile()">
-                    {{ userInitial }}
-                </button>
-
-            </div>
-
-        </header>
-
-
-        <!-- =======================================
+    <!-- =======================================
          ROUTED PAGE
          ======================================= -->
 
-        <section class="page-content">
+    <section class="page-content">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
 
-            <router-outlet></router-outlet>
-
-        </section>
-
-    </main>
-
-
-    <!-- =========================================
+  <!-- =========================================
        MOBILE BOTTOM NAVIGATION
        ========================================= -->
 
-    <!-- =========================================
+  <!-- =========================================
          MOBILE BOTTOM NAVIGATION
          ========================================= -->
-    
-    <nav class="mobile-navigation">
-    
-        <!-- Dashboard -->
-    
-        <button type="button" class="mobile-nav-item" (click)="goToDashboard()" aria-label="Dashboard">
-    
-            <span class="mobile-nav-icon">
-                ⌂
-            </span>
-    
-            <span>
-                Dashboard
-            </span>
-    
-        </button>
-    
-    
-        <!-- Projects -->
-    
-        <button type="button" class="mobile-nav-item" (click)="goToProjects()" aria-label="Projects">
-    
-            <span class="mobile-nav-icon">
-                ▣
-            </span>
-    
-            <span>
-                Projects
-            </span>
-    
-        </button>
-    
-    
-        <!-- Workspace -->
-    
-        <button type="button" class="mobile-nav-item" (click)="goToWorkspace()" aria-label="Workspace">
-    
-            <span class="mobile-nav-icon">
-                ◫
-            </span>
-    
-            <span>
-                Workspace
-            </span>
-    
-        </button>
-    
-    
-        <!-- Notifications -->
-    
-        <button type="button" class="mobile-nav-item" (click)="goToNotifications()" aria-label="Notifications">
-    
-            <span class="mobile-nav-icon">
-    
-                ♢
-    
-                @if (unreadNotificationCount() > 0) {
-    
-                <span class="mobile-notification-badge">
-    
-                    {{
-                    unreadNotificationCount() > 99
-                    ? '99+'
-                    : unreadNotificationCount()
-                    }}
-    
-                </span>
-    
-                }
-    
-            </span>
-    
-            <span>
-                Notifications
-            </span>
-    
-        </button>
-    
-    
-        <!-- Logout -->
-    
-        <button type="button" class="mobile-nav-item mobile-logout-item" (click)="logout()" aria-label="Logout">
-    
-            <span class="mobile-nav-icon">
-                ↪
-            </span>
-    
-            <span>
-                Logout
-            </span>
-    
-        </button>
-    
-    </nav>
 
+  <nav class="mobile-navigation">
+    <!-- Dashboard -->
+
+    <button
+      type="button"
+      class="mobile-nav-item"
+      (click)="goToDashboard()"
+      aria-label="Dashboard"
+    >
+      <span class="mobile-nav-icon"> ⌂ </span>
+
+      <span> Dashboard </span>
+    </button>
+
+    <!-- Projects -->
+
+    <button
+      type="button"
+      class="mobile-nav-item"
+      (click)="goToProjects()"
+      aria-label="Projects"
+    >
+      <span class="mobile-nav-icon"> ▣ </span>
+
+      <span> Projects </span>
+    </button>
+
+    <!-- Workspace -->
+
+    <button
+      type="button"
+      class="mobile-nav-item"
+      (click)="goToWorkspace()"
+      aria-label="Workspace"
+    >
+      <span class="mobile-nav-icon"> ◫ </span>
+
+      <span> Workspace </span>
+    </button>
+
+    <!-- Notifications -->
+
+    <button
+      type="button"
+      class="mobile-nav-item"
+      (click)="goToNotifications()"
+      aria-label="Notifications"
+    >
+      <span class="mobile-nav-icon">
+        ♢
+
+        @if (unreadNotificationCount() > 0) {
+          <span class="mobile-notification-badge">
+            {{
+              unreadNotificationCount() > 99 ? "99+" : unreadNotificationCount()
+            }}
+          </span>
+        }
+      </span>
+
+      <span> Notifications </span>
+    </button>
+
+    <!-- Logout -->
+
+    <button
+      type="button"
+      class="mobile-nav-item mobile-logout-item"
+      (click)="logout()"
+      aria-label="Logout"
+    >
+      <span class="mobile-nav-icon"> ↪ </span>
+
+      <span> Logout </span>
+    </button>
+  </nav>
 </div>

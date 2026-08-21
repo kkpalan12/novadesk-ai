@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
@@ -8,8 +9,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../core/services/project.service';
 
 import { Project, UpdateProjectRequest } from '../../core/models/project.model';
+
 import { SocketService } from '../../core/services/socket.service';
+
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
+
+import { Subject } from 'rxjs';
+
+import { distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-project',
@@ -23,15 +30,28 @@ import { ConfirmDialogService } from '../../shared/services/confirm-dialog.servi
   styleUrl: './project.component.scss',
 })
 export class ProjectComponent implements OnInit, OnDestroy {
+  // =========================================
+  // SERVICES
+  // =========================================
+
   private readonly route = inject(ActivatedRoute);
 
   private readonly router = inject(Router);
 
   private readonly projectService = inject(ProjectService);
+
   private readonly socketService = inject(SocketService);
+
   private readonly confirmDialog = inject(ConfirmDialogService);
+
   // =========================================
-  // State
+  // DESTROY
+  // =========================================
+
+  private readonly destroy$ = new Subject<void>();
+
+  // =========================================
+  // STATE
   // =========================================
 
   readonly projects = signal<Project[]>([]);
@@ -55,7 +75,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
   readonly editingProject = signal<Project | null>(null);
 
   // =========================================
-  // Create Form
+  // CREATE FORM
   // =========================================
 
   projectName = '';
@@ -63,7 +83,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
   projectDescription = '';
 
   // =========================================
-  // Edit Form
+  // EDIT FORM
   // =========================================
 
   editProjectName = '';
@@ -73,28 +93,96 @@ export class ProjectComponent implements OnInit, OnDestroy {
   editProjectStatus: 'ACTIVE' | 'ARCHIVED' = 'ACTIVE';
 
   // =========================================
-  // Init
+  // INIT
   // =========================================
 
   ngOnInit(): void {
-    const workspaceId = this.route.snapshot.queryParamMap.get('workspace');
+    this.route.queryParamMap
+      .pipe(
+        map((params) => params.get('workspace')),
 
-    if (!workspaceId) {
-      this.loading.set(false);
+        filter((workspaceId): workspaceId is string => !!workspaceId),
 
-      this.errorMessage.set('Workspace is required.');
+        distinctUntilChanged(),
 
-      return;
+        takeUntil(this.destroy$),
+      )
+      .subscribe((workspaceId) => {
+        this.handleWorkspaceChange(workspaceId);
+      });
+  }
+
+  // =========================================
+  // WORKSPACE CHANGE
+  // =========================================
+
+  private handleWorkspaceChange(workspaceId: string): void {
+    const previousWorkspaceId = this.workspaceId();
+
+    // ========================================
+    // LEAVE PREVIOUS WORKSPACE
+    // ========================================
+
+    if (previousWorkspaceId && previousWorkspaceId !== workspaceId) {
+      this.socketService.leaveWorkspace(previousWorkspaceId);
+
+      this.socketService.removeProjectListeners();
     }
 
+    // ========================================
+    // UPDATE CONTEXT
+    // ========================================
+
     this.workspaceId.set(workspaceId);
+
+    // ========================================
+    // CLEAR OLD DATA
+    // ========================================
+
+    this.projects.set([]);
+
+    this.errorMessage.set('');
+
+    this.formError.set('');
+
+    this.loading.set(true);
+
+    // Close forms when switching workspace
+    this.showCreateForm.set(false);
+
+    this.showEditForm.set(false);
+
+    this.editingProject.set(null);
+
+    // ========================================
+    // JOIN NEW WORKSPACE
+    // ========================================
 
     this.socketService.connect();
 
     this.socketService.joinWorkspace(workspaceId);
-    // =========================================
+
+    // ========================================
+    // REGISTER SOCKET LISTENERS
+    // ========================================
+
+    this.registerSocketListeners(workspaceId);
+
+    // ========================================
+    // LOAD NEW WORKSPACE
+    // ========================================
+
+    this.loadProjects(workspaceId);
+  }
+
+  // =========================================
+  // SOCKET LISTENERS
+  // =========================================
+
+  private registerSocketListeners(workspaceId: string): void {
+    // ========================================
     // PROJECT CREATED
-    // =========================================
+    // ========================================
 
     this.socketService.onProjectCreated((project) => {
       const projectWorkspaceId =
@@ -109,9 +197,9 @@ export class ProjectComponent implements OnInit, OnDestroy {
       this.loadProjects(workspaceId);
     });
 
-    // =========================================
+    // ========================================
     // PROJECT UPDATED
-    // =========================================
+    // ========================================
 
     this.socketService.onProjectUpdated((project) => {
       const projectWorkspaceId =
@@ -127,27 +215,40 @@ export class ProjectComponent implements OnInit, OnDestroy {
         items.map((item) => (item._id === project._id ? project : item)),
       );
     });
-
-    this.loadProjects(workspaceId);
   }
 
   // =========================================
-  // Load Projects
+  // LOAD PROJECTS
   // =========================================
 
   private loadProjects(workspaceId: string): void {
+    if (!workspaceId) {
+      return;
+    }
+
     this.loading.set(true);
 
     this.errorMessage.set('');
 
     this.projectService.getProjects(workspaceId).subscribe({
       next: (response) => {
+        // Prevent stale request from
+        // overwriting the new workspace.
+
+        if (this.workspaceId() !== workspaceId) {
+          return;
+        }
+
         this.projects.set(response?.data?.projects ?? []);
 
         this.loading.set(false);
       },
 
       error: (error) => {
+        if (this.workspaceId() !== workspaceId) {
+          return;
+        }
+
         this.loading.set(false);
 
         this.errorMessage.set(
@@ -158,7 +259,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // Create Project
+  // CREATE PROJECT
   // =========================================
 
   openCreateForm(): void {
@@ -213,6 +314,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
     this.projectService
       .createProject({
         workspace: workspaceId,
+
         name,
 
         ...(description
@@ -263,7 +365,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/tasks'], {
+    void this.router.navigate(['/tasks'], {
       queryParams: {
         project: projectId,
         workspace: workspaceId,
@@ -272,7 +374,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // Edit Project
+  // EDIT PROJECT
   // =========================================
 
   openEditForm(project: Project): void {
@@ -356,7 +458,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // Delete Project
+  // DELETE PROJECT
   // =========================================
 
   async deleteProject(project: Project): Promise<void> {
@@ -366,9 +468,13 @@ export class ProjectComponent implements OnInit, OnDestroy {
 
     const confirmed = await this.confirmDialog.confirm({
       title: 'Delete project?',
-      message: `Are you sure you want to delete "${project.name}" ? This action cannot be undone.`,
+
+      message: `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+
       confirmText: 'Delete project',
+
       cancelText: 'Keep project',
+
       variant: 'danger',
     });
 
@@ -398,6 +504,11 @@ export class ProjectComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+  // =========================================
+  // DESTROY
+  // =========================================
+
   ngOnDestroy(): void {
     const workspaceId = this.workspaceId();
 
@@ -406,5 +517,9 @@ export class ProjectComponent implements OnInit, OnDestroy {
     }
 
     this.socketService.removeProjectListeners();
+
+    this.destroy$.next();
+
+    this.destroy$.complete();
   }
 }

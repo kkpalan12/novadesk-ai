@@ -1148,7 +1148,10 @@
         padding: 16px 12px 28px;
     }
 
+
+    // =====================================
     // HEADER
+    // =====================================
 
     .page-header {
         align-items: stretch;
@@ -1185,7 +1188,9 @@
     }
 
 
+    // =====================================
     // VIEW SWITCH
+    // =====================================
 
     .task-view-switch {
         width: 100%;
@@ -1202,7 +1207,9 @@
     }
 
 
-    // FILTERS
+    // =====================================
+    // FILTERS — MOBILE
+    // =====================================
 
     .filters-card {
         align-items: stretch;
@@ -1218,16 +1225,70 @@
 
     .filter-search {
         width: 100%;
+
+        input {
+            width: 100%;
+
+            min-height: 42px;
+            height: 42px;
+        }
     }
 
-    .filters-card>select,
-    .filter-search-button,
+    // IMPORTANT:
+    // Desktop uses:
+    // flex: 0 0 145px
+    //
+    // On mobile that 145px becomes the height
+    // because filters-card changes to column layout.
+    //
+    // Reset flex-basis here.
+
+    .filters-card>select {
+        width: 100%;
+
+        min-width: 0;
+
+        min-height: 40px;
+        height: 40px;
+
+        flex: 0 0 40px;
+
+        padding: 0 10px;
+
+        border: 1px solid #dbe2ea;
+        border-radius: 7px;
+
+        background: #fff;
+        color: #334155;
+
+        font-family: inherit;
+        font-size: 12px;
+
+        outline: none;
+
+        &:focus {
+            border-color: #2563eb;
+        }
+    }
+
+    .filter-search-button {
+        width: 100%;
+
+        min-height: 40px;
+        height: 40px;
+    }
+
     .clear-button {
         width: 100%;
+
+        min-height: 36px;
+        height: 36px;
     }
 
 
+    // =====================================
     // CREATE FORM
+    // =====================================
 
     .create-card {
         padding: 18px;
@@ -1248,7 +1309,9 @@
     }
 
 
+    // =====================================
     // TASKS
+    // =====================================
 
     .section-header {
         margin-bottom: 11px;
@@ -1290,7 +1353,9 @@
     }
 
 
+    // =====================================
     // ACTIONS
+    // =====================================
 
     .task-actions {
         width: 100%;
@@ -1316,7 +1381,9 @@
     }
 
 
+    // =====================================
     // EMPTY
+    // =====================================
 
     .empty-state {
         padding: 40px 18px;
@@ -1328,7 +1395,9 @@
     }
 
 
+    // =====================================
     // PAGINATION
+    // =====================================
 
     .pagination {
         display: grid;
@@ -1422,4 +1491,70 @@
 .tasks-page select,
 .tasks-page button {
     box-sizing: border-box;
+}
+
+
+// =========================================
+// ERROR CONTENT
+// =========================================
+
+.error-banner {
+    align-items: center;
+}
+
+.error-content {
+    min-width: 0;
+
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+
+    strong {
+        color: #991b1b;
+
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    span {
+        color: #b91c1c;
+
+        font-size: 11px;
+        line-height: 1.5;
+    }
+}
+
+.error-retry-button {
+    flex: 0 0 auto;
+
+    min-height: 34px;
+
+    padding: 0 11px;
+}
+
+
+// =========================================
+// ERROR MOBILE
+// =========================================
+
+@media (max-width: 700px) {
+
+    .error-banner {
+        align-items: flex-start;
+
+        flex-wrap: wrap;
+    }
+
+    .error-content {
+        flex: 1 1 calc(100% - 34px);
+    }
+
+    .error-retry-button {
+        width: 100%;
+
+        margin-left: 31px;
+    }
 }

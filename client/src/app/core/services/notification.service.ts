@@ -15,7 +15,6 @@ import {
 })
 export class NotificationService {
   private readonly api = inject(ApiService);
-
   private readonly socketService = inject(SocketService);
 
   // =========================================
@@ -25,6 +24,7 @@ export class NotificationService {
   readonly unreadCount = signal(0);
 
   readonly notifications = signal<Notification[]>([]);
+
   private realtimeInitialized = false;
 
   // =========================================
@@ -52,7 +52,7 @@ export class NotificationService {
   }
 
   // =========================================
-  // DELETE NOTIFICATION
+  // DELETE
   // =========================================
 
   deleteNotification(notificationId: string): Observable<unknown> {
@@ -84,7 +84,7 @@ export class NotificationService {
   }
 
   // =========================================
-  // START REAL-TIME NOTIFICATIONS
+  // REAL-TIME
   // =========================================
 
   initializeRealtime(): void {
@@ -96,56 +96,105 @@ export class NotificationService {
 
     this.socketService.connect();
 
-    // =======================================
+    // -----------------------------------------
     // NEW NOTIFICATION
-    // =======================================
+    // -----------------------------------------
 
     this.socketService.onNotification((notification: Notification) => {
-      this.notifications.update((items) => [notification, ...items]);
+      if (!notification?._id) {
+        return;
+      }
 
-      /*
-       * Do NOT increment unreadCount here.
-       *
-       * Backend sends the authoritative unread
-       * count through notification:unread-count.
-       */
+      this.notifications.update((items) => {
+        // Prevent duplicate notification
+        if (items.some((item) => item._id === notification._id)) {
+          return items;
+        }
+
+        return [notification, ...items];
+      });
     });
 
-    // =======================================
+    // -----------------------------------------
     // REAL-TIME UNREAD COUNT
-    // =======================================
+    // -----------------------------------------
 
     this.socketService.onUnreadCount((data: { count: number }) => {
       this.unreadCount.set(data?.count ?? 0);
     });
 
-    // =======================================
+    // -----------------------------------------
     // INITIAL COUNT
-    // =======================================
+    // -----------------------------------------
 
     this.refreshUnreadCount();
   }
 
   // =========================================
-  // SET NOTIFICATIONS
+  // LOAD INTO SHARED STATE
   // =========================================
 
   setNotifications(notifications: Notification[]): void {
-    this.notifications.set(notifications);
+    const uniqueNotifications = notifications.filter(
+      (notification, index, items) =>
+        items.findIndex((item) => item._id === notification._id) === index,
+    );
+
+    this.notifications.set(uniqueNotifications);
 
     this.unreadCount.set(
-      notifications.filter((notification) => !notification.isRead).length,
+      uniqueNotifications.filter((notification) => !notification.isRead).length,
     );
   }
 
   // =========================================
-  // REMOVE NOTIFICATION LOCALLY
+  // MARK LOCAL AS READ
+  // =========================================
+
+  markNotificationReadLocally(notificationId: string): void {
+    this.notifications.update((items) =>
+      items.map((notification) =>
+        notification._id === notificationId
+          ? {
+              ...notification,
+              isRead: true,
+            }
+          : notification,
+      ),
+    );
+  }
+
+  // =========================================
+  // MARK ALL LOCAL AS READ
+  // =========================================
+
+  markAllNotificationsReadLocally(): void {
+    this.notifications.update((items) =>
+      items.map((notification) => ({
+        ...notification,
+        isRead: true,
+      })),
+    );
+
+    this.unreadCount.set(0);
+  }
+
+  // =========================================
+  // REMOVE LOCALLY
   // =========================================
 
   removeNotification(notificationId: string): void {
+    const existing = this.notifications().find(
+      (notification) => notification._id === notificationId,
+    );
+
     this.notifications.update((items) =>
       items.filter((item) => item._id !== notificationId),
     );
+
+    if (existing && !existing.isRead) {
+      this.unreadCount.update((count) => Math.max(0, count - 1));
+    }
   }
 
   // =========================================
@@ -154,7 +203,6 @@ export class NotificationService {
 
   clear(): void {
     this.notifications.set([]);
-
     this.unreadCount.set(0);
   }
 }

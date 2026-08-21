@@ -1,177 +1,178 @@
 <div class="notification-page">
+  <!-- HEADER -->
 
-    <!-- =========================================
-       HEADER
-       ========================================= -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="eyebrow"> WORKSPACE </span>
 
-    <header class="page-header">
+      <h1>Notifications</h1>
 
-        <div>
-            <h1>Notifications</h1>
+      <p>Stay up to date with your workspace activity.</p>
+    </div>
 
-            <p>
-                Stay up to date with your workspace activity.
-            </p>
-        </div>
+    <button
+      type="button"
+      class="secondary-button"
+      (click)="markAllAsRead()"
+      [disabled]="actionLoading() === 'all' || !hasUnread()"
+    >
+      @if (actionLoading() === "all") {
+        Updating...
+      } @else {
+        Mark all as read
+      }
+    </button>
+  </header>
 
-        <button type="button" class="secondary-button" (click)="markAllAsRead()" [disabled]="actionLoading() === 'all'">
+  <!-- ERROR -->
 
-            @if (actionLoading() === 'all') {
-            Updating...
-            } @else {
-            Mark all as read
-            }
+  @if (errorMessage()) {
+    <div class="error-message" role="alert">
+      <span class="error-icon">!</span>
 
-        </button>
-
-    </header>
-
-
-    <!-- =========================================
-       ERROR
-       ========================================= -->
-
-    @if (errorMessage()) {
-
-    <div class="error-message">
+      <span>
         {{ errorMessage() }}
+      </span>
     </div>
+  }
 
-    }
+  <!-- LOADING -->
 
+  @if (loading()) {
+    <section class="notification-list" aria-label="Loading notifications">
+      @for (item of [1, 2, 3]; track item) {
+        <article class="notification-card skeleton-card">
+          <div class="notification-content">
+            <div class="notification-icon skeleton"></div>
 
-    <!-- =========================================
-       LOADING
-       ========================================= -->
+            <div class="notification-body">
+              <div class="skeleton-line skeleton-title"></div>
 
-    @if (loading()) {
+              <div class="skeleton-line skeleton-message"></div>
 
-    <div class="state">
-        Loading notifications...
-    </div>
-
-    }
-
-
-    <!-- =========================================
-       EMPTY
-       ========================================= -->
-
-    @if (
-    !loading() &&
-    notifications().length === 0
-    ) {
-
-    <section class="empty-state">
-
-        <div class="empty-icon">
-            ✓
-        </div>
-
-        <h2>
-            You're all caught up
-        </h2>
-
-        <p>
-            You don't have any notifications right now.
-        </p>
-
+              <div class="skeleton-line skeleton-meta"></div>
+            </div>
+          </div>
+        </article>
+      }
     </section>
+  }
 
-    }
+  <!-- EMPTY -->
 
+  @if (!loading() && notifications().length === 0) {
+    <section class="empty-state" aria-live="polite">
+      <div class="empty-icon">✓</div>
 
-    <!-- =========================================
-       NOTIFICATION LIST
-       ========================================= -->
+      <h2>You're all caught up</h2>
 
-    @if (
-    !loading() &&
-    notifications().length > 0
-    ) {
+      <p>You don't have any notifications right now.</p>
+    </section>
+  }
 
-    <section class="notification-list">
+  <!-- NOTIFICATION LIST -->
 
-        @for (
-        notification of notifications();
-        track notification._id
-        ) {
+  @if (!loading() && notifications().length > 0) {
+    <section class="notification-section" aria-label="Notifications">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow"> ACTIVITY </span>
 
-        <article class="notification-card" [class.unread]="!notification.isRead">
+          <h2>Recent notifications</h2>
 
-            <!-- Notification content -->
+          <p>
+            {{ total() }}
+            {{ total() === 1 ? "notification" : "notifications" }}
+          </p>
+        </div>
+      </div>
 
-            <button type="button" class="notification-content" (click)="openNotification(notification)">
+      <div class="notification-list">
+        @for (notification of notifications(); track notification._id) {
+          <article
+            class="notification-card"
+            [class.unread]="!notification.isRead"
+          >
+            <!-- CONTENT -->
 
-                <div class="notification-icon">
-                    !
+            <button
+              type="button"
+              class="notification-content"
+              (click)="openNotification(notification)"
+              [attr.aria-label]="'Open notification: ' + notification.title"
+            >
+              <div class="notification-icon">
+                <span>!</span>
+              </div>
+
+              <div class="notification-body">
+                <div class="notification-header">
+                  <strong>
+                    {{ notification.title }}
+                  </strong>
+
+                  @if (!notification.isRead) {
+                    <span class="unread-dot" aria-label="Unread"></span>
+                  }
                 </div>
 
-                <div class="notification-body">
+                <p>
+                  {{ notification.message }}
+                </p>
 
-                    <div class="notification-header">
+                <div class="notification-meta">
+                  <span class="type-badge">
+                    {{ formatType(notification.type) }}
+                  </span>
 
-                        <strong>
-                            {{ notification.title }}
-                        </strong>
-
-                        @if (!notification.isRead) {
-
-                        <span class="unread-dot"></span>
-
-                        }
-
-                    </div>
-
-                    <p>
-                        {{ notification.message }}
-                    </p>
-
-                    <div class="notification-meta">
-
-                        <span>
-                            {{ formatType(notification.type) }}
-                        </span>
-
-                        <span>
-                            {{ notification.createdAt | date:'medium' }}
-                        </span>
-
-                    </div>
-
+                  <span class="notification-date">
+                    {{ notification.createdAt | date: "medium" }}
+                  </span>
                 </div>
-
+              </div>
             </button>
 
-
-            <!-- Actions -->
+            <!-- ACTIONS -->
 
             <div class="notification-actions">
-
-                @if (!notification.isRead) {
-
-                <button type="button" class="action-button" (click)="markAsRead(notification)" [disabled]="
-                  actionLoading() === notification._id
-                ">
+              @if (!notification.isRead) {
+                <button
+                  type="button"
+                  class="action-button"
+                  (click)="markAsRead(notification)"
+                  [disabled]="
+                    actionLoading() === notification._id ||
+                    actionLoading() === 'all'
+                  "
+                >
+                  @if (actionLoading() === notification._id) {
+                    Updating...
+                  } @else {
                     Mark read
+                  }
                 </button>
+              }
 
+              <button
+                type="button"
+                class="delete-button"
+                (click)="deleteNotification(notification)"
+                [disabled]="
+                  actionLoading() === notification._id ||
+                  actionLoading() === 'all'
+                "
+                aria-label="Delete notification"
+              >
+                @if (actionLoading() === notification._id) {
+                  Deleting...
+                } @else {
+                  Delete
                 }
-
-                <button type="button" class="delete-button" (click)="deleteNotification(notification)" [disabled]="
-                actionLoading() === notification._id
-              ">
-                    Delete
-                </button>
-
+              </button>
             </div>
-
-        </article>
-
+          </article>
         }
-
+      </div>
     </section>
-
-    }
-
+  }
 </div>

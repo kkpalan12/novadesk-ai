@@ -1,13 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { Router } from '@angular/router';
 
 import { NotificationService } from '../../core/services/notification.service';
-
 import { Notification } from '../../core/models/notification.model';
-
 import { WorkspaceContextService } from '../../core/services/workspace-context.service';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
@@ -24,13 +20,20 @@ export class NotificationComponent implements OnInit {
   private readonly router = inject(Router);
 
   private readonly workspaceContext = inject(WorkspaceContextService);
+
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   // =========================================
-  // State
+  // STATE
   // =========================================
 
-  readonly notifications = signal<Notification[]>([]);
+  readonly notifications = this.notificationService.notifications;
+
+  readonly total = computed(() => this.notifications().length);
+
+  readonly hasUnread = computed(() =>
+    this.notifications().some((notification) => !notification.isRead),
+  );
 
   readonly loading = signal(true);
 
@@ -38,32 +41,27 @@ export class NotificationComponent implements OnInit {
 
   readonly errorMessage = signal('');
 
-  readonly total = signal(0);
-
   // =========================================
-  // Init
+  // INIT
   // =========================================
 
   ngOnInit(): void {
+    this.notificationService.initializeRealtime();
+
     this.loadNotifications();
   }
 
   // =========================================
-  // Load Notifications
+  // LOAD
   // =========================================
 
   loadNotifications(): void {
     this.loading.set(true);
-
     this.errorMessage.set('');
 
     this.notificationService.getNotifications().subscribe({
       next: (response) => {
-        const notifications = response?.data ?? [];
-
-        this.notifications.set(notifications);
-
-        this.total.set(notifications.length);
+        this.notificationService.setNotifications(response?.data ?? []);
 
         this.loading.set(false);
       },
@@ -79,7 +77,7 @@ export class NotificationComponent implements OnInit {
   }
 
   // =========================================
-  // Mark One As Read
+  // MARK ONE READ
   // =========================================
 
   markAsRead(notification: Notification): void {
@@ -87,22 +85,18 @@ export class NotificationComponent implements OnInit {
       return;
     }
 
+    if (this.actionLoading()) {
+      return;
+    }
+
     this.actionLoading.set(notification._id);
 
     this.notificationService.markAsRead(notification._id).subscribe({
       next: () => {
-        this.notifications.update((items) =>
-          items.map((item) =>
-            item._id === notification._id
-              ? {
-                  ...item,
-                  isRead: true,
-                }
-              : item,
-          ),
-        );
+        this.notificationService.markNotificationReadLocally(notification._id);
 
         this.actionLoading.set(null);
+
         this.notificationService.refreshUnreadCount();
       },
 
@@ -117,13 +111,15 @@ export class NotificationComponent implements OnInit {
   }
 
   // =========================================
-  // Mark All As Read
+  // MARK ALL READ
   // =========================================
 
   markAllAsRead(): void {
-    const unreadExists = this.notifications().some((item) => !item.isRead);
+    if (!this.hasUnread()) {
+      return;
+    }
 
-    if (!unreadExists) {
+    if (this.actionLoading()) {
       return;
     }
 
@@ -131,15 +127,9 @@ export class NotificationComponent implements OnInit {
 
     this.notificationService.markAllAsRead().subscribe({
       next: () => {
-        this.notifications.update((items) =>
-          items.map((item) => ({
-            ...item,
-            isRead: true,
-          })),
-        );
+        this.notificationService.markAllNotificationsReadLocally();
 
         this.actionLoading.set(null);
-        this.notificationService.refreshUnreadCount();
       },
 
       error: (error) => {
@@ -153,10 +143,14 @@ export class NotificationComponent implements OnInit {
   }
 
   // =========================================
-  // Delete Notification
+  // DELETE
   // =========================================
 
   async deleteNotification(notification: Notification): Promise<void> {
+    if (this.actionLoading()) {
+      return;
+    }
+
     const confirmed = await this.confirmDialog.confirm({
       title: 'Delete notification?',
       message: 'Are you sure you want to delete this notification?',
@@ -173,14 +167,9 @@ export class NotificationComponent implements OnInit {
 
     this.notificationService.deleteNotification(notification._id).subscribe({
       next: () => {
-        this.notifications.update((items) =>
-          items.filter((item) => item._id !== notification._id),
-        );
+        this.notificationService.removeNotification(notification._id);
 
         this.actionLoading.set(null);
-
-        this.total.update((value) => Math.max(0, value - 1));
-        this.notificationService.refreshUnreadCount();
       },
 
       error: (error) => {
@@ -194,16 +183,14 @@ export class NotificationComponent implements OnInit {
   }
 
   // =========================================
-  // Open Notification
+  // OPEN
   // =========================================
 
   openNotification(notification: Notification): void {
-    // Mark as read first
     if (!notification.isRead) {
       this.markAsRead(notification);
     }
 
-    // Only task notifications
     if (notification.entityType?.toLowerCase() !== 'task') {
       return;
     }
@@ -232,7 +219,7 @@ export class NotificationComponent implements OnInit {
   }
 
   // =========================================
-  // Notification Type
+  // FORMAT TYPE
   // =========================================
 
   formatType(type: string): string {

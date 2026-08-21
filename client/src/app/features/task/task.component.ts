@@ -1,6 +1,9 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
+
 import {
   ActivatedRoute,
   Router,
@@ -8,20 +11,31 @@ import {
   RouterLinkActive,
 } from '@angular/router';
 
+import { Subject } from 'rxjs';
+
+import { distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
+
 import { TaskService } from '../../core/services/task.service';
+
 import { MembershipService } from '../../core/services/membership.service';
+
 import { SocketService } from '../../core/services/socket.service';
 
 import { Task, TaskPriority, TaskStatus } from '../../core/models/task.model';
 
 import { Membership } from '../../core/models/membership.model';
+
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-task',
+
   standalone: true,
+
   imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
+
   templateUrl: './task.component.html',
+
   styleUrl: './task.component.scss',
 })
 export class TaskComponent implements OnInit, OnDestroy {
@@ -38,7 +52,14 @@ export class TaskComponent implements OnInit, OnDestroy {
   private readonly membershipService = inject(MembershipService);
 
   private readonly socketService = inject(SocketService);
+
   private readonly confirmDialog = inject(ConfirmDialogService);
+
+  // =========================================
+  // DESTROY
+  // =========================================
+
+  private readonly destroy$ = new Subject<void>();
 
   // =========================================
   // PROJECT / WORKSPACE
@@ -47,6 +68,7 @@ export class TaskComponent implements OnInit, OnDestroy {
   readonly projectId = signal('');
 
   readonly workspaceId = signal('');
+
   readonly projectName = signal('');
 
   // =========================================
@@ -114,36 +136,199 @@ export class TaskComponent implements OnInit, OnDestroy {
   // =========================================
 
   ngOnInit(): void {
-    const projectId = this.route.snapshot.queryParamMap.get('project');
+    /*
+     * IMPORTANT:
+     *
+     * Do not use snapshot.queryParamMap here.
+     *
+     * Workspace switching changes the URL without
+     * destroying this component.
+     *
+     * queryParamMap subscription allows the page
+     * to react immediately.
+     */
 
-    const workspaceId = this.route.snapshot.queryParamMap.get('workspace');
+    this.route.queryParamMap
+      .pipe(
+        map((params) => ({
+          projectId: params.get('project'),
 
-    if (!projectId) {
+          workspaceId: params.get('workspace'),
+        })),
+
+        filter(
+          (
+            context,
+          ): context is {
+            projectId: string;
+            workspaceId: string;
+          } => !!context.projectId && !!context.workspaceId,
+        ),
+
+        distinctUntilChanged(
+          (previous, current) =>
+            previous.projectId === current.projectId &&
+            previous.workspaceId === current.workspaceId,
+        ),
+
+        takeUntil(this.destroy$),
+      )
+      .subscribe((context) => {
+        this.handleContextChange(context.projectId, context.workspaceId);
+      });
+  }
+
+  // =========================================
+  // CONTEXT CHANGE
+  // =========================================
+
+  private handleContextChange(projectId: string, workspaceId: string): void {
+    const previousProjectId = this.projectId();
+
+    const previousWorkspaceId = this.workspaceId();
+
+    // =======================================
+    // WORKSPACE CHANGED
+    // =======================================
+    //
+    // A project belongs to a specific workspace.
+    // When the workspace changes while this page
+    // is open, the old project must NOT be reused
+    // with the new workspace.
+    //
+    // Go to the project list for the newly selected
+    // workspace. ProjectComponent will load the
+    // correct projects for that workspace.
+    //
+
+    if (previousWorkspaceId && previousWorkspaceId !== workspaceId) {
+      if (previousProjectId) {
+        this.socketService.leaveProject(previousProjectId);
+      }
+
+      this.socketService.removeTaskListeners();
+
+      // Clear stale state immediately.
+      this.projectId.set('');
+
+      this.workspaceId.set(workspaceId);
+
+      this.tasks.set([]);
+
+      this.members.set([]);
+
+      this.projectName.set('');
+
+      this.total.set(0);
+
+      this.totalPages.set(1);
+
+      this.errorMessage.set('');
+
+      this.formError.set('');
+
+      this.showCreateForm.set(false);
+
+      this.editingTask.set(null);
+
+      this.deleting.set(null);
+
       this.loading.set(false);
-      this.errorMessage.set('Project is required.');
+
+      void this.router.navigate(['/projects'], {
+        queryParams: {
+          workspace: workspaceId,
+        },
+      });
+
       return;
     }
 
-    if (!workspaceId) {
-      this.loading.set(false);
-      this.errorMessage.set('Workspace is required.');
-      return;
+    // =======================================
+    // PROJECT CHANGED
+    // =======================================
+
+    if (previousProjectId && previousProjectId !== projectId) {
+      this.socketService.leaveProject(previousProjectId);
+
+      this.socketService.removeTaskListeners();
     }
+
+    // =======================================
+    // UPDATE CONTEXT
+    // =======================================
 
     this.projectId.set(projectId);
+
     this.workspaceId.set(workspaceId);
 
-    // =========================================
-    // SOCKET
-    // =========================================
+    // =======================================
+    // RESET PAGE
+    // =======================================
+
+    this.page.set(1);
+
+    // =======================================
+    // CLEAR OLD DATA
+    // =======================================
+
+    this.tasks.set([]);
+
+    this.members.set([]);
+
+    this.projectName.set('');
+
+    this.total.set(0);
+
+    this.totalPages.set(1);
+
+    this.errorMessage.set('');
+
+    this.formError.set('');
+
+    this.showCreateForm.set(false);
+
+    this.editingTask.set(null);
+
+    this.deleting.set(null);
+
+    this.loading.set(true);
+
+    // =======================================
+    // CONNECT SOCKET
+    // =======================================
 
     this.socketService.connect();
 
+    // =======================================
+    // JOIN NEW PROJECT
+    // =======================================
+
     this.socketService.joinProject(projectId);
 
-    // =========================================
+    // =======================================
+    // REGISTER NEW LISTENERS
+    // =======================================
+
+    this.registerTaskListeners(projectId);
+
+    // =======================================
+    // LOAD NEW DATA
+    // =======================================
+
+    this.loadTasks();
+
+    this.loadMembers(workspaceId);
+  }
+
+  // =========================================
+  // SOCKET LISTENERS
+  // =========================================
+
+  private registerTaskListeners(projectId: string): void {
+    // =======================================
     // TASK CREATED
-    // =========================================
+    // =======================================
 
     this.socketService.onTaskCreated((createdTask) => {
       const createdProjectId =
@@ -151,18 +336,16 @@ export class TaskComponent implements OnInit, OnDestroy {
           ? createdTask.project
           : createdTask?.project?._id;
 
-      // Ignore events from another project
       if (createdProjectId && createdProjectId !== projectId) {
         return;
       }
 
-      // Reload using current filters
       this.loadTasksWithFilters();
     });
 
-    // =========================================
+    // =======================================
     // TASK UPDATED
-    // =========================================
+    // =======================================
 
     this.socketService.onTaskUpdated((updatedTask) => {
       const updatedProjectId =
@@ -170,16 +353,16 @@ export class TaskComponent implements OnInit, OnDestroy {
           ? updatedTask.project
           : updatedTask?.project?._id;
 
-      // Ignore another project
       if (updatedProjectId && updatedProjectId !== projectId) {
         return;
       }
 
       this.loadTasksWithFilters();
     });
-    // =========================================
+
+    // =======================================
     // TASK ASSIGNED
-    // =========================================
+    // =======================================
 
     this.socketService.onTaskAssigned((assignedTask) => {
       const assignedProjectId =
@@ -193,9 +376,10 @@ export class TaskComponent implements OnInit, OnDestroy {
 
       this.loadTasksWithFilters();
     });
-    // =========================================
+
+    // =======================================
     // TASK STATUS CHANGED
-    // =========================================
+    // =======================================
 
     this.socketService.onTaskStatusChanged((updatedTask) => {
       const updatedProjectId =
@@ -209,9 +393,10 @@ export class TaskComponent implements OnInit, OnDestroy {
 
       this.loadTasksWithFilters();
     });
-    // =========================================
+
+    // =======================================
     // TASK DELETED
-    // =========================================
+    // =======================================
 
     this.socketService.onTaskDeleted((data) => {
       if (!data?.taskId) {
@@ -230,14 +415,6 @@ export class TaskComponent implements OnInit, OnDestroy {
 
       this.total.update((value) => Math.max(0, value - 1));
     });
-
-    // =========================================
-    // INITIAL DATA
-    // =========================================
-
-    this.loadTasks();
-
-    this.loadMembers(workspaceId);
   }
 
   // =========================================
@@ -249,14 +426,25 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     if (!projectId) {
       this.errorMessage.set('Project is required.');
+
       return;
     }
 
     this.loading.set(true);
+
     this.errorMessage.set('');
 
     this.taskService.getTasks(projectId, this.page(), this.limit()).subscribe({
       next: (response) => {
+        /*
+         * Prevent an old request from
+         * overwriting the new project.
+         */
+
+        if (this.projectId() !== projectId) {
+          return;
+        }
+
         const data = response?.data;
 
         const tasks = data?.tasks ?? [];
@@ -264,6 +452,7 @@ export class TaskComponent implements OnInit, OnDestroy {
         this.tasks.set(tasks);
 
         this.setProjectName(tasks);
+
         this.total.set(data?.total ?? 0);
 
         this.totalPages.set(data?.totalPages ?? 1);
@@ -272,6 +461,10 @@ export class TaskComponent implements OnInit, OnDestroy {
       },
 
       error: (error) => {
+        if (this.projectId() !== projectId) {
+          return;
+        }
+
         this.loading.set(false);
 
         this.errorMessage.set(error?.error?.message ?? 'Unable to load tasks.');
@@ -284,12 +477,24 @@ export class TaskComponent implements OnInit, OnDestroy {
   // =========================================
 
   private loadMembers(workspaceId: string): void {
+    if (!workspaceId) {
+      return;
+    }
+
     this.membershipService.getWorkspaceMembers(workspaceId).subscribe({
       next: (response) => {
+        if (this.workspaceId() !== workspaceId) {
+          return;
+        }
+
         this.members.set(response?.data ?? []);
       },
 
-      error: (error) => {
+      error: () => {
+        if (this.workspaceId() !== workspaceId) {
+          return;
+        }
+
         this.members.set([]);
       },
     });
@@ -303,10 +508,15 @@ export class TaskComponent implements OnInit, OnDestroy {
     this.editingTask.set(null);
 
     this.taskTitle = '';
+
     this.taskDescription = '';
+
     this.taskPriority = 'MEDIUM';
+
     this.taskStatus = 'TODO';
+
     this.taskDueDate = '';
+
     this.taskAssignedTo = '';
 
     this.formError.set('');
@@ -366,10 +576,15 @@ export class TaskComponent implements OnInit, OnDestroy {
 
   private resetForm(): void {
     this.taskTitle = '';
+
     this.taskDescription = '';
+
     this.taskPriority = 'MEDIUM';
+
     this.taskStatus = 'TODO';
+
     this.taskDueDate = '';
+
     this.taskAssignedTo = '';
   }
 
@@ -386,15 +601,18 @@ export class TaskComponent implements OnInit, OnDestroy {
 
     if (!projectId) {
       this.formError.set('Project is required.');
+
       return;
     }
 
     if (!title) {
       this.formError.set('Task title is required.');
+
       return;
     }
 
     this.saving.set(true);
+
     this.formError.set('');
 
     const editingTask = this.editingTask();
@@ -407,9 +625,13 @@ export class TaskComponent implements OnInit, OnDestroy {
       this.taskService
         .updateTask(projectId, editingTask._id, {
           title,
+
           description: description || undefined,
+
           status: this.taskStatus,
+
           priority: this.taskPriority,
+
           dueDate: this.taskDueDate || undefined,
         })
         .subscribe({
@@ -499,6 +721,7 @@ export class TaskComponent implements OnInit, OnDestroy {
   ): void {
     if (!this.taskAssignedTo) {
       onSuccess();
+
       return;
     }
 
@@ -585,11 +808,16 @@ export class TaskComponent implements OnInit, OnDestroy {
     if (this.deleting()) {
       return;
     }
+
     const confirmed = await this.confirmDialog.confirm({
       title: 'Delete task?',
-      message: `Are you sure you want to delete "${task.title}" ? This action cannot be undone.`,
+
+      message: `Are you sure you want to delete "${task.title}"? This action cannot be undone.`,
+
       confirmText: 'Delete task',
+
       cancelText: 'Keep task',
+
       variant: 'danger',
     });
 
@@ -644,6 +872,12 @@ export class TaskComponent implements OnInit, OnDestroy {
     this.loadTasksWithFilters();
   }
 
+  retryLoadTasks(): void {
+    this.errorMessage.set('');
+
+    this.loadTasksWithFilters();
+  }
+
   clearFilters(): void {
     this.search = '';
 
@@ -682,6 +916,10 @@ export class TaskComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (response) => {
+          if (this.projectId() !== projectId) {
+            return;
+          }
+
           const data = response?.data;
 
           const tasks = data?.tasks ?? [];
@@ -689,6 +927,7 @@ export class TaskComponent implements OnInit, OnDestroy {
           this.tasks.set(tasks);
 
           this.setProjectName(tasks);
+
           this.total.set(data?.total ?? 0);
 
           this.totalPages.set(data?.totalPages ?? 1);
@@ -697,6 +936,10 @@ export class TaskComponent implements OnInit, OnDestroy {
         },
 
         error: (error) => {
+          if (this.projectId() !== projectId) {
+            return;
+          }
+
           this.loading.set(false);
 
           this.errorMessage.set(
@@ -738,12 +981,12 @@ export class TaskComponent implements OnInit, OnDestroy {
     const workspaceId = this.workspaceId();
 
     if (!workspaceId) {
-      this.router.navigate(['/projects']);
+      void this.router.navigate(['/projects']);
 
       return;
     }
 
-    this.router.navigate(['/projects'], {
+    void this.router.navigate(['/projects'], {
       queryParams: {
         workspace: workspaceId,
       },
@@ -775,7 +1018,7 @@ export class TaskComponent implements OnInit, OnDestroy {
         return `${member.user.firstName} ${member.user.lastName}`;
       }
 
-      return 'Assigned User';
+      return 'Assigned';
     }
 
     return `${user.firstName} ${user.lastName}`;
@@ -864,23 +1107,37 @@ export class TaskComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/tasks', task._id], {
+    void this.router.navigate(['/tasks', task._id], {
       queryParams: {
         project: projectId,
+
         workspace: workspaceId,
       },
     });
   }
+
+  // =========================================
+  // PROJECT NAME
+  // =========================================
+
   private setProjectName(tasks: Task[]): void {
     const firstTask = tasks[0];
 
     if (firstTask?.project && typeof firstTask.project !== 'string') {
       this.projectName.set(firstTask.project.name ?? '');
+
+      return;
+    }
+
+    /*
+     * If the project has no tasks,
+     * clear the previous project's name.
+     */
+
+    if (!firstTask) {
+      this.projectName.set('');
     }
   }
-  // =========================================
-  // SOCKET CLEANUP
-  // =========================================
 
   // =========================================
   // DESTROY
@@ -894,5 +1151,9 @@ export class TaskComponent implements OnInit, OnDestroy {
     }
 
     this.socketService.removeTaskListeners();
+
+    this.destroy$.next();
+
+    this.destroy$.complete();
   }
 }

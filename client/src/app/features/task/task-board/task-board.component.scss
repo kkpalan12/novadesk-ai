@@ -1,727 +1,31 @@
+// =========================================
+// NOVADESK AI
+// TASK BOARD
+// =========================================
+
 .task-board {
-
     width: 100%;
-
-    height: 100%;
-
-    overflow: hidden;
-
-}
-
-
-/* ===============================
-   TOOLBAR
-================================ */
-
-
-.board-toolbar {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 1rem;
-
-    padding: 1rem;
-
-    flex-wrap: wrap;
-
-}
-
-
-
-.board-toolbar input,
-.board-toolbar select {
-
-    height: 40px;
-
-    padding: 0 .85rem;
-
-    border-radius: 10px;
-
-    border: 1px solid #cbd5e1;
-
-    background: white;
-
-    font-size: .9rem;
-
-}
-
-
-
-.board-toolbar input {
-
-    min-width: 260px;
-
-}
-
-
-
-
-
-/* ===============================
-   BOARD
-================================ */
-
-
-.board-container {
-
-    display: flex;
-
-    gap: 1rem;
-
-    overflow-x: auto;
-
-    overflow-y: hidden;
-
-    padding: 1rem;
-
-    align-items: flex-start;
-
-
-    scrollbar-width: none;
-
-    -ms-overflow-style: none;
-
-}
-
-
-
-.board-container::-webkit-scrollbar {
-
-    display: none;
-
-}
-
-
-
-
-
-.board-column {
-
-    flex: 0 0 300px;
-
-    min-width: 300px;
-
-    background: #f8fafc;
-
-    border-radius: 16px;
-
-    padding: 1rem;
-
-    transition: .2s ease;
-
-}
-
-
-
-.board-column:hover {
-
-    box-shadow:
-
-        0 8px 25px rgba(0, 0, 0, .06);
-
-}
-
-
-
-
-
-/* ===============================
-   HEADER
-================================ */
-
-
-.column-header {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 1rem;
-
-}
-
-
-
-.column-title {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: .5rem;
-
-    margin: 0;
-
-    font-size: 1rem;
-
-    font-weight: 700;
-
-}
-
-
-
-.status-indicator {
-
-    width: 10px;
-
-    height: 10px;
-
-    border-radius: 50%;
-
-}
-
-
-
-.todo {
-
-    background: #3b82f6;
-
-}
-
-
-
-.in_progress {
-
-    background: #f59e0b;
-
-}
-
-
-
-.review {
-
-    background: #8b5cf6;
-
-}
-
-
-
-.done {
-
-    background: #22c55e;
-
-}
-
-
-
-
-
-.task-count {
-
-    min-width: 30px;
-
-    height: 30px;
-
-    border-radius: 50%;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background: #e2e8f0;
-
-    font-size: .75rem;
-
-    font-weight: 700;
-
-}
-
-
-
-
-
-/* ===============================
-   TASK LIST
-================================ */
-
-
-.task-list {
-
-    min-height: 260px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: .75rem;
-
-    padding: .5rem;
-
-    border-radius: 12px;
-
-}
-
-
-
-.task-list.cdk-drop-list-receiving {
-
-    background:
-
-        rgba(59, 130, 246, .08);
-
-    outline:
-
-        2px dashed rgba(59, 130, 246, .35);
-
-}
-
-
-
-
-
-/* ===============================
-   DRAG
-================================ */
-
-
-.drag-wrapper {
-
-    position: relative;
-
-}
-
-
-
-.cdk-drag-preview {
+    min-height: 100%;
 
     box-sizing: border-box;
 
-    border-radius: 14px;
+    padding: 28px 32px 40px;
 
-    opacity: .95;
+    background: #f6f8fb;
 
-    box-shadow:
-
-        0 12px 30px rgba(0, 0, 0, .18);
-
+    overflow-x: hidden;
 }
 
 
-
-.cdk-drag-placeholder {
-
-    opacity: .25;
-
-    min-height: 90px;
-
-    border-radius: 12px;
-
-    background: #cbd5e1;
-
-}
-
-
-
-.cdk-drag-animating {
-
-    transition:
-
-        transform 300ms cubic-bezier(0,
-            0,
-            .2,
-            1);
-
-}
-
-
-
-
-
-/* ===============================
-   EMPTY STATE
-================================ */
-
-
-.empty-column {
-
-    min-height: 160px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    border:
-
-        1px dashed #cbd5e1;
-
-    border-radius: 14px;
-
-    color: #64748b;
-
-}
-
-
-
-.empty-icon {
-
-    font-size: 2rem;
-
-}
-
-
-
-.empty-column p {
-
-    margin: .5rem 0 .25rem;
-
-    font-weight: 600;
-
-}
-
-
-
-.empty-column span {
-
-    font-size: .8rem;
-
-}
-
-
-
-
-
-/* ===============================
-   SKELETON
-================================ */
-
-
-.skeleton-header {
-
-    height: 22px;
-
-    width: 60%;
-
-    background: #e2e8f0;
-
-    border-radius: 8px;
-
-}
-
-
-
-.skeleton-card {
-
-    height: 120px;
-
-    margin-top: 1rem;
-
-    background: #e2e8f0;
-
-    border-radius: 14px;
-
-    animation: pulse 1.5s infinite;
-
-}
-
-
-
-@keyframes pulse {
-
-    50% {
-
-        opacity: .5;
-
-    }
-
-}
-
-
-
-
-
-/* ===============================
-   MOBILE
-================================ */
-
-
-@media(max-width:768px) {
-
-
-
-    .board-toolbar {
-
-
-        position: sticky;
-
-
-        top: 0;
-
-
-        z-index: 20;
-
-
-        background: white;
-
-
-        padding: .75rem;
-
-
-        border-bottom:
-
-            1px solid #e2e8f0;
-
-
-    }
-
-
-
-
-
-    .board-toolbar input {
-
-
-        width: 100%;
-
-
-        min-width: 100%;
-
-
-        height: 44px;
-
-
-    }
-
-
-
-
-
-
-    .board-toolbar select {
-
-
-        flex: 1;
-
-
-    }
-
-
-
-
-
-
-
-    .board-container {
-
-
-        gap: 1rem;
-
-
-        padding: .75rem;
-
-
-        scroll-snap-type: x mandatory;
-
-
-        -webkit-overflow-scrolling: touch;
-
-
-    }
-
-
-
-
-
-    .board-column {
-
-
-        flex:
-
-            0 0 calc(100vw - 1.5rem);
-
-
-        min-width:
-
-            calc(100vw - 1.5rem);
-
-
-        scroll-snap-align: center;
-
-
-        padding: .85rem;
-
-
-    }
-
-
-
-
-
-    .column-header {
-
-
-        position: sticky;
-
-
-        top: 0;
-
-
-        z-index: 5;
-
-
-        background: #f8fafc;
-
-
-        padding-bottom: .5rem;
-
-
-    }
-
-
-
-
-
-    .task-list {
-
-
-        min-height: 300px;
-
-
-        gap: 1rem;
-
-
-    }
-
-
-
-
-
-    .empty-column {
-
-
-        min-height: 140px;
-
-
-    }
-
-
-
-
-
-    .drag-wrapper {
-
-
-        touch-action: none;
-
-
-    }
-
-
-
-
-
-    .cdk-drag-preview {
-
-
-        transform:
-
-
-            scale(1.03);
-
-
-        opacity: .95;
-
-
-    }
-
-
-
-}/* ===============================
-   WIP LIMIT WARNING
-================================ */
-
-
-.wip-warning {
-
-    position: fixed;
-
-    top: 90px;
-
-    right: 20px;
-
-    z-index: 100;
-
-
-    background: #fee2e2;
-
-    color: #991b1b;
-
-
-    padding: .75rem 1rem;
-
-
-    border-radius: 10px;
-
-
-    font-weight: 600;
-
-
-    box-shadow:
-
-        0 10px 25px rgba(0, 0, 0, .15);
-
-
-    animation:
-
-        slideIn .25s ease;
-
-}
-
-
-
-@keyframes slideIn {
-
-
-    from {
-
-        transform: translateY(-20px);
-
-        opacity: 0;
-
-    }
-
-
-    to {
-
-        transform: translateY(0);
-
-        opacity: 1;
-
-    }
-
-}
-
-
-
-
-.task-count.limit-reached {
-
-
-    background: #fee2e2;
-
-
-    color: #991b1b;
-
-
-}
 // =========================================
-// BOARD PAGE HEADER
+// HEADER
 // =========================================
 
 .board-page-header {
     width: 100%;
     max-width: 1280px;
 
-    margin: 0 auto 24px;
+    margin: 0 auto 22px;
 }
 
 .back-button {
@@ -734,8 +38,8 @@
     padding: 0;
 
     border: 0;
-    background: transparent;
 
+    background: transparent;
     color: #64748b;
 
     font-family: inherit;
@@ -744,7 +48,7 @@
 
     cursor: pointer;
 
-    transition: color .15s ease;
+    transition: color 0.15s ease;
 
     &:hover {
         color: #2563eb;
@@ -752,7 +56,16 @@
 
     span:first-child {
         font-size: 16px;
+        line-height: 1;
     }
+}
+
+.board-title-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 20px;
 }
 
 .board-eyebrow {
@@ -765,7 +78,7 @@
     font-size: 10px;
     font-weight: 700;
 
-    letter-spacing: .12em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
@@ -774,17 +87,550 @@
 
     color: #0f172a;
 
-    font-size: 28px;
-    line-height: 1.25;
+    font-size: 30px;
+    line-height: 1.2;
     font-weight: 700;
 }
 
 .board-title-row p {
-    margin: 6px 0 0;
+    margin: 7px 0 0;
 
     color: #64748b;
 
     font-size: 13px;
+    line-height: 1.5;
+}
+
+
+// =========================================
+// WIP WARNING
+// =========================================
+
+.wip-warning {
+    width: 100%;
+    max-width: 1280px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    box-sizing: border-box;
+
+    margin: 0 auto 18px;
+    padding: 11px 14px;
+
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+
+    background: #fffbeb;
+    color: #92400e;
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+// =========================================
+// TOOLBAR
+// =========================================
+
+.board-toolbar {
+    width: 100%;
+    max-width: 1280px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    box-sizing: border-box;
+
+    margin: 0 auto 18px;
+    padding: 11px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.025);
+}
+
+.board-toolbar input,
+.board-toolbar select {
+    min-height: 40px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dbe2ea;
+    border-radius: 7px;
+
+    background: #ffffff;
+    color: #334155;
+
+    font-family: inherit;
+    font-size: 12px;
+
+    outline: none;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+
+    &:focus {
+        border-color: #2563eb;
+
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.07);
+    }
+}
+
+.board-toolbar input {
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    padding: 0 12px;
+
+    &::placeholder {
+        color: #94a3b8;
+    }
+}
+
+.board-toolbar select {
+    flex: 0 0 155px;
+
+    padding: 0 10px;
+
+    cursor: pointer;
+}
+
+
+// =========================================
+// DESKTOP BOARD
+// =========================================
+
+.board-container {
+    width: 100%;
+    max-width: 1280px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 14px;
+
+    box-sizing: border-box;
+
+    margin: 0 auto;
+
+    padding-bottom: 8px;
+}
+
+.board-column {
+    min-width: 0;
+    min-height: 520px;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 10px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e2e8f0;
+    border-top: 3px solid #94a3b8;
+
+    border-radius: 10px;
+
+    background: #f1f5f9;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+// =========================================
+// DESKTOP COLUMN HEADER
+// =========================================
+
+.column-header {
+    min-height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 8px;
+    padding: 0 5px;
+}
+
+.column-title {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin: 0;
+
+    color: #334155;
+
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 800;
+
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+
+// =========================================
+// STATUS INDICATORS
+// =========================================
+
+.status-indicator,
+.mobile-status-indicator {
+    width: 8px;
+    height: 8px;
+
+    flex: 0 0 8px;
+
+    display: inline-block;
+
+    border-radius: 50%;
+
+    background: #94a3b8;
+}
+
+.status-indicator.todo,
+.mobile-status-indicator.todo {
+    background: #64748b;
+}
+
+.status-indicator.in_progress,
+.mobile-status-indicator.in_progress {
+    background: #2563eb;
+}
+
+.status-indicator.review,
+.mobile-status-indicator.review {
+    background: #f59e0b;
+}
+
+.status-indicator.done,
+.mobile-status-indicator.done {
+    background: #16a34a;
+}
+
+
+// =========================================
+// DESKTOP STATUS OUTLINES
+// =========================================
+
+.board-column:has(.status-indicator.todo) {
+    border-top-color: #64748b;
+}
+
+.board-column:has(.status-indicator.in_progress) {
+    border-top-color: #2563eb;
+}
+
+.board-column:has(.status-indicator.review) {
+    border-top-color: #f59e0b;
+}
+
+.board-column:has(.status-indicator.done) {
+    border-top-color: #16a34a;
+}
+
+
+// =========================================
+// TASK COUNT
+// =========================================
+
+.task-count,
+.mobile-column-count {
+    min-width: 25px;
+    min-height: 22px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 6px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dbe2ea;
+    border-radius: 999px;
+
+    background: #ffffff;
+    color: #64748b;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.task-count.limit-reached,
+.mobile-column-count.limit-reached {
+    border-color: #fecaca;
+
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+
+// =========================================
+// DESKTOP TASK LIST
+// =========================================
+
+.task-list {
+    min-height: 430px;
+
+    flex: 1 1 auto;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 9px;
+
+    padding: 3px;
+
+    border-radius: 8px;
+
+    transition:
+        background 0.15s ease,
+        outline 0.15s ease;
+}
+
+
+// =========================================
+// DRAG WRAPPER
+// =========================================
+
+.drag-wrapper {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.task-list.cdk-drop-list-dragging {
+    padding: 6px;
+
+    background: #eff6ff;
+
+    outline: 1px dashed #93c5fd;
+    outline-offset: -1px;
+}
+
+.drag-wrapper.cdk-drag-preview {
+    opacity: 0.97;
+
+    border-radius: 9px;
+
+    box-shadow:
+        0 14px 30px rgba(15, 23, 42, 0.18);
+}
+
+.drag-wrapper.cdk-drag-placeholder {
+    opacity: 0.25;
+}
+
+.drag-wrapper.cdk-drag-animating {
+    transition: transform 0.2s ease;
+}
+
+
+// =========================================
+// DESKTOP DROP TARGET
+// =========================================
+
+.board-column:has(.task-list.cdk-drop-list-dragging) {
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 0 0 2px rgba(37, 99, 235, 0.06);
+}
+
+
+// =========================================
+// EMPTY DESKTOP
+// =========================================
+
+.empty-column {
+    min-height: 150px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+
+    margin: 2px;
+
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.35);
+
+    color: #94a3b8;
+
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 20px;
+}
+
+.empty-column p {
+    margin: 3px 0 0;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.empty-column>span:last-child {
+    color: #94a3b8;
+
+    font-size: 9px;
+}
+
+
+// =========================================
+// MOBILE BOARD
+// =========================================
+
+.mobile-board {
+    display: none;
+}
+
+
+// =========================================
+// SKELETON
+// =========================================
+
+.skeleton-board {
+    display: grid;
+}
+
+.skeleton-column {
+    min-height: 520px;
+
+    overflow: hidden;
+}
+
+.skeleton-header {
+    width: 65%;
+    height: 16px;
+
+    margin: 8px 5px 18px;
+
+    border-radius: 5px;
+
+    background: #e2e8f0;
+
+    animation:
+        board-skeleton 1.4s ease-in-out infinite;
+}
+
+.skeleton-card {
+    height: 125px;
+
+    margin-bottom: 9px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    animation:
+        board-skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes board-skeleton {
+
+    0%,
+    100% {
+        opacity: 0.55;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+
+// =========================================
+// ERROR
+// =========================================
+
+.error-state {
+    width: 100%;
+    max-width: 1280px;
+
+    box-sizing: border-box;
+
+    margin: 0 auto;
+
+    padding: 22px;
+
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+
+    background: #fef2f2;
+    color: #b91c1c;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+
+// =========================================
+// TABLET
+// =========================================
+
+@media (max-width: 1100px) {
+
+    .task-board {
+        padding: 24px;
+    }
+
+    .board-container {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 12px;
+    }
+
+    .board-column {
+        min-height: 480px;
+    }
+
+    .task-list {
+        min-height: 390px;
+    }
+
 }
 
 
@@ -794,8 +640,37 @@
 
 @media (max-width: 700px) {
 
+    // =======================================
+    // PAGE
+    // =======================================
+
+    .task-board {
+        padding: 14px 10px 28px;
+    }
+
+
+    // =======================================
+    // HEADER
+    // =======================================
+
     .board-page-header {
-        margin-bottom: 18px;
+        margin-bottom: 15px;
+    }
+
+    .back-button {
+        margin-bottom: 12px;
+
+        font-size: 12px;
+    }
+
+    .board-eyebrow {
+        margin-bottom: 5px;
+
+        font-size: 9px;
+    }
+
+    .board-title-row {
+        display: block;
     }
 
     .board-title-row h1 {
@@ -803,6 +678,768 @@
     }
 
     .board-title-row p {
+        margin-top: 5px;
+
+        font-size: 11px;
+    }
+
+
+    // =======================================
+    // WARNING
+    // =======================================
+
+    .wip-warning {
+        margin-bottom: 11px;
+
+        padding: 9px 10px;
+
+        font-size: 10px;
+    }
+
+
+    // =======================================
+    // TOOLBAR
+    // =======================================
+
+    .board-toolbar {
+        display: grid;
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 6px;
+
+        margin-bottom: 12px;
+
+        padding: 8px;
+    }
+
+    .board-toolbar input {
+        grid-column: 1 / -1;
+
+        width: 100%;
+
+        min-height: 39px;
+
+        padding: 0 10px;
+
+        font-size: 11px;
+    }
+
+    .board-toolbar select {
+        width: 100%;
+
+        min-width: 0;
+
+        min-height: 36px;
+
+        padding: 0 7px;
+
+        font-size: 10px;
+    }
+
+
+    // =======================================
+    // DESKTOP BOARD OFF
+    // =======================================
+
+    .desktop-board {
+        display: none;
+    }
+
+
+    // =======================================
+    // MOBILE BOARD ON
+    // =======================================
+
+    .mobile-board {
+        display: block;
+
+        width: 100%;
+    }
+
+
+    // =======================================
+    // MOBILE HEADER
+    // =======================================
+
+    .mobile-board-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 10px;
+
+        margin-bottom: 8px;
+
+        padding: 0 2px;
+    }
+
+    .mobile-board-label {
+        display: block;
+
+        color: #64748b;
+
+        font-size: 9px;
+        font-weight: 800;
+
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .mobile-board-hint {
+        display: block;
+
+        margin-top: 2px;
+
+        color: #94a3b8;
+
+        font-size: 9px;
+    }
+
+    .mobile-board-count {
+        flex: 0 0 auto;
+
+        color: #64748b;
+
+        font-size: 9px;
+        font-weight: 600;
+    }
+
+
+    // =======================================
+    // HORIZONTAL KANBAN
+    // =======================================
+
+    .mobile-kanban-scroll {
+        width: 100%;
+
+        display: grid;
+
+        grid-auto-flow: column;
+
+        grid-auto-columns:
+            calc(60% - 4px);
+
+        gap: 8px;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        padding: 2px 2px 10px;
+
+        scroll-snap-type: x mandatory;
+
+        overscroll-behavior-x: contain;
+
+        -webkit-overflow-scrolling: touch;
+
+        scrollbar-width: thin;
+
+        &::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #e2e8f0;
+
+            border-radius: 999px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+
+            border-radius: 999px;
+        }
+    }
+
+
+    // =======================================
+    // MOBILE STATUS COLUMNS
+    // =======================================
+
+    .mobile-board-column {
+        position: relative;
+
+        min-width: 0;
+        min-height: 440px;
+
+        display: flex;
+        flex-direction: column;
+
+        padding: 8px;
+
+        scroll-snap-align: start;
+
+        border: 1px solid #dbe2ea;
+        border-top: 3px solid #94a3b8;
+
+        border-radius: 10px;
+
+        background: #f8fafc;
+
+        box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.03);
+
+        transition:
+            border-color 0.15s ease,
+            box-shadow 0.15s ease,
+            background 0.15s ease;
+    }
+
+
+    // =======================================
+    // TO DO OUTLINE
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.todo) {
+        border-color: #cbd5e1;
+
+        border-top-color: #64748b;
+
+        background: #f8fafc;
+    }
+
+
+    // =======================================
+    // IN PROGRESS OUTLINE
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.in_progress) {
+        border-color: #bfdbfe;
+
+        border-top-color: #2563eb;
+
+        background: #f8fbff;
+    }
+
+
+    // =======================================
+    // REVIEW OUTLINE
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.review) {
+        border-color: #fde68a;
+
+        border-top-color: #f59e0b;
+
+        background: #fffdf7;
+    }
+
+
+    // =======================================
+    // DONE OUTLINE
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.done) {
+        border-color: #bbf7d0;
+
+        border-top-color: #16a34a;
+
+        background: #f8fdf9;
+    }
+
+
+    // =======================================
+    // MOBILE COLUMN HEADER
+    // =======================================
+
+    .mobile-column-header {
+        min-height: 35px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 6px;
+
+        margin-bottom: 6px;
+
+        padding: 2px 4px 8px;
+
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .mobile-column-title {
+        min-width: 0;
+
+        display: flex;
+        align-items: center;
+
+        gap: 6px;
+
+        color: #334155;
+
+        font-size: 9px;
+        font-weight: 800;
+
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+
+    // =======================================
+    // MOBILE STATUS DOT
+    // =======================================
+
+    .mobile-status-indicator {
+        width: 7px;
+        height: 7px;
+
+        flex: 0 0 7px;
+
+        border-radius: 50%;
+    }
+
+    .mobile-status-indicator.todo {
+        background: #64748b;
+    }
+
+    .mobile-status-indicator.in_progress {
+        background: #2563eb;
+    }
+
+    .mobile-status-indicator.review {
+        background: #f59e0b;
+    }
+
+    .mobile-status-indicator.done {
+        background: #16a34a;
+    }
+
+
+    // =======================================
+    // MOBILE COUNT
+    // =======================================
+
+    .mobile-column-count {
+        min-width: 22px;
+        min-height: 20px;
+
+        padding: 0 5px;
+
+        font-size: 8px;
+    }
+
+
+    // =======================================
+    // MOBILE TASK LIST
+    // =======================================
+
+    .mobile-task-list {
+        width: 100%;
+        min-width: 0;
+
+        min-height: 385px;
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        align-content: start;
+
+        gap: 7px;
+
+        padding: 2px;
+
+        border-radius: 7px;
+
+        transition:
+            background 0.15s ease,
+            outline 0.15s ease;
+    }
+
+
+    // =======================================
+    // MOBILE CARDS
+    // =======================================
+
+    .mobile-drag-wrapper {
+        width: 100%;
+        min-width: 0;
+
+        display: block;
+
+        cursor: grab;
+
+        touch-action: none;
+
+        &:active {
+            cursor: grabbing;
+        }
+    }
+
+    .mobile-drag-wrapper app-task-card {
+        display: block;
+
+        width: 100%;
+        min-width: 0;
+    }
+
+    .mobile-drag-wrapper.cdk-drag-preview {
+        width: calc(25vw - 10px);
+
+        max-width: calc(25vw - 10px);
+
+        opacity: 0.97;
+
+        border-radius: 8px;
+
+        box-shadow:
+            0 10px 22px rgba(15, 23, 42, 0.18);
+    }
+
+    .mobile-drag-wrapper.cdk-drag-placeholder {
+        opacity: 0.25;
+    }
+
+    .mobile-drag-wrapper.cdk-drag-animating {
+        transition:
+            transform 0.2s ease;
+    }
+
+
+    // =======================================
+    // ACTIVE DROP AREA
+    // =======================================
+
+    .mobile-task-list.cdk-drop-list-dragging {
+        min-height: 385px;
+
+        padding: 5px;
+
+        border: 1px dashed #93c5fd;
+
+        background: #eff6ff;
+
+        outline: none;
+    }
+
+
+    // =======================================
+    // TODO DROP HIGHLIGHT
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.todo):has(.mobile-task-list.cdk-drop-list-dragging) {
+        border-color: #94a3b8;
+
+        box-shadow:
+            0 0 0 2px rgba(100, 116, 139, 0.1);
+    }
+
+
+    // =======================================
+    // IN PROGRESS DROP HIGHLIGHT
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.in_progress):has(.mobile-task-list.cdk-drop-list-dragging) {
+        border-color: #60a5fa;
+
+        box-shadow:
+            0 0 0 2px rgba(37, 99, 235, 0.12);
+    }
+
+
+    // =======================================
+    // REVIEW DROP HIGHLIGHT
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.review):has(.mobile-task-list.cdk-drop-list-dragging) {
+        border-color: #fbbf24;
+
+        box-shadow:
+            0 0 0 2px rgba(245, 158, 11, 0.12);
+    }
+
+
+    // =======================================
+    // DONE DROP HIGHLIGHT
+    // =======================================
+
+    .mobile-board-column:has(.mobile-status-indicator.done):has(.mobile-task-list.cdk-drop-list-dragging) {
+        border-color: #4ade80;
+
+        box-shadow:
+            0 0 0 2px rgba(22, 163, 74, 0.12);
+    }
+
+
+    // =======================================
+    // EMPTY MOBILE COLUMN
+    // =======================================
+
+    .mobile-empty-column {
+        grid-column: 1 / -1;
+
+        min-height: 170px;
+
+        display: flex;
+        flex-direction: column;
+
+        align-items: center;
+        justify-content: center;
+
+        gap: 5px;
+
+        border: 1px dashed #cbd5e1;
+        border-radius: 7px;
+
+        background: rgba(255, 255, 255, 0.45);
+
+        text-align: center;
+    }
+
+    .mobile-empty-icon {
+        width: 24px;
+        height: 24px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border: 1px dashed #cbd5e1;
+        border-radius: 50%;
+
+        color: #94a3b8;
+
+        font-size: 16px;
+    }
+
+    .mobile-empty-column strong {
+        color: #64748b;
+
+        font-size: 10px;
+    }
+
+    .mobile-empty-column span {
+        color: #94a3b8;
+
+        font-size: 8px;
+    }
+
+
+    // =======================================
+    // MOBILE SCROLL INDICATOR
+    // =======================================
+
+    .mobile-scroll-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 6px;
+
+        margin-top: 3px;
+
+        color: #94a3b8;
+
+        font-size: 8px;
+    }
+
+    .mobile-scroll-indicator span:first-child,
+    .mobile-scroll-indicator span:last-child {
+        color: #cbd5e1;
+
         font-size: 12px;
+    }
+
+}
+
+
+// =========================================
+// SMALL PHONES
+// =========================================
+
+@media (max-width: 400px) {
+
+    .task-board {
+        padding:
+            12px 8px 24px;
+    }
+
+    .board-title-row h1 {
+        font-size: 22px;
+    }
+
+    .board-title-row p {
+        font-size: 10.5px;
+    }
+
+    .board-toolbar {
+        gap: 6px;
+
+        padding: 7px;
+    }
+
+    .board-toolbar input {
+        min-height: 38px;
+
+        font-size: 11px;
+    }
+
+    .board-toolbar select {
+        min-height: 35px;
+
+        font-size: 10px;
+    }
+
+
+    // ---------------------------------------
+    // SMALL PHONE KANBAN
+    // ---------------------------------------
+
+    .mobile-kanban-scroll {
+        grid-auto-columns:
+            calc(68% - 4px);
+
+        gap: 7px;
+    }
+
+    .mobile-board-column {
+        min-height: 420px;
+
+        padding: 7px;
+    }
+
+    .mobile-task-list {
+        min-height: 365px;
+
+        gap: 6px;
+    }
+
+    .mobile-column-title {
+        font-size: 8px;
+    }
+
+    .mobile-column-count {
+        min-width: 21px;
+
+        font-size: 8px;
+    }
+
+}
+
+
+// =========================================
+// ACCESSIBILITY
+// =========================================
+
+.task-board,
+.task-board * {
+    box-sizing: border-box;
+}
+
+.task-board input,
+.task-board select,
+.task-board button {
+    max-width: 100%;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid #2563eb;
+
+    outline-offset: 2px;
+}
+// =========================================
+// MOBILE TASK CARD CONSTRAINTS
+// =========================================
+
+@media (max-width: 700px) {
+
+    .mobile-task-list {
+        width: 100%;
+        min-width: 0;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        overflow: hidden;
+    }
+
+    .mobile-drag-wrapper {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+
+        overflow: hidden;
+    }
+
+    .mobile-drag-wrapper app-task-card {
+        display: block;
+
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+
+        overflow: hidden;
+    }
+
+    /*
+   * The TaskCardComponent can have its own
+   * internal fixed sizing. Constrain it here
+   * for the mobile Kanban.
+   */
+    .mobile-drag-wrapper {
+        ::ng-deep app-task-card {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            display: block;
+        }
+
+        ::ng-deep app-task-card>* {
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+    }
+
+
+    // -----------------------------------------
+    // Prevent text from pushing card width
+    // -----------------------------------------
+
+    ::ng-deep .mobile-drag-wrapper app-task-card * {
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+
+    // -----------------------------------------
+    // Compact badges
+    // -----------------------------------------
+
+    ::ng-deep .mobile-drag-wrapper app-task-card .priority,
+    ::ng-deep .mobile-drag-wrapper app-task-card .status,
+    ::ng-deep .mobile-drag-wrapper app-task-card .assignee {
+        max-width: 100%;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+    }
+
+
+    // -----------------------------------------
+    // Prevent long titles
+    // -----------------------------------------
+
+    ::ng-deep .mobile-drag-wrapper app-task-card h1,
+    ::ng-deep .mobile-drag-wrapper app-task-card h2,
+    ::ng-deep .mobile-drag-wrapper app-task-card h3,
+    ::ng-deep .mobile-drag-wrapper app-task-card h4,
+    ::ng-deep .mobile-drag-wrapper app-task-card p,
+    ::ng-deep .mobile-drag-wrapper app-task-card span {
+        max-width: 100%;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
     }
 }

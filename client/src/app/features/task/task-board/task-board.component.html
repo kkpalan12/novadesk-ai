@@ -1,6 +1,6 @@
 <section class="task-board">
   <!-- ========================================= -->
-  <!-- BOARD HEADER -->
+  <!-- HEADER -->
   <!-- ========================================= -->
 
   <header class="board-page-header">
@@ -19,9 +19,24 @@
       </div>
     </div>
   </header>
+
+  <!-- ========================================= -->
+  <!-- WIP WARNING -->
+  <!-- ========================================= -->
+
   @if (wipWarning()) {
-    <div class="wip-warning">⚠️ {{ wipWarning() }}</div>
+    <div class="wip-warning">
+      <span>⚠️</span>
+
+      <span>
+        {{ wipWarning() }}
+      </span>
+    </div>
   }
+
+  <!-- ========================================= -->
+  <!-- LOADING -->
+  <!-- ========================================= -->
 
   @if (loading()) {
     <div class="board-container skeleton-board">
@@ -35,13 +50,27 @@
         </section>
       }
     </div>
+  }
 
-  } @else if (errorMessage()) {
+  <!-- ========================================= -->
+  <!-- ERROR -->
+  <!-- ========================================= -->
+
+  @else if (errorMessage()) {
     <div class="error-state">
       {{ errorMessage() }}
     </div>
+  }
 
-  } @else {
+  <!-- ========================================= -->
+  <!-- CONTENT -->
+  <!-- ========================================= -->
+
+  @else {
+    <!-- ======================================= -->
+    <!-- FILTER TOOLBAR -->
+    <!-- ======================================= -->
+
     <div class="board-toolbar">
       <input
         placeholder="Search tasks... (/)"
@@ -49,7 +78,7 @@
         (input)="onSearch($event)"
       />
 
-      <select (change)="onPriorityChange($event)">
+      <select [value]="priorityFilter()" (change)="onPriorityChange($event)">
         <option value="">All Priority</option>
 
         <option value="CRITICAL">Critical</option>
@@ -61,7 +90,7 @@
         <option value="LOW">Low</option>
       </select>
 
-      <select (change)="onAssigneeChange($event)">
+      <select [value]="assigneeFilter()" (change)="onAssigneeChange($event)">
         <option value="">All Assignees</option>
 
         @for (user of assignees(); track user._id) {
@@ -73,7 +102,11 @@
       </select>
     </div>
 
-    <div class="board-container" cdkDropListGroup>
+    <!-- ======================================= -->
+    <!-- DESKTOP BOARD -->
+    <!-- ======================================= -->
+
+    <div class="board-container desktop-board" cdkDropListGroup>
       @for (column of columns(); track column.status) {
         <section class="board-column">
           <header class="column-header">
@@ -104,11 +137,12 @@
             class="task-list"
             cdkDropList
             [cdkDropListData]="column.tasks"
+            [attr.data-status]="column.status"
             (cdkDropListDropped)="drop($event)"
           >
             @if (column.tasks.length === 0) {
               <div class="empty-column">
-                📋
+                <span class="empty-icon"> 📋 </span>
 
                 <p>No tasks</p>
 
@@ -129,6 +163,100 @@
           </div>
         </section>
       }
+    </div>
+
+    <!-- ======================================= -->
+    <!-- MOBILE HORIZONTAL KANBAN -->
+    <!-- ======================================= -->
+
+    <div class="mobile-board" cdkDropListGroup>
+      <div class="mobile-board-header">
+        <div>
+          <span class="mobile-board-label"> WORKFLOW </span>
+
+          <span class="mobile-board-hint">
+            Swipe horizontally to view stages
+          </span>
+        </div>
+
+        <span class="mobile-board-count"> {{ tasks().length }} tasks </span>
+      </div>
+
+      <div class="mobile-kanban-scroll">
+        @for (column of columns(); track column.status) {
+          <section
+            class="mobile-board-column"
+            [class.limit-column]="column.limit"
+          >
+            <!-- COLUMN HEADER -->
+
+            <header class="mobile-column-header">
+              <div class="mobile-column-title">
+                <span
+                  class="mobile-status-indicator"
+                  [class]="column.status.toLowerCase()"
+                ></span>
+
+                <span>
+                  {{ column.title }}
+                </span>
+              </div>
+
+              <span
+                class="mobile-column-count"
+                [class.limit-reached]="
+                  column.limit && column.tasks.length >= column.limit
+                "
+              >
+                {{ column.tasks.length }}
+
+                @if (column.limit) {
+                  / {{ column.limit }}
+                }
+              </span>
+            </header>
+
+            <!-- DROP LIST -->
+
+            <div
+              class="mobile-task-list"
+              cdkDropList
+              [cdkDropListData]="column.tasks"
+              [attr.data-status]="column.status"
+              (cdkDropListDropped)="drop($event)"
+            >
+              @if (column.tasks.length === 0) {
+                <div class="mobile-empty-column">
+                  <span class="mobile-empty-icon"> + </span>
+
+                  <strong> No tasks </strong>
+
+                  <span> Drop here </span>
+                </div>
+              }
+
+              @for (task of column.tasks; track task._id) {
+                <div
+                  class="mobile-drag-wrapper"
+                  cdkDrag
+                  (cdkDragStarted)="startDragging()"
+                  (cdkDragEnded)="stopDragging()"
+                >
+                  <app-task-card [task]="task" (selected)="openTask($event)" />
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
+
+      <div class="mobile-scroll-indicator">
+        <span>←</span>
+
+        <span> Swipe to see more </span>
+
+        <span>→</span>
+      </div>
     </div>
   }
 </section>

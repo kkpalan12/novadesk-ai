@@ -280,13 +280,17 @@
      ========================== -->
 
       <section class="detail-section ai-section">
+        <!-- AI HEADER -->
+
         <div class="ai-header">
           <div class="ai-header-content">
             <div class="ai-title-row">
-              <span class="ai-sparkle">✦</span>
+              <span class="ai-sparkle"> ✦ </span>
 
               <div>
-                <h2>AI Assist</h2>
+                <span class="ai-eyebrow"> NOVADESK AI </span>
+
+                <h2>AI Task Copilot</h2>
 
                 <p>Get practical recommendations and insights for this task.</p>
               </div>
@@ -301,22 +305,26 @@
           >
             @if (aiLoading()) {
               <span class="ai-button-spinner"></span>
+
               Analyzing...
             } @else {
-              <span>✦</span>
+              <span class="ai-button-icon"> ✦ </span>
+
               Analyze Task
             }
           </button>
         </div>
 
-        <!-- AI ERROR -->
+        <!-- ==========================
+       AI ERROR
+       ========================== -->
 
         @if (aiError()) {
           <div class="ai-error">
             <div class="ai-error-icon">!</div>
 
             <div class="ai-error-content">
-              <strong>AI analysis unavailable</strong>
+              <strong> AI analysis unavailable </strong>
 
               <p>
                 {{ aiError() }}
@@ -334,36 +342,63 @@
           </div>
         }
 
-        <!-- AI LOADING -->
+        <!-- ==========================
+       AI LOADING
+       ========================== -->
 
         @if (aiLoading()) {
           <div class="ai-loading-state">
             <div class="ai-loading-header">
-              <span class="ai-loading-icon">✦</span>
+              <div class="ai-loading-icon">✦</div>
 
               <div>
-                <strong>Analyzing task...</strong>
-                <span>AI is preparing recommendations.</span>
+                <strong> Analyzing task... </strong>
+
+                <span> NovaDesk AI is preparing recommendations. </span>
               </div>
             </div>
 
-            <div class="ai-skeleton summary"></div>
+            <div class="ai-loading-summary">
+              <div class="ai-skeleton-line large"></div>
 
-            <div class="ai-skeleton priority"></div>
+              <div class="ai-skeleton-line"></div>
 
-            <div class="ai-skeleton-list">
-              <div class="ai-skeleton"></div>
-              <div class="ai-skeleton"></div>
-              <div class="ai-skeleton"></div>
+              <div class="ai-skeleton-line short"></div>
+            </div>
+
+            <div class="ai-loading-grid">
+              <div class="ai-loading-box">
+                <div class="ai-skeleton-line small"></div>
+                <div class="ai-skeleton-line medium"></div>
+              </div>
+
+              <div class="ai-loading-box">
+                <div class="ai-skeleton-line small"></div>
+                <div class="ai-skeleton-line medium"></div>
+              </div>
+            </div>
+
+            <div class="ai-loading-list">
+              <div class="ai-loading-list-title">
+                <div class="ai-skeleton-line small"></div>
+              </div>
+
+              <div class="ai-loading-list-item"></div>
+              <div class="ai-loading-list-item"></div>
+              <div class="ai-loading-list-item"></div>
             </div>
           </div>
         }
 
-        <!-- AI RESULT -->
+        <!-- ==========================
+       AI RESULT
+       ========================== -->
 
         @if (!aiLoading() && aiAnalysis()) {
           <div class="ai-result">
-            <!-- SUMMARY -->
+            <!-- ========================
+           SUMMARY
+           ======================== -->
 
             <div class="ai-result-card ai-summary-card">
               <div class="ai-card-header">
@@ -381,32 +416,78 @@
               </p>
             </div>
 
-            <!-- PRIORITY -->
+            <!-- ========================
+           PRIORITY + NEXT ACTION
+           ======================== -->
 
-            <div class="ai-result-card">
-              <span class="ai-label"> Suggested Priority </span>
+            <div class="ai-insight-grid">
+              <!-- PRIORITY -->
 
-              <div class="ai-priority-row">
-                <span
-                  class="ai-priority"
-                  [class]="
-                    'priority-' + aiAnalysis()!.suggestedPriority.toLowerCase()
-                  "
-                >
-                  {{ aiAnalysis()!.suggestedPriority }}
-                </span>
+              <div class="ai-result-card ai-priority-card">
+                <div class="ai-card-heading">
+                  <span class="ai-label"> Suggested Priority </span>
 
-                <span class="ai-priority-description">
-                  Recommended based on the task analysis.
-                </span>
+                  <span class="ai-card-icon subtle"> ↗ </span>
+                </div>
+
+                <div class="ai-priority-comparison">
+                  <div class="ai-current-priority">
+                    <span> Current </span>
+
+                    <strong
+                      class="ai-current-priority-value"
+                      [class]="'priority-' + task()!.priority.toLowerCase()"
+                    >
+                      {{ task()!.priority }}
+                    </strong>
+                  </div>
+
+                  <span class="ai-priority-arrow"> → </span>
+
+                  <div class="ai-suggested-priority">
+                    <span> Suggested </span>
+
+                    <strong
+                      class="ai-priority"
+                      [class]="
+                        'priority-' +
+                        aiAnalysis()!.suggestedPriority.toLowerCase()
+                      "
+                    >
+                      {{ aiAnalysis()!.suggestedPriority }}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- NEXT ACTION -->
+
+              <div class="ai-result-card ai-next-action-card">
+                <div class="ai-card-heading">
+                  <span class="ai-label"> Recommended Next Action </span>
+
+                  <span class="ai-next-action-icon"> → </span>
+                </div>
+
+                <p class="ai-next-action-text">
+                  {{ aiAnalysis()!.nextAction }}
+                </p>
               </div>
             </div>
 
-            <!-- SUBTASKS -->
+            <!-- ========================
+           SUBTASKS
+           ======================== -->
 
             <div class="ai-result-card">
               <div class="ai-card-heading">
-                <span class="ai-label"> Suggested Subtasks </span>
+                <div>
+                  <span class="ai-label"> Suggested Subtasks </span>
+
+                  <small class="ai-card-description">
+                    Actionable steps recommended by AI
+                  </small>
+                </div>
 
                 <span class="ai-count">
                   {{ aiAnalysis()!.suggestedSubtasks.length }}
@@ -435,11 +516,19 @@
               }
             </div>
 
-            <!-- RISKS -->
+            <!-- ========================
+           RISKS
+           ======================== -->
 
             <div class="ai-result-card ai-risk-card">
               <div class="ai-card-heading">
-                <span class="ai-label"> Risks </span>
+                <div>
+                  <span class="ai-label"> Risks & Considerations </span>
+
+                  <small class="ai-card-description">
+                    Potential issues identified by AI
+                  </small>
+                </div>
 
                 <span class="ai-warning-icon"> ! </span>
               </div>
@@ -461,23 +550,21 @@
               }
             </div>
 
-            <!-- NEXT ACTION -->
+            <!-- ========================
+           AI FOOTER
+           ======================== -->
 
-            <div class="ai-result-card ai-next-action">
-              <div class="ai-next-action-icon">→</div>
+            <div class="ai-result-footer">
+              <span class="ai-footer-icon"> ✦ </span>
 
-              <div>
-                <span class="ai-label"> Recommended Next Action </span>
-
-                <p>
-                  {{ aiAnalysis()!.nextAction }}
-                </p>
-              </div>
+              <span> Analysis generated by NovaDesk AI </span>
             </div>
           </div>
         }
 
-        <!-- INITIAL STATE -->
+        <!-- ==========================
+       INITIAL STATE
+       ========================== -->
 
         @if (!aiLoading() && !aiAnalysis() && !aiError()) {
           <div class="ai-empty-state">
@@ -486,8 +573,8 @@
             <strong> No AI analysis yet </strong>
 
             <span>
-              Analyze this task to get priorities, subtasks, risks and a
-              recommended next action.
+              Analyze this task to get a summary, priority recommendation,
+              subtasks, risks and a recommended next action.
             </span>
 
             <button
@@ -495,6 +582,7 @@
               class="secondary-button"
               (click)="analyzeTask()"
             >
+              <span>✦</span>
               Analyze Task
             </button>
           </div>
