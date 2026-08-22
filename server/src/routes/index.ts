@@ -15,6 +15,7 @@ import commentRoutes from "./comment.routes";
 import notificationRoutes from "./notification.routes";
 import activityRoutes from "./activity.routes";
 import searchRoutes from "./search.routes";
+import aiRoutes from "./ai.routes";
 const router = Router();
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
@@ -31,5 +32,6 @@ router.use("/", commentRoutes);
 router.use("/", notificationRoutes);
 router.use("/", activityRoutes);
 router.use("/", searchRoutes);
+router.use("/ai", aiRoutes);
 
 export default router;

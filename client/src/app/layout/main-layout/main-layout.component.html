@@ -1,9 +1,18 @@
+<app-ai-assistant></app-ai-assistant>
+
+<app-command-palette
+  [openDashboard]="openDashboard.bind(this)"
+  [openProjects]="openProjects.bind(this)"
+  [openWorkspace]="openWorkspace.bind(this)"
+  [openProfile]="openProfile.bind(this)"
+  [openAi]="openAiAssistant.bind(this)"
+></app-command-palette>
 <div class="app-shell">
   <app-confirm-dialog></app-confirm-dialog>
 
-  <!-- =========================================
+  <!-- =========================
        SIDEBAR
-       ========================================= -->
+       ========================= -->
 
   <aside class="sidebar">
     <!-- BRAND -->
@@ -11,15 +20,17 @@
     <div class="brand">
       <img src="novadesk-ai-icon.png" alt="NovaDesk AI" class="brand-logo" />
 
-      <span class="brand-name"> NovaDesk </span>
+      <div class="brand-details">
+        <span class="brand-name"> NovaDesk AI </span>
+
+        <span class="brand-subtitle"> Enterprise Workspace </span>
+      </div>
     </div>
 
-    <!-- =======================================
-         WORKSPACE SELECTOR
-         ======================================= -->
+    <!-- WORKSPACE CARD -->
 
-    <div class="workspace-selector">
-      <label for="workspace" class="workspace-label"> WORKSPACE </label>
+    <div class="workspace-card">
+      <span class="section-label"> WORKSPACE </span>
 
       <select
         id="workspace"
@@ -30,10 +41,6 @@
       >
         @if (workspaceContext.loading()) {
           <option value="">Loading...</option>
-
-        } @else if (workspaceContext.workspaces().length === 0) {
-          <option value="">No workspaces</option>
-
         } @else {
           @for (
             workspace of workspaceContext.workspaces();
@@ -46,55 +53,57 @@
         }
       </select>
 
-      <!-- Workspace Error -->
-
       @if (workspaceContext.errorMessage()) {
         <div class="workspace-error">
-          <span>
-            {{ workspaceContext.errorMessage() }}
-          </span>
+          {{ workspaceContext.errorMessage() }}
 
-          <button
-            type="button"
-            class="workspace-retry"
-            (click)="retryWorkspaces()"
-          >
-            Retry
-          </button>
+          <button type="button" (click)="retryWorkspaces()">Retry</button>
         </div>
       }
     </div>
 
-    <!-- =======================================
-         DESKTOP NAVIGATION
-         ======================================= -->
+    <!-- NAVIGATION -->
 
     <nav class="navigation">
-      <button type="button" class="nav-item" (click)="goToDashboard()">
-        <span class="nav-icon"> ⌂ </span>
+      <span class="nav-section"> PRODUCTIVITY </span>
 
+      <button
+        class="nav-item"
+        [class.active]="isActiveRoute('/dashboard')"
+        (click)="goToDashboard()"
+      >
+        <lucide-icon class="nav-icon" [img]="icons.dashboard" size="20">
+        </lucide-icon>
         <span> Dashboard </span>
       </button>
 
-      <button type="button" class="nav-item" (click)="goToProjects()">
-        <span class="nav-icon"> ▣ </span>
-
+      <button
+        class="nav-item"
+        [class.active]="isActiveRoute('/projects')"
+        (click)="goToProjects()"
+      >
+        <lucide-icon class="nav-icon" [img]="icons.projects" size="20">
+        </lucide-icon>
         <span> Projects </span>
       </button>
 
-      <!-- WORKSPACE -->
-
-      <button type="button" class="nav-item" (click)="goToWorkspace()">
-        <span class="nav-icon"> ◫ </span>
-
+      <button
+        class="nav-item"
+        [class.active]="isActiveRoute('/workspace')"
+        (click)="goToWorkspace()"
+      >
+        <lucide-icon class="nav-icon" [img]="icons.workspace" size="20">
+        </lucide-icon>
         <span> Workspace </span>
       </button>
 
-      <!-- NOTIFICATIONS -->
-
-      <button type="button" class="nav-item" (click)="goToNotifications()">
-        <span class="nav-icon"> ♢ </span>
-
+      <button
+        class="nav-item"
+        [class.active]="isActiveRoute('/notifications')"
+        (click)="goToNotifications()"
+      >
+        <lucide-icon class="nav-icon" [img]="icons.notifications" size="20">
+        </lucide-icon>
         <span> Notifications </span>
 
         @if (unreadNotificationCount() > 0) {
@@ -105,175 +114,168 @@
           </span>
         }
       </button>
+
+      <span class="nav-section ai-section"> INTELLIGENCE </span>
+
+      <button type="button" class="nav-item" (click)="openAiAssistant()">
+        <span class="nav-icon"> ✦ </span>
+
+        <span> AI Assistant </span>
+      </button>
+
+      <!--  <button type="button" class="nav-item">
+        <span class="nav-icon"> ◌ </span>
+
+        <span> Analytics </span>
+      </button> -->
     </nav>
 
-    <!-- =======================================
-         SIDEBAR BOTTOM
-         ======================================= -->
+    <!-- USER AREA -->
 
-    <div class="sidebar-bottom">
-      <button type="button" class="nav-item logout-button" (click)="logout()">
-        <span class="nav-icon"> ↪ </span>
+    <div class="sidebar-footer">
+      <button type="button" class="profile-card" (click)="goToProfile()">
+        <span class="profile-avatar">
+          {{ userInitial }}
+        </span>
 
-        <span> Logout </span>
+        <span class="profile-details">
+          <strong>
+            {{ user?.firstName }}
+          </strong>
+        </span>
+      </button>
+
+      <button type="button" class="logout-button" (click)="logout()">
+        <lucide-icon [img]="icons.logout" size="18"> </lucide-icon>
+        Sign out
       </button>
     </div>
   </aside>
-
-  <!-- =========================================
+  <!-- =========================
        MAIN AREA
-       ========================================= -->
+       ========================= -->
 
   <main class="main-area">
-    <!-- =======================================
-         TOPBAR
-         ======================================= -->
+    <!-- TOPBAR -->
 
     <header class="topbar">
-      <div class="topbar-title">NovaDesk AI</div>
+      <div class="topbar-left">
+        <div class="page-title">NovaDesk AI</div>
 
-      <!-- ===================================
-             MOBILE WORKSPACE SELECTOR
-             =================================== -->
+        <div class="global-search">
+          <span> ⌕ </span>
 
-      <div class="mobile-workspace-selector">
-        <label for="mobile-workspace"> WORKSPACE </label>
+          <input type="text" placeholder="Search projects, tasks..." />
 
-        <select
-          id="mobile-workspace"
-          [value]="workspaceContext.activeWorkspace()?._id ?? ''"
-          (change)="selectWorkspace($any($event.target).value)"
-          [disabled]="workspaceContext.loading()"
-        >
-          @if (workspaceContext.loading()) {
-            <option value="">Loading...</option>
-
-          } @else if (workspaceContext.workspaces().length === 0) {
-            <option value="">No workspaces</option>
-
-          } @else {
-            @for (
-              workspace of workspaceContext.workspaces();
-              track workspace._id
-            ) {
-              <option [value]="workspace._id">
-                {{ workspace.name }}
-              </option>
-            }
-          }
-        </select>
+          <kbd> ⌘ K </kbd>
+        </div>
       </div>
 
-      <!-- ===================================
-             TOPBAR ACTIONS
-             =================================== -->
-
+      <!-- ACTIONS -->
       <div class="topbar-actions">
-        <!-- Notifications -->
+        <!-- AI ASSISTANT -->
+
+        <button
+          type="button"
+          class="ai-button"
+          (click)="openAiAssistant()"
+          aria-label="Open NovaDesk AI"
+        >
+          <lucide-icon [img]="icons.ai" size="20"> </lucide-icon>
+        </button>
+
+        <!-- NOTIFICATIONS -->
 
         <button
           type="button"
           class="notification-button"
           (click)="goToNotifications()"
-          aria-label="Notifications"
         >
-          ♢
-
-          @if (unreadNotificationCount() > 0) {
-            <span class="notification-badge notification-badge-top">
-              {{
-                unreadNotificationCount() > 99
-                  ? "99+"
-                  : unreadNotificationCount()
-              }}
-            </span>
-          }
+          <lucide-icon [img]="icons.notifications" size="20"> </lucide-icon>
         </button>
 
-        <!-- User -->
+        <!-- PROFILE -->
 
-        <button
-          type="button"
-          class="user-avatar"
-          [attr.aria-label]="
-            user ? 'Open profile for ' + user.firstName : 'Open profile'
-          "
-          [title]="user ? user.firstName + ' ' + user.lastName : 'Profile'"
-          (click)="goToProfile()"
-        >
+        <button type="button" class="user-avatar" (click)="goToProfile()">
           {{ userInitial }}
         </button>
       </div>
     </header>
 
-    <!-- =======================================
-         ROUTED PAGE
-         ======================================= -->
+    <!-- MOBILE WORKSPACE -->
+
+    <div class="mobile-workspace-selector">
+      <label> WORKSPACE </label>
+
+      <select
+        [value]="workspaceContext.activeWorkspace()?._id ?? ''"
+        (change)="selectWorkspace($any($event.target).value)"
+        [disabled]="workspaceContext.loading()"
+      >
+        @for (workspace of workspaceContext.workspaces(); track workspace._id) {
+          <option [value]="workspace._id">
+            {{ workspace.name }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <!-- PAGE -->
 
     <section class="page-content">
       <router-outlet></router-outlet>
     </section>
   </main>
-
-  <!-- =========================================
-       MOBILE BOTTOM NAVIGATION
-       ========================================= -->
-
-  <!-- =========================================
-         MOBILE BOTTOM NAVIGATION
-         ========================================= -->
+  <!-- =========================
+       MOBILE NAVIGATION
+       ========================= -->
 
   <nav class="mobile-navigation">
-    <!-- Dashboard -->
-
     <button
       type="button"
       class="mobile-nav-item"
       (click)="goToDashboard()"
-      aria-label="Dashboard"
+      [class.active]="isActiveRoute('/dashboard')"
     >
-      <span class="mobile-nav-icon"> ⌂ </span>
-
-      <span> Dashboard </span>
+      <lucide-icon class="mobile-nav-icon" [img]="icons.dashboard" size="20">
+      </lucide-icon>
+      <span> Home </span>
     </button>
-
-    <!-- Projects -->
 
     <button
       type="button"
       class="mobile-nav-item"
       (click)="goToProjects()"
-      aria-label="Projects"
+      [class.active]="isActiveRoute('/projects')"
     >
-      <span class="mobile-nav-icon"> ▣ </span>
-
+      <lucide-icon class="mobile-nav-icon" [img]="icons.projects" size="20">
+      </lucide-icon>
       <span> Projects </span>
     </button>
 
-    <!-- Workspace -->
-
     <button
       type="button"
-      class="mobile-nav-item"
+      class="mobile-nav-item mobile-primary"
       (click)="goToWorkspace()"
-      aria-label="Workspace"
+      [class.active]="isActiveRoute('/workspace')"
     >
-      <span class="mobile-nav-icon"> ◫ </span>
-
-      <span> Workspace </span>
+      <span class="primary-action">
+        <lucide-icon [img]="icons.workspace" size="22"> </lucide-icon>
+      </span>
+      <span> Create </span>
     </button>
-
-    <!-- Notifications -->
 
     <button
       type="button"
       class="mobile-nav-item"
       (click)="goToNotifications()"
-      aria-label="Notifications"
+      [class.active]="isActiveRoute('/notifications')"
     >
-      <span class="mobile-nav-icon">
-        ♢
-
+      <lucide-icon
+        class="mobile-nav-icon"
+        [img]="icons.notifications"
+        size="20"
+      >
         @if (unreadNotificationCount() > 0) {
           <span class="mobile-notification-badge">
             {{
@@ -281,22 +283,21 @@
             }}
           </span>
         }
-      </span>
-
-      <span> Notifications </span>
+      </lucide-icon>
+      <span> Alerts </span>
     </button>
-
-    <!-- Logout -->
 
     <button
       type="button"
-      class="mobile-nav-item mobile-logout-item"
-      (click)="logout()"
-      aria-label="Logout"
+      class="mobile-nav-item"
+      (click)="goToProfile()"
+      [class.active]="isActiveRoute('/settings/profile')"
     >
-      <span class="mobile-nav-icon"> ↪ </span>
+      <span class="mobile-profile-avatar">
+        {{ userInitial }}
+      </span>
 
-      <span> Logout </span>
+      <span> Profile </span>
     </button>
   </nav>
 </div>

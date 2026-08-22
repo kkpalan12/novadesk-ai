@@ -20,6 +20,7 @@ export class GeminiService {
 
     return client.models.generateContent({
       model: "gemini-3.6-flash",
+
       contents: prompt,
 
       config: {
@@ -40,6 +41,7 @@ export class GeminiService {
 
             suggestedSubtasks: {
               type: Type.ARRAY,
+
               items: {
                 type: Type.STRING,
               },
@@ -47,6 +49,7 @@ export class GeminiService {
 
             risks: {
               type: Type.ARRAY,
+
               items: {
                 type: Type.STRING,
               },
@@ -65,6 +68,24 @@ export class GeminiService {
             "nextAction",
           ],
         },
+      },
+    });
+  }
+
+  // =========================================
+  // NOVADESK AI ASSISTANT
+  // =========================================
+
+  async generateAssistantResponse(prompt: string) {
+    const client = await this.getClient();
+
+    return client.models.generateContent({
+      model: "gemini-3.6-flash",
+
+      contents: prompt,
+
+      config: {
+        temperature: 0.4,
       },
     });
   }

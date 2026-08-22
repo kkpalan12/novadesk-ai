@@ -1,0 +1,52 @@
+@if (open) {
+  <div class="palette-overlay" (click)="close()">
+    <div class="palette" (click)="$event.stopPropagation()">
+      <!-- SEARCH HEADER -->
+
+      <div class="palette-search">
+        <lucide-icon [img]="icons.search" size="20"> </lucide-icon>
+        <input
+          #searchInput
+          autofocus
+          type="text"
+          placeholder="Search NovaDesk..."
+          [value]="searchText"
+          (input)="onSearch($event)"
+        />
+
+        <kbd> ESC </kbd>
+      </div>
+
+      <!-- COMMAND LIST -->
+      <div class="commands">
+        @for (
+          command of filteredCommands;
+          track command.label;
+          let i = $index
+        ) {
+          <button
+            #commandItem
+            type="button"
+            class="command-item"
+            [class.selected]="i === selectedIndex"
+            (mouseenter)="selectedIndex = i"
+            (click)="execute(command)"
+          >
+            <lucide-icon [img]="command.icon" size="20"> </lucide-icon>
+
+            <span>
+              {{ command.label }}
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="palette-footer">
+    <span> ↑ ↓ Navigate </span>
+
+    <span> ↵ Select </span>
+
+    <span> ESC Close </span>
+  </div>
+}

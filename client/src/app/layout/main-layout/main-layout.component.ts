@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 
 import { WorkspaceContextService } from '../../core/services/workspace-context.service';
 
@@ -15,19 +15,41 @@ import { SocketService } from '../../core/services/socket.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
-
+import { filter } from 'rxjs';
+import {
+  LayoutDashboard,
+  FolderKanban,
+  Building2,
+  Bell,
+  Sparkles,
+  ChartNoAxesCombined,
+  LogOut,
+  Search,
+  LucideAngularModule,
+} from 'lucide-angular';
+import { CommandPaletteComponent } from '../../shared/components/command-palette/command-palette.component';
+import { AiAssistantComponent } from '../../shared/components/ai-assistant/ai-assistant.component';
 @Component({
   selector: 'app-main-layout',
 
   standalone: true,
 
-  imports: [CommonModule, RouterOutlet, ConfirmDialogComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    ConfirmDialogComponent,
+    LucideAngularModule,
+    CommandPaletteComponent,
+    AiAssistantComponent,
+  ],
 
   templateUrl: './main-layout.component.html',
 
   styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent implements OnInit {
+  @ViewChild(AiAssistantComponent)
+  aiAssistant!: AiAssistantComponent;
   // =========================================
   // SERVICES
   // =========================================
@@ -44,6 +66,9 @@ export class MainLayoutComponent implements OnInit {
 
   private readonly confirmDialog = inject(ConfirmDialogService);
 
+  readonly currentUrl = this.router.url;
+  activeRoute = '';
+  profileMenuOpen = false;
   // =========================================
   // CURRENT USER
   // =========================================
@@ -55,6 +80,16 @@ export class MainLayoutComponent implements OnInit {
   // =========================================
 
   readonly unreadNotificationCount = this.notificationService.unreadCount;
+  readonly icons = {
+    dashboard: LayoutDashboard,
+    projects: FolderKanban,
+    workspace: Building2,
+    notifications: Bell,
+    ai: Sparkles,
+    analytics: ChartNoAxesCombined,
+    logout: LogOut,
+    search: Search,
+  };
 
   // =========================================
   // INIT
@@ -65,6 +100,22 @@ export class MainLayoutComponent implements OnInit {
 
     // Initialize real-time notifications
     this.notificationService.initializeRealtime();
+
+    this.activeRoute = this.router.url;
+
+    this.router.events
+
+      .pipe(filter((event) => event instanceof NavigationEnd))
+
+      .subscribe((event) => {
+        const navigation = event as NavigationEnd;
+
+        this.activeRoute = navigation.urlAfterRedirects;
+      });
+  }
+
+  isActiveRoute(route: string): boolean {
+    return this.activeRoute.startsWith(route);
   }
 
   // =========================================
@@ -227,9 +278,16 @@ export class MainLayoutComponent implements OnInit {
   // =========================================
 
   goToProfile(): void {
+    this.profileMenuOpen = false;
+
     void this.router.navigate(['/settings/profile']);
   }
-
+  toggleProfileMenu(): void {
+    this.profileMenuOpen = !this.profileMenuOpen;
+  }
+  closeProfileMenu(): void {
+    this.profileMenuOpen = false;
+  }
   // =========================================
   // LOGOUT
   // =========================================
@@ -265,5 +323,23 @@ export class MainLayoutComponent implements OnInit {
 
     // Return to login
     void this.router.navigate(['/login']);
+  }
+  openProjects(): void {
+    this.goToProjects();
+  }
+
+  openDashboard(): void {
+    this.goToDashboard();
+  }
+
+  openWorkspace(): void {
+    this.goToWorkspace();
+  }
+
+  openProfile(): void {
+    this.goToProfile();
+  }
+  openAiAssistant(): void {
+    this.aiAssistant.openPanel();
   }
 }
