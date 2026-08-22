@@ -7,16 +7,16 @@
   [openProfile]="openProfile.bind(this)"
   [openAi]="openAiAssistant.bind(this)"
 ></app-command-palette>
-<div class="app-shell">
+
+<div class="app-shell" (click)="closeSearch()">
   <app-confirm-dialog></app-confirm-dialog>
 
-  <!-- =========================
+  <!-- =====================================================
        SIDEBAR
-       ========================= -->
+       ===================================================== -->
 
   <aside class="sidebar">
     <!-- BRAND -->
-
     <div class="brand">
       <img src="novadesk-ai-icon.png" alt="NovaDesk AI" class="brand-logo" />
 
@@ -28,7 +28,6 @@
     </div>
 
     <!-- WORKSPACE CARD -->
-
     <div class="workspace-card">
       <span class="section-label"> WORKSPACE </span>
 
@@ -63,47 +62,54 @@
     </div>
 
     <!-- NAVIGATION -->
-
     <nav class="navigation">
       <span class="nav-section"> PRODUCTIVITY </span>
 
       <button
+        type="button"
         class="nav-item"
         [class.active]="isActiveRoute('/dashboard')"
         (click)="goToDashboard()"
       >
         <lucide-icon class="nav-icon" [img]="icons.dashboard" size="20">
         </lucide-icon>
+
         <span> Dashboard </span>
       </button>
 
       <button
+        type="button"
         class="nav-item"
         [class.active]="isActiveRoute('/projects')"
         (click)="goToProjects()"
       >
         <lucide-icon class="nav-icon" [img]="icons.projects" size="20">
         </lucide-icon>
+
         <span> Projects </span>
       </button>
 
       <button
+        type="button"
         class="nav-item"
         [class.active]="isActiveRoute('/workspace')"
         (click)="goToWorkspace()"
       >
         <lucide-icon class="nav-icon" [img]="icons.workspace" size="20">
         </lucide-icon>
+
         <span> Workspace </span>
       </button>
 
       <button
+        type="button"
         class="nav-item"
         [class.active]="isActiveRoute('/notifications')"
         (click)="goToNotifications()"
       >
         <lucide-icon class="nav-icon" [img]="icons.notifications" size="20">
         </lucide-icon>
+
         <span> Notifications </span>
 
         @if (unreadNotificationCount() > 0) {
@@ -122,16 +128,9 @@
 
         <span> AI Assistant </span>
       </button>
-
-      <!--  <button type="button" class="nav-item">
-        <span class="nav-icon"> ◌ </span>
-
-        <span> Analytics </span>
-      </button> -->
     </nav>
 
     <!-- USER AREA -->
-
     <div class="sidebar-footer">
       <button type="button" class="profile-card" (click)="goToProfile()">
         <span class="profile-avatar">
@@ -147,31 +146,130 @@
 
       <button type="button" class="logout-button" (click)="logout()">
         <lucide-icon [img]="icons.logout" size="18"> </lucide-icon>
+
         Sign out
       </button>
     </div>
   </aside>
-  <!-- =========================
+
+  <!-- =====================================================
        MAIN AREA
-       ========================= -->
+       ===================================================== -->
 
   <main class="main-area">
     <!-- TOPBAR -->
-
     <header class="topbar">
       <div class="topbar-left">
         <div class="page-title">NovaDesk AI</div>
 
-        <div class="global-search">
-          <span> ⌕ </span>
+        <!-- =================================================
+             GLOBAL SEARCH
+             ================================================= -->
 
-          <input type="text" placeholder="Search projects, tasks..." />
+        <div class="global-search-container" (click)="$event.stopPropagation()">
+          <div class="global-search">
+            <lucide-icon [img]="icons.search" size="18" class="search-icon">
+            </lucide-icon>
 
-          <kbd> ⌘ K </kbd>
+            <input
+              type="text"
+              [value]="searchQuery"
+              placeholder="Search projects, tasks..."
+              autocomplete="off"
+              (input)="onSearchInput($any($event.target).value)"
+              (keydown)="onSearchKeydown($event)"
+              (focus)="searchOpen = searchQuery.trim().length > 0"
+              aria-label="Search projects and tasks"
+            />
+
+            @if (searchLoading) {
+              <span class="search-loading"> Searching... </span>
+            } @else {
+              <kbd> ⌘ K </kbd>
+            }
+          </div>
+
+          <!-- SEARCH RESULTS -->
+
+          @if (searchOpen) {
+            <div
+              class="global-search-results"
+              (click)="$event.stopPropagation()"
+            >
+              @if (searchLoading) {
+                <div class="search-empty">Searching NovaDesk...</div>
+              } @else if (searchResults.length === 0) {
+                <div class="search-empty">
+                  No results found for
+
+                  <strong> "{{ searchQuery }}" </strong>
+                </div>
+              } @else {
+                @for (
+                  result of searchResults;
+                  track result.type + "-" + result.id
+                ) {
+                  <button
+                    type="button"
+                    class="search-result-item"
+                    (click)="openSearchResult(result)"
+                  >
+                    <!-- RESULT ICON -->
+
+                    <div class="search-result-icon">
+                      @switch (result.type) {
+                        @case ("project") {
+                          <lucide-icon [img]="icons.projects" size="17">
+                          </lucide-icon>
+                        }
+
+                        @case ("task") {
+                          <lucide-icon [img]="icons.dashboard" size="17">
+                          </lucide-icon>
+                        }
+
+                        @case ("workspace") {
+                          <lucide-icon [img]="icons.workspace" size="17">
+                          </lucide-icon>
+                        }
+
+                        @case ("user") {
+                          <span> U </span>
+                        }
+
+                        @case ("comment") {
+                          <span> 💬 </span>
+                        }
+                      }
+                    </div>
+
+                    <!-- RESULT CONTENT -->
+
+                    <div class="search-result-content">
+                      <strong>
+                        {{ result.title }}
+                      </strong>
+
+                      <span>
+                        {{ result.subtitle }}
+                      </span>
+                    </div>
+
+                    <!-- RESULT TYPE -->
+
+                    <span class="search-result-type">
+                      {{ result.type }}
+                    </span>
+                  </button>
+                }
+              }
+            </div>
+          }
         </div>
       </div>
 
-      <!-- ACTIONS -->
+      <!-- TOPBAR ACTIONS -->
+
       <div class="topbar-actions">
         <!-- AI ASSISTANT -->
 
@@ -202,7 +300,9 @@
       </div>
     </header>
 
-    <!-- MOBILE WORKSPACE -->
+    <!-- =====================================================
+         MOBILE WORKSPACE
+         ===================================================== -->
 
     <div class="mobile-workspace-selector">
       <label> WORKSPACE </label>
@@ -220,15 +320,18 @@
       </select>
     </div>
 
-    <!-- PAGE -->
+    <!-- =====================================================
+         PAGE
+         ===================================================== -->
 
     <section class="page-content">
       <router-outlet></router-outlet>
     </section>
   </main>
-  <!-- =========================
+
+  <!-- =====================================================
        MOBILE NAVIGATION
-       ========================= -->
+       ===================================================== -->
 
   <nav class="mobile-navigation">
     <button
@@ -239,6 +342,7 @@
     >
       <lucide-icon class="mobile-nav-icon" [img]="icons.dashboard" size="20">
       </lucide-icon>
+
       <span> Home </span>
     </button>
 
@@ -250,6 +354,7 @@
     >
       <lucide-icon class="mobile-nav-icon" [img]="icons.projects" size="20">
       </lucide-icon>
+
       <span> Projects </span>
     </button>
 
@@ -262,6 +367,7 @@
       <span class="primary-action">
         <lucide-icon [img]="icons.workspace" size="22"> </lucide-icon>
       </span>
+
       <span> Create </span>
     </button>
 
@@ -271,11 +377,14 @@
       (click)="goToNotifications()"
       [class.active]="isActiveRoute('/notifications')"
     >
-      <lucide-icon
-        class="mobile-nav-icon"
-        [img]="icons.notifications"
-        size="20"
-      >
+      <span class="mobile-notification-icon">
+        <lucide-icon
+          class="mobile-nav-icon"
+          [img]="icons.notifications"
+          size="20"
+        >
+        </lucide-icon>
+
         @if (unreadNotificationCount() > 0) {
           <span class="mobile-notification-badge">
             {{
@@ -283,7 +392,8 @@
             }}
           </span>
         }
-      </lucide-icon>
+      </span>
+
       <span> Alerts </span>
     </button>
 
