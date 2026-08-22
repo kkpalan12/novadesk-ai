@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-
 import { Observable } from 'rxjs';
 
 import { ApiService } from './api.service';
+import { Activity } from '../models/activity.model';
+import { Task } from '../models/task.model';
 
 export interface DashboardTaskStats {
   total: number;
@@ -21,21 +22,15 @@ export interface DashboardPriorityStats {
 
 export interface DashboardData {
   tasks: DashboardTaskStats;
-
   priorities: DashboardPriorityStats;
-
-  myTasks: unknown[];
-
-  recentActivities: unknown[];
-
+  myTasks: Task[];
+  recentActivities: Activity[];
   unreadNotifications: number;
 }
 
 export interface DashboardResponse {
   success: boolean;
-
   message: string;
-
   data: DashboardData;
 }
 

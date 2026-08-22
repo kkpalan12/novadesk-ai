@@ -21,7 +21,12 @@ import { MembershipService } from '../../core/services/membership.service';
 
 import { SocketService } from '../../core/services/socket.service';
 
-import { Task, TaskPriority, TaskStatus } from '../../core/models/task.model';
+import {
+  Task,
+  TaskPriority,
+  TaskStatus,
+  TaskUser,
+} from '../../core/models/task.model';
 
 import { Membership } from '../../core/models/membership.model';
 
@@ -1138,7 +1143,34 @@ export class TaskComponent implements OnInit, OnDestroy {
       this.projectName.set('');
     }
   }
+  formatStatus(status: string): string {
+    return status
+      .replace('_', ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+  viewTask(task: Task): void {
+    this.router.navigate(['/tasks', task._id], {
+      queryParams: {
+        project: this.projectId(),
+        workspace: this.workspaceId(),
+      },
+    });
+  }
+  isTaskUser(user: TaskUser | string | undefined): user is TaskUser {
+    return !!user && typeof user !== 'string';
+  }
+  getAssigneeName(assignedTo: TaskUser | string | undefined): string {
+    if (!assignedTo) {
+      return 'Unassigned';
+    }
 
+    if (typeof assignedTo === 'string') {
+      return 'Assigned User';
+    }
+
+    return `${assignedTo.firstName} ${assignedTo.lastName}`;
+  }
   // =========================================
   // DESTROY
   // =========================================

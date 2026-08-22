@@ -1,213 +1,97 @@
 <article class="task-card" (click)="openTask()">
+  <!-- HEADER -->
 
+  <div class="card-header">
+    <div class="title-area">
+      <h4 class="task-title">
+        {{ task().title }}
+      </h4>
 
-    <!-- HEADER -->
-
-    <div class="card-header">
-
-        <h4 class="task-title">
-
-            {{ task().title }}
-
-        </h4>
-
-
-        <span class="menu">
-
-            ⋮
-
-        </span>
-
-
+      @if (task().priority === "CRITICAL") {
+        <span class="urgent-dot"></span>
+      }
     </div>
 
+    <button type="button" class="menu" (click)="$event.stopPropagation()">
+      ⋮
+    </button>
+  </div>
 
+  <!-- DESCRIPTION -->
 
-    <!-- DESCRIPTION -->
-
-    @if(task().description) {
-
+  @if (task().description) {
     <p class="task-description">
-
-        {{ task().description }}
-
+      {{ task().description }}
     </p>
+  }
+  @if (task()._id) {
+    <span class="task-id"> #{{ task()._id.slice(-6) }} </span>
+  }
 
+  <!-- BADGES -->
+
+  <div class="card-badges">
+    <span class="priority" [class]="task().priority.toLowerCase()">
+      @switch (task().priority) {
+        @case ("CRITICAL") {
+          🔥 Critical
+        }
+
+        @case ("HIGH") {
+          🔴 High
+        }
+
+        @case ("MEDIUM") {
+          🟡 Medium
+        }
+
+        @case ("LOW") {
+          🟢 Low
+        }
+      }
+    </span>
+
+    <span class="status" [class]="task().status.toLowerCase()">
+      {{ getStatusLabel(task().status) }}
+    </span>
+  </div>
+
+  <!-- USER + DATE -->
+
+  <div class="card-meta">
+    <div class="assignee">
+      @if (getAssigneeInitials()) {
+        <span class="avatar">
+          {{ getAssigneeInitials() }}
+        </span>
+      }
+
+      @if (getAssigneeName()) {
+        <span class="assignee-name">
+          {{ getAssigneeName() }}
+        </span>
+      }
+    </div>
+
+    @if (formatDueDate()) {
+      <span class="due-date"> 📅 {{ formatDueDate() }} </span>
+    }
+  </div>
+
+  <!-- COUNTS -->
+
+  <div class="task-stats">
+    @if (task().commentsCount) {
+      <span> 💬 {{ task().commentsCount }} </span>
     }
 
-
-
-    <!-- BADGES -->
-
-    <div class="card-badges">
-
-
-        <span class="priority" [class]="task().priority.toLowerCase()">
-
-
-            @switch(task().priority) {
-
-
-            @case('CRITICAL') {
-
-            🔥 Critical
-
-            }
-
-
-            @case('HIGH') {
-
-            🔴 High
-
-            }
-
-
-            @case('MEDIUM') {
-
-            🟡 Medium
-
-            }
-
-
-            @case('LOW') {
-
-            🟢 Low
-
-            }
-
-
-            }
-
-
-        </span>
-
-
-
-
-        <span class="status">
-
-            {{ getStatusLabel(task().status) }}
-
-        </span>
-
-
-
-    </div>
-
-
-
-
-    <!-- USER + DATE -->
-
-    <div class="card-meta">
-
-
-
-        <div class="assignee">
-
-
-            @if(getAssigneeInitials()) {
-
-
-            <span class="avatar">
-
-                {{ getAssigneeInitials() }}
-
-            </span>
-
-
-            }
-
-
-
-            @if(getAssigneeName()) {
-
-
-            <span class="assignee-name">
-
-                {{ getAssigneeName() }}
-
-            </span>
-
-
-            }
-
-
-
-        </div>
-
-
-
-
-
-        @if(formatDueDate()) {
-
-
-        <span class="due-date">
-
-            📅 {{ formatDueDate() }}
-
-        </span>
-
-
-        }
-
-
-
-    </div>
-
-
-
-
-    <!-- COUNTS -->
-
-    <div class="task-stats">
-
-
-        @if(task().commentsCount) {
-
-
-        <span>
-
-            💬 {{ task().commentsCount }}
-
-        </span>
-
-
-        }
-
-
-
-        @if(task().attachmentsCount) {
-
-
-        <span>
-
-            📎 {{ task().attachmentsCount }}
-
-        </span>
-
-
-        }
-
-
-
-        @if(task().priority === 'CRITICAL') {
-
-
-        <span class="ai-badge">
-
-            🤖 AI
-
-        </span>
-
-
-        }
-
-
-
-    </div>
-
-
-
+    @if (task().attachmentsCount) {
+      <span> 📎 {{ task().attachmentsCount }} </span>
+    }
+
+    @if (task().priority === "CRITICAL") {
+      <span class="ai-badge"> 🤖 AI </span>
+    }
+  </div>
+  <div class="card-hover-action">Open →</div>
 </article>

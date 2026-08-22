@@ -10,7 +10,12 @@ import {
 
 import { CommonModule } from '@angular/common';
 
-import { ActivatedRoute, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+} from '@angular/router';
 
 import {
   CdkDragDrop,
@@ -28,8 +33,11 @@ import { TaskCardComponent } from '../task-card/task-card.component';
 
 interface TaskColumn {
   title: string;
+
   status: TaskStatus;
+
   tasks: Task[];
+
   limit?: number;
 }
 
@@ -38,7 +46,13 @@ interface TaskColumn {
 
   standalone: true,
 
-  imports: [CommonModule, DragDropModule, TaskCardComponent],
+  imports: [
+    CommonModule,
+    DragDropModule,
+    TaskCardComponent,
+    RouterLink,
+    RouterLinkActive,
+  ],
 
   templateUrl: './task-board.component.html',
 
@@ -46,7 +60,7 @@ interface TaskColumn {
 })
 export class TaskBoardComponent implements OnInit, OnDestroy {
   // =========================================
-  // DEPENDENCIES
+  // SERVICES
   // =========================================
 
   private readonly route = inject(ActivatedRoute);
@@ -64,6 +78,8 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   readonly projectId = signal('');
 
   readonly workspaceId = signal('');
+
+  readonly projectName = signal('');
 
   readonly tasks = signal<Task[]>([]);
 
@@ -87,10 +103,12 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
 
   readonly assignees = computed(() => {
     const users = this.tasks()
-      .map((task) => task.assignedTo)
-      .filter((user) => user && typeof user !== 'string');
 
-    return users as TaskUser[];
+      .map((task) => task.assignedTo)
+
+      .filter((user): user is TaskUser => !!user && typeof user !== 'string');
+
+    return Array.from(new Map(users.map((user) => [user._id, user])).values());
   });
 
   // =========================================
@@ -100,29 +118,17 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   readonly columns = computed<TaskColumn[]>(() => {
     let items = this.tasks();
 
-    // ---------------------------------------
-    // SEARCH
-    // ---------------------------------------
-
     const search = this.searchText().trim().toLowerCase();
 
     if (search) {
       items = items.filter((task) => task.title.toLowerCase().includes(search));
     }
 
-    // ---------------------------------------
-    // PRIORITY
-    // ---------------------------------------
-
     const priority = this.priorityFilter();
 
     if (priority) {
       items = items.filter((task) => task.priority === priority);
     }
-
-    // ---------------------------------------
-    // ASSIGNEE
-    // ---------------------------------------
 
     const assignee = this.assigneeFilter();
 
@@ -133,10 +139,6 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
           task.assignedTo?._id === assignee,
       );
     }
-
-    // ---------------------------------------
-    // WORKFLOW
-    // ---------------------------------------
 
     return [
       {
@@ -174,7 +176,6 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
       },
     ];
   });
-
   // =========================================
   // INIT
   // =========================================
@@ -214,7 +215,7 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // LOAD
+  // LOAD TASKS
   // =========================================
 
   loadTasks(): void {
@@ -238,7 +239,7 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // SEARCH
+  // FILTERS
   // =========================================
 
   onSearch(event: Event): void {
@@ -247,19 +248,11 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
     this.searchText.set(value);
   }
 
-  // =========================================
-  // PRIORITY
-  // =========================================
-
   onPriorityChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
 
     this.priorityFilter.set(value);
   }
-
-  // =========================================
-  // ASSIGNEE
-  // =========================================
 
   onAssigneeChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
@@ -268,7 +261,7 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // KEYBOARD
+  // KEYBOARD SEARCH
   // =========================================
 
   @HostListener('window:keydown', ['$event'])
@@ -300,16 +293,12 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // DRAG START
+  // DRAG EVENTS
   // =========================================
 
   startDragging(): void {
     this.dragging.set(true);
   }
-
-  // =========================================
-  // DRAG END
-  // =========================================
 
   stopDragging(): void {
     setTimeout(() => {
@@ -320,6 +309,7 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   // =========================================
   // DROP
   // =========================================
+
   drop(event: CdkDragDrop<Task[]>): void {
     const task = event.previousContainer.data[event.previousIndex];
 
@@ -327,23 +317,19 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // =========================================
     // SAME COLUMN
-    // =========================================
 
     if (event.previousContainer === event.container) {
       moveItemInArray(
         event.container.data,
+
         event.previousIndex,
+
         event.currentIndex,
       );
 
       return;
     }
-
-    // =========================================
-    // GET TARGET STATUS
-    // =========================================
 
     const targetElement = event.container.element.nativeElement as HTMLElement;
 
@@ -352,22 +338,12 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
     ) as TaskStatus | null;
 
     if (!targetStatus) {
-      console.warn('[TaskBoard] Drop target status not found.');
-
       return;
     }
-
-    // =========================================
-    // PREVENT UNNECESSARY UPDATE
-    // =========================================
 
     if (task.status === targetStatus) {
       return;
     }
-
-    // =========================================
-    // FIND TARGET COLUMN
-    // =========================================
 
     const targetColumn = this.columns().find(
       (column) => column.status === targetStatus,
@@ -377,33 +353,23 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // =========================================
     // WIP LIMIT
-    // =========================================
 
     if (targetColumn.limit) {
-      const actualTargetCount = this.tasks().filter(
+      const count = this.tasks().filter(
         (item) => item.status === targetStatus,
       ).length;
 
-      if (actualTargetCount >= targetColumn.limit) {
-        this.showWipWarning(
-          `${targetColumn.title} limit reached (${targetColumn.limit})`,
-        );
+      if (count >= targetColumn.limit) {
+        this.showWipWarning(`${targetColumn.title} limit reached`);
 
         return;
       }
     }
 
-    // =========================================
-    // SAVE PREVIOUS STATUS
-    // =========================================
-
     const previousStatus = task.status;
 
-    // =========================================
     // OPTIMISTIC UPDATE
-    // =========================================
 
     this.tasks.update((items) =>
       items.map((item) =>
@@ -416,22 +382,20 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
       ),
     );
 
-    // =========================================
-    // BACKEND UPDATE
-    // =========================================
+    // API UPDATE
 
     this.taskService
-      .updateTaskStatus(this.projectId(), task._id, targetStatus)
+
+      .updateTaskStatus(
+        this.projectId(),
+
+        task._id,
+
+        targetStatus,
+      )
+
       .subscribe({
-        next: () => {
-          // Backend accepted the change.
-        },
-
         error: () => {
-          // =====================================
-          // ROLLBACK
-          // =====================================
-
           this.tasks.update((items) =>
             items.map((item) =>
               item._id === task._id
@@ -443,13 +407,10 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
             ),
           );
 
-          this.showWipWarning(
-            'Unable to update task status. Please try again.',
-          );
+          this.showWipWarning('Unable to update task status.');
         },
       });
   }
-
   // =========================================
   // OPEN TASK
   // =========================================
@@ -473,9 +434,13 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   // =========================================
 
   private registerSocketListeners(): void {
-    this.socketService.onTaskStatusChanged((task) => this.updateTask(task));
+    this.socketService.onTaskStatusChanged((task) => {
+      this.updateTask(task);
+    });
 
-    this.socketService.onTaskUpdated((task) => this.updateTask(task));
+    this.socketService.onTaskUpdated((task) => {
+      this.updateTask(task);
+    });
 
     this.socketService.onTaskDeleted((data) => {
       this.tasks.update((tasks) =>
@@ -495,32 +460,23 @@ export class TaskBoardComponent implements OnInit, OnDestroy {
   }
 
   // =========================================
-  // BACK
+  // BACK TO LIST
   // =========================================
 
   goBackToTasks(): void {
-    const projectId = this.projectId();
-
-    const workspaceId = this.workspaceId();
-
-    if (!projectId) {
-      this.router.navigate(['/tasks']);
-
-      return;
-    }
-
     this.router.navigate(['/tasks'], {
       queryParams: {
-        project: projectId,
+        project: this.projectId(),
 
-        ...(workspaceId
-          ? {
-              workspace: workspaceId,
-            }
-          : {}),
+        workspace: this.workspaceId(),
       },
     });
   }
+
+  // =========================================
+  // WIP WARNING
+  // =========================================
+
   private showWipWarning(message: string): void {
     this.wipWarning.set(message);
 

@@ -1,1445 +1,1623 @@
-// =========================================
-// NOVADESK AI
-// TASK BOARD
-// =========================================
+/* =========================================
+   NOVADESK AI
+   TASK BOARD
+   ========================================= */
+
 
 .task-board {
+
     width: 100%;
+
     min-height: 100%;
 
-    box-sizing: border-box;
 
     padding: 28px 32px 40px;
 
-    background: #f6f8fb;
+
+    background: #f8fafc;
+
 
     overflow-x: hidden;
+
 }
 
 
-// =========================================
-// HEADER
-// =========================================
+
+
+
+/* =========================================
+   HEADER
+   ========================================= */
+
 
 .board-page-header {
+
     width: 100%;
+
     max-width: 1280px;
 
+
     margin: 0 auto 22px;
+
 }
 
+
+
 .back-button {
+
+
     display: inline-flex;
+
     align-items: center;
 
-    gap: 7px;
 
-    margin-bottom: 18px;
+    gap: 8px;
+
+
+    margin-bottom: 16px;
+
+
     padding: 0;
+
 
     border: 0;
 
+
     background: transparent;
+
+
     color: #64748b;
 
-    font-family: inherit;
+
     font-size: 13px;
-    font-weight: 600;
+
+    font-weight: 650;
+
 
     cursor: pointer;
 
-    transition: color 0.15s ease;
 
-    &:hover {
-        color: #2563eb;
-    }
+    transition: .15s ease;
 
-    span:first-child {
-        font-size: 16px;
-        line-height: 1;
-    }
+
 }
+
+
+
+.back-button:hover {
+
+    color: #2563eb;
+
+}
+
+
 
 .board-title-row {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
 
-    gap: 20px;
+
+    display: flex;
+
+    align-items: flex-end;
+
+
 }
 
+
+
 .board-eyebrow {
+
+
     display: block;
+
 
     margin-bottom: 6px;
 
+
     color: #94a3b8;
 
-    font-size: 10px;
-    font-weight: 700;
 
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 10px;
+
+
+    font-weight: 800;
+
+
+    letter-spacing: .12em;
+
+
 }
 
+
+
 .board-title-row h1 {
+
+
     margin: 0;
+
 
     color: #0f172a;
 
+
     font-size: 30px;
-    line-height: 1.2;
-    font-weight: 700;
+
+
+    font-weight: 750;
+
+
 }
 
+
+
 .board-title-row p {
-    margin: 7px 0 0;
+
+
+    margin: 8px 0 0;
+
 
     color: #64748b;
 
+
     font-size: 13px;
-    line-height: 1.5;
+
+
 }
 
 
-// =========================================
-// WIP WARNING
-// =========================================
 
-.wip-warning {
-    width: 100%;
-    max-width: 1280px;
+
+
+/* =========================================
+   BOARD / LIST NAVIGATION
+   ========================================= */
+
+
+.board-navigation {
+
 
     display: flex;
+
+
+    gap: 6px;
+
+
+    margin-top: 20px;
+
+
+}
+
+
+
+.board-navigation a {
+
+
+    height: 34px;
+
+
+    display: flex;
+
+
     align-items: center;
+
+    justify-content: center;
+
+
+    padding: 0 14px;
+
+
+    border-radius: 8px;
+
+
+    border: 1px solid #e2e8f0;
+
+
+    background: #ffffff;
+
+
+    color: #64748b;
+
+
+    text-decoration: none;
+
+
+    font-size: 12px;
+
+
+    font-weight: 700;
+
+
+    transition: .15s ease;
+
+
+}
+
+
+
+.board-navigation a:hover {
+
+
+    background: #f8fafc;
+
+
+    color: #334155;
+
+
+}
+
+
+
+.board-navigation a.active {
+
+
+    background: #2563eb;
+
+
+    border-color: #2563eb;
+
+
+    color: #ffffff;
+
+
+}
+
+
+
+
+
+/* =========================================
+   WIP WARNING
+   ========================================= */
+
+
+.wip-warning {
+
+
+    width: 100%;
+
+
+    max-width: 1280px;
+
+
+    display: flex;
+
+
+    align-items: center;
+
 
     gap: 8px;
 
-    box-sizing: border-box;
 
     margin: 0 auto 18px;
+
+
     padding: 11px 14px;
 
+
     border: 1px solid #fde68a;
-    border-radius: 8px;
+
+
+    border-radius: 10px;
+
 
     background: #fffbeb;
+
+
     color: #92400e;
 
+
     font-size: 12px;
-    line-height: 1.5;
+
+
 }
 
 
-// =========================================
-// TOOLBAR
-// =========================================
+
+
+
+/* =========================================
+   TOOLBAR
+   ========================================= */
+
 
 .board-toolbar {
+
+
     width: 100%;
+
+
     max-width: 1280px;
 
+
     display: flex;
+
+
     align-items: center;
 
-    gap: 9px;
-
-    box-sizing: border-box;
-
-    margin: 0 auto 18px;
-    padding: 11px;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-
-    background: #ffffff;
-
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.025);
-}
-
-.board-toolbar input,
-.board-toolbar select {
-    min-height: 40px;
-
-    box-sizing: border-box;
-
-    border: 1px solid #dbe2ea;
-    border-radius: 7px;
-
-    background: #ffffff;
-    color: #334155;
-
-    font-family: inherit;
-    font-size: 12px;
-
-    outline: none;
-
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-
-    &:focus {
-        border-color: #2563eb;
-
-        box-shadow:
-            0 0 0 3px rgba(37, 99, 235, 0.07);
-    }
-}
-
-.board-toolbar input {
-    flex: 1 1 auto;
-
-    min-width: 0;
-
-    padding: 0 12px;
-
-    &::placeholder {
-        color: #94a3b8;
-    }
-}
-
-.board-toolbar select {
-    flex: 0 0 155px;
-
-    padding: 0 10px;
-
-    cursor: pointer;
-}
-
-
-// =========================================
-// DESKTOP BOARD
-// =========================================
-
-.board-container {
-    width: 100%;
-    max-width: 1280px;
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    gap: 14px;
-
-    box-sizing: border-box;
-
-    margin: 0 auto;
-
-    padding-bottom: 8px;
-}
-
-.board-column {
-    min-width: 0;
-    min-height: 520px;
-
-    display: flex;
-    flex-direction: column;
-
-    padding: 10px;
-
-    box-sizing: border-box;
-
-    border: 1px solid #e2e8f0;
-    border-top: 3px solid #94a3b8;
-
-    border-radius: 10px;
-
-    background: #f1f5f9;
-
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-
-// =========================================
-// DESKTOP COLUMN HEADER
-// =========================================
-
-.column-header {
-    min-height: 42px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 
     gap: 10px;
 
-    margin-bottom: 8px;
-    padding: 0 5px;
+
+    margin: 0 auto 18px;
+
+
+    padding: 12px;
+
+
+    border: 1px solid #e2e8f0;
+
+
+    border-radius: 12px;
+
+
+    background: #ffffff;
+
+
 }
 
-.column-title {
-    min-width: 0;
 
-    display: flex;
-    align-items: center;
 
-    gap: 8px;
+.board-toolbar input,
 
-    margin: 0;
+.board-toolbar select {
+
+
+    height: 40px;
+
+
+    border: 1px solid #dbe2ea;
+
+
+    border-radius: 8px;
+
+
+    background: #ffffff;
+
 
     color: #334155;
 
-    font-size: 11px;
-    line-height: 1.3;
-    font-weight: 800;
-
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-
-// =========================================
-// STATUS INDICATORS
-// =========================================
-
-.status-indicator,
-.mobile-status-indicator {
-    width: 8px;
-    height: 8px;
-
-    flex: 0 0 8px;
-
-    display: inline-block;
-
-    border-radius: 50%;
-
-    background: #94a3b8;
-}
-
-.status-indicator.todo,
-.mobile-status-indicator.todo {
-    background: #64748b;
-}
-
-.status-indicator.in_progress,
-.mobile-status-indicator.in_progress {
-    background: #2563eb;
-}
-
-.status-indicator.review,
-.mobile-status-indicator.review {
-    background: #f59e0b;
-}
-
-.status-indicator.done,
-.mobile-status-indicator.done {
-    background: #16a34a;
-}
-
-
-// =========================================
-// DESKTOP STATUS OUTLINES
-// =========================================
-
-.board-column:has(.status-indicator.todo) {
-    border-top-color: #64748b;
-}
-
-.board-column:has(.status-indicator.in_progress) {
-    border-top-color: #2563eb;
-}
-
-.board-column:has(.status-indicator.review) {
-    border-top-color: #f59e0b;
-}
-
-.board-column:has(.status-indicator.done) {
-    border-top-color: #16a34a;
-}
-
-
-// =========================================
-// TASK COUNT
-// =========================================
-
-.task-count,
-.mobile-column-count {
-    min-width: 25px;
-    min-height: 22px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 0 6px;
-
-    box-sizing: border-box;
-
-    border: 1px solid #dbe2ea;
-    border-radius: 999px;
-
-    background: #ffffff;
-    color: #64748b;
-
-    font-size: 9px;
-    font-weight: 700;
-
-    white-space: nowrap;
-}
-
-.task-count.limit-reached,
-.mobile-column-count.limit-reached {
-    border-color: #fecaca;
-
-    background: #fef2f2;
-    color: #dc2626;
-}
-
-
-// =========================================
-// DESKTOP TASK LIST
-// =========================================
-
-.task-list {
-    min-height: 430px;
-
-    flex: 1 1 auto;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 9px;
-
-    padding: 3px;
-
-    border-radius: 8px;
-
-    transition:
-        background 0.15s ease,
-        outline 0.15s ease;
-}
-
-
-// =========================================
-// DRAG WRAPPER
-// =========================================
-
-.drag-wrapper {
-    width: 100%;
-
-    box-sizing: border-box;
-
-    cursor: grab;
-
-    &:active {
-        cursor: grabbing;
-    }
-}
-
-.task-list.cdk-drop-list-dragging {
-    padding: 6px;
-
-    background: #eff6ff;
-
-    outline: 1px dashed #93c5fd;
-    outline-offset: -1px;
-}
-
-.drag-wrapper.cdk-drag-preview {
-    opacity: 0.97;
-
-    border-radius: 9px;
-
-    box-shadow:
-        0 14px 30px rgba(15, 23, 42, 0.18);
-}
-
-.drag-wrapper.cdk-drag-placeholder {
-    opacity: 0.25;
-}
-
-.drag-wrapper.cdk-drag-animating {
-    transition: transform 0.2s ease;
-}
-
-
-// =========================================
-// DESKTOP DROP TARGET
-// =========================================
-
-.board-column:has(.task-list.cdk-drop-list-dragging) {
-    border-color: #bfdbfe;
-
-    box-shadow:
-        0 0 0 2px rgba(37, 99, 235, 0.06);
-}
-
-
-// =========================================
-// EMPTY DESKTOP
-// =========================================
-
-.empty-column {
-    min-height: 150px;
-
-    display: flex;
-    flex-direction: column;
-
-    align-items: center;
-    justify-content: center;
-
-    gap: 5px;
-
-    margin: 2px;
-
-    border: 1px dashed #cbd5e1;
-    border-radius: 8px;
-
-    background: rgba(255, 255, 255, 0.35);
-
-    color: #94a3b8;
-
-    text-align: center;
-}
-
-.empty-icon {
-    font-size: 20px;
-}
-
-.empty-column p {
-    margin: 3px 0 0;
-
-    color: #64748b;
-
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.empty-column>span:last-child {
-    color: #94a3b8;
-
-    font-size: 9px;
-}
-
-
-// =========================================
-// MOBILE BOARD
-// =========================================
-
-.mobile-board {
-    display: none;
-}
-
-
-// =========================================
-// SKELETON
-// =========================================
-
-.skeleton-board {
-    display: grid;
-}
-
-.skeleton-column {
-    min-height: 520px;
-
-    overflow: hidden;
-}
-
-.skeleton-header {
-    width: 65%;
-    height: 16px;
-
-    margin: 8px 5px 18px;
-
-    border-radius: 5px;
-
-    background: #e2e8f0;
-
-    animation:
-        board-skeleton 1.4s ease-in-out infinite;
-}
-
-.skeleton-card {
-    height: 125px;
-
-    margin-bottom: 9px;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 9px;
-
-    background: #ffffff;
-
-    animation:
-        board-skeleton 1.4s ease-in-out infinite;
-}
-
-@keyframes board-skeleton {
-
-    0%,
-    100% {
-        opacity: 0.55;
-    }
-
-    50% {
-        opacity: 1;
-    }
-}
-
-
-// =========================================
-// ERROR
-// =========================================
-
-.error-state {
-    width: 100%;
-    max-width: 1280px;
-
-    box-sizing: border-box;
-
-    margin: 0 auto;
-
-    padding: 22px;
-
-    border: 1px solid #fecaca;
-    border-radius: 9px;
-
-    background: #fef2f2;
-    color: #b91c1c;
 
     font-size: 12px;
 
-    text-align: center;
+
+    outline: none;
+
+
 }
 
 
-// =========================================
-// TABLET
-// =========================================
 
-@media (max-width: 1100px) {
+.board-toolbar input {
 
-    .task-board {
-        padding: 24px;
+
+    flex: 1;
+
+
+    padding: 0 12px;
+
+
+}
+
+
+
+.board-toolbar select {
+
+
+    min-width: 150px;
+
+
+    padding: 0 10px;
+
+
+}
+
+
+
+.board-toolbar input:focus,
+
+.board-toolbar select:focus {
+
+
+    border-color: #2563eb;
+
+
+    box-shadow:
+
+        0 0 0 3px rgba(37, 99, 235, .08);
+
+
+}
+
+
+
+
+
+/* =========================================
+   DESKTOP BOARD
+   ========================================= */
+
+
+.board-container {
+
+
+    width: 100%;
+
+
+    max-width: 1280px;
+
+
+    display: grid;
+
+
+    grid-template-columns:
+
+        repeat(4, minmax(0, 1fr));
+
+
+    gap: 14px;
+
+
+    margin: 0 auto;
+
+
+}
+
+
+
+.board-column {
+
+
+    min-height: 520px;
+
+
+    display: flex;
+
+
+    flex-direction: column;
+
+
+    padding: 10px;
+
+
+    border: 1px solid #e2e8f0;
+
+
+    border-radius: 12px;
+
+
+    background: #f1f5f9;
+
+
+}
+
+
+
+
+
+/* =========================================
+   COLUMN HEADER
+   ========================================= */
+
+
+.column-header {
+
+
+    display: flex;
+
+
+    align-items: center;
+
+
+    justify-content: space-between;
+
+
+    margin-bottom: 10px;
+
+
+}
+
+
+
+.column-title {
+
+
+    display: flex;
+
+
+    align-items: center;
+
+
+    gap: 8px;
+
+
+    margin: 0;
+
+
+    color: #334155;
+
+
+    font-size: 11px;
+
+
+    font-weight: 800;
+
+
+    letter-spacing: .06em;
+
+
+    text-transform: uppercase;
+
+
+}
+
+
+
+.status-indicator {
+
+
+    width: 8px;
+
+
+    height: 8px;
+
+
+    border-radius: 50%;
+
+
+    background: #94a3b8;
+
+
+}
+
+
+
+.status-indicator.todo {
+
+    background: #64748b;
+
+}
+
+
+
+.status-indicator.in_progress {
+
+    background: #2563eb;
+
+}
+
+
+
+.status-indicator.review {
+
+    background: #f59e0b;
+
+}
+
+
+
+.status-indicator.done {
+
+    background: #16a34a;
+
+}
+
+
+
+.task-count {
+
+
+    padding: 4px 8px;
+
+
+    border-radius: 999px;
+
+
+    border: 1px solid #dbe2ea;
+
+
+    background: #ffffff;
+
+
+    color: #64748b;
+
+
+    font-size: 10px;
+
+
+    font-weight: 700;
+
+
+}
+/* =========================================
+   TASK LIST
+   ========================================= */
+
+
+.task-list {
+
+
+    flex: 1;
+
+
+    min-height: 430px;
+
+
+    display: flex;
+
+
+    flex-direction: column;
+
+
+    gap: 10px;
+
+
+    padding: 4px;
+
+
+    border-radius: 10px;
+
+
+    transition: .15s ease;
+
+
+}
+
+
+
+.task-list.cdk-drop-list-dragging {
+
+
+    padding: 8px;
+
+
+    background: #eff6ff;
+
+
+    outline: 1px dashed #93c5fd;
+
+
+}
+
+
+
+
+.drag-wrapper {
+
+
+    width: 100%;
+
+
+    cursor: grab;
+
+
+}
+
+
+
+.drag-wrapper:active {
+
+
+    cursor: grabbing;
+
+
+}
+
+
+
+.drag-wrapper.cdk-drag-preview {
+
+
+    opacity: .95;
+
+
+    border-radius: 10px;
+
+
+    box-shadow:
+
+        0 15px 35px rgba(15, 23, 42, .18);
+
+
+}
+
+
+
+.drag-wrapper.cdk-drag-placeholder {
+
+
+    opacity: .25;
+
+
+}
+
+
+
+
+.drag-wrapper.cdk-drag-animating {
+
+
+    transition:
+
+        transform .2s ease;
+
+
+}
+
+
+
+
+
+
+
+/* =========================================
+   EMPTY COLUMN
+   ========================================= */
+
+
+.empty-column {
+
+
+    min-height: 160px;
+
+
+    display: flex;
+
+
+    flex-direction: column;
+
+
+    align-items: center;
+
+
+    justify-content: center;
+
+
+    gap: 6px;
+
+
+    border: 1px dashed #cbd5e1;
+
+
+    border-radius: 10px;
+
+
+    background: rgba(255, 255, 255, .4);
+
+
+    color: #94a3b8;
+
+
+    text-align: center;
+
+
+}
+
+
+
+.empty-icon {
+
+
+    font-size: 22px;
+
+
+}
+
+
+
+.empty-column p {
+
+
+    margin: 0;
+
+
+    color: #64748b;
+
+
+    font-size: 12px;
+
+
+    font-weight: 700;
+
+
+}
+
+
+
+.empty-column span:last-child {
+
+
+    font-size: 10px;
+
+
+}
+
+
+
+
+
+
+
+/* =========================================
+   SKELETON
+   ========================================= */
+
+
+.skeleton-board {
+
+
+    display: grid;
+
+
+}
+
+
+
+.skeleton-column {
+
+
+    min-height: 520px;
+
+
+}
+
+
+
+.skeleton-header {
+
+
+    width: 70%;
+
+
+    height: 18px;
+
+
+    margin: 8px;
+
+
+    border-radius: 5px;
+
+
+    background: #e2e8f0;
+
+
+    animation: skeleton 1.4s infinite;
+
+
+}
+
+
+
+.skeleton-card {
+
+
+    height: 120px;
+
+
+    margin: 10px 0;
+
+
+    border-radius: 10px;
+
+
+    background: #ffffff;
+
+
+    border: 1px solid #e2e8f0;
+
+
+    animation: skeleton 1.4s infinite;
+
+
+}
+
+
+
+@keyframes skeleton {
+
+
+    0%,
+    100% {
+
+        opacity: .5;
+
     }
+
+
+    50% {
+
+        opacity: 1;
+
+    }
+
+
+}
+
+
+
+
+
+
+
+/* =========================================
+   ERROR
+   ========================================= */
+
+
+.error-state {
+
+
+    max-width: 1280px;
+
+
+    margin: auto;
+
+
+    padding: 20px;
+
+
+    border-radius: 10px;
+
+
+    border: 1px solid #fecaca;
+
+
+    background: #fef2f2;
+
+
+    color: #b91c1c;
+
+
+    text-align: center;
+
+
+    font-size: 13px;
+
+
+}
+
+
+
+
+
+
+
+/* =========================================
+   MOBILE BOARD
+   ========================================= */
+
+
+.mobile-board {
+
+
+    display: none;
+
+
+}
+
+
+
+
+
+@media(max-width:1100px) {
+
 
     .board-container {
+
+
         grid-template-columns:
+
             repeat(2, minmax(0, 1fr));
 
-        gap: 12px;
+
     }
 
-    .board-column {
-        min-height: 480px;
-    }
-
-    .task-list {
-        min-height: 390px;
-    }
 
 }
 
 
-// =========================================
-// MOBILE
-// =========================================
 
-@media (max-width: 700px) {
 
-    // =======================================
-    // PAGE
-    // =======================================
+
+@media(max-width:700px) {
+
 
     .task-board {
-        padding: 14px 10px 28px;
+
+
+        padding: 16px 10px 30px;
+
+
     }
 
 
-    // =======================================
-    // HEADER
-    // =======================================
-
-    .board-page-header {
-        margin-bottom: 15px;
-    }
-
-    .back-button {
-        margin-bottom: 12px;
-
-        font-size: 12px;
-    }
-
-    .board-eyebrow {
-        margin-bottom: 5px;
-
-        font-size: 9px;
-    }
-
-    .board-title-row {
-        display: block;
-    }
 
     .board-title-row h1 {
-        font-size: 23px;
+
+
+        font-size: 24px;
+
+
     }
+
+
 
     .board-title-row p {
-        margin-top: 5px;
 
-        font-size: 11px;
+
+        font-size: 12px;
+
+
     }
 
 
-    // =======================================
-    // WARNING
-    // =======================================
 
-    .wip-warning {
-        margin-bottom: 11px;
+    .board-navigation {
 
-        padding: 9px 10px;
 
-        font-size: 10px;
+        width: 100%;
+
+
     }
 
 
-    // =======================================
-    // TOOLBAR
-    // =======================================
+
+    .board-navigation a {
+
+
+        flex: 1;
+
+
+    }
+
+
 
     .board-toolbar {
+
+
         display: grid;
 
-        grid-template-columns:
-            1fr 1fr;
 
-        gap: 6px;
+        grid-template-columns: 1fr 1fr;
 
-        margin-bottom: 12px;
 
-        padding: 8px;
     }
+
+
 
     .board-toolbar input {
-        grid-column: 1 / -1;
 
-        width: 100%;
 
-        min-height: 39px;
+        grid-column: 1/-1;
 
-        padding: 0 10px;
 
-        font-size: 11px;
-    }
-
-    .board-toolbar select {
-        width: 100%;
-
-        min-width: 0;
-
-        min-height: 36px;
-
-        padding: 0 7px;
-
-        font-size: 10px;
     }
 
 
-    // =======================================
-    // DESKTOP BOARD OFF
-    // =======================================
 
     .desktop-board {
+
+
         display: none;
+
+
     }
 
 
-    // =======================================
-    // MOBILE BOARD ON
-    // =======================================
 
     .mobile-board {
+
+
         display: block;
 
-        width: 100%;
+
     }
 
 
-    // =======================================
-    // MOBILE HEADER
-    // =======================================
 
     .mobile-board-header {
+
+
         display: flex;
-        align-items: center;
+
+
         justify-content: space-between;
 
-        gap: 10px;
 
-        margin-bottom: 8px;
+        align-items: center;
 
-        padding: 0 2px;
+
+        margin-bottom: 10px;
+
+
     }
 
+
+
     .mobile-board-label {
+
+
         display: block;
+
+
+        font-size: 10px;
+
+
+        font-weight: 800;
+
 
         color: #64748b;
 
-        font-size: 9px;
-        font-weight: 800;
 
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        letter-spacing: .1em;
+
+
     }
 
+
+
     .mobile-board-hint {
+
+
         display: block;
 
-        margin-top: 2px;
+
+        font-size: 10px;
+
 
         color: #94a3b8;
 
-        font-size: 9px;
+
     }
 
+
+
     .mobile-board-count {
-        flex: 0 0 auto;
+
+
+        font-size: 11px;
+
 
         color: #64748b;
 
-        font-size: 9px;
-        font-weight: 600;
+
     }
 
 
-    // =======================================
-    // HORIZONTAL KANBAN
-    // =======================================
+
+
 
     .mobile-kanban-scroll {
-        width: 100%;
+
 
         display: grid;
+
 
         grid-auto-flow: column;
 
-        grid-auto-columns:
-            calc(60% - 4px);
 
-        gap: 8px;
+        grid-auto-columns: 75%;
+
+
+        gap: 10px;
+
 
         overflow-x: auto;
-        overflow-y: hidden;
 
-        padding: 2px 2px 10px;
+
+        padding-bottom: 10px;
+
 
         scroll-snap-type: x mandatory;
 
-        overscroll-behavior-x: contain;
 
-        -webkit-overflow-scrolling: touch;
-
-        scrollbar-width: thin;
-
-        &::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: #e2e8f0;
-
-            border-radius: 999px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-
-            border-radius: 999px;
-        }
     }
 
 
-    // =======================================
-    // MOBILE STATUS COLUMNS
-    // =======================================
 
     .mobile-board-column {
-        position: relative;
 
-        min-width: 0;
-        min-height: 440px;
-
-        display: flex;
-        flex-direction: column;
-
-        padding: 8px;
 
         scroll-snap-align: start;
 
-        border: 1px solid #dbe2ea;
-        border-top: 3px solid #94a3b8;
 
-        border-radius: 10px;
+        min-height: 430px;
+
+
+        padding: 10px;
+
+
+        border-radius: 12px;
+
+
+        border: 1px solid #e2e8f0;
+
 
         background: #f8fafc;
 
-        box-shadow:
-            0 1px 2px rgba(15, 23, 42, 0.03);
 
-        transition:
-            border-color 0.15s ease,
-            box-shadow 0.15s ease,
-            background 0.15s ease;
     }
 
 
-    // =======================================
-    // TO DO OUTLINE
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.todo) {
-        border-color: #cbd5e1;
-
-        border-top-color: #64748b;
-
-        background: #f8fafc;
-    }
 
 
-    // =======================================
-    // IN PROGRESS OUTLINE
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.in_progress) {
-        border-color: #bfdbfe;
-
-        border-top-color: #2563eb;
-
-        background: #f8fbff;
-    }
-
-
-    // =======================================
-    // REVIEW OUTLINE
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.review) {
-        border-color: #fde68a;
-
-        border-top-color: #f59e0b;
-
-        background: #fffdf7;
-    }
-
-
-    // =======================================
-    // DONE OUTLINE
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.done) {
-        border-color: #bbf7d0;
-
-        border-top-color: #16a34a;
-
-        background: #f8fdf9;
-    }
-
-
-    // =======================================
-    // MOBILE COLUMN HEADER
-    // =======================================
 
     .mobile-column-header {
-        min-height: 35px;
+
 
         display: flex;
-        align-items: center;
+
+
         justify-content: space-between;
 
-        gap: 6px;
 
-        margin-bottom: 6px;
-
-        padding: 2px 4px 8px;
-
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .mobile-column-title {
-        min-width: 0;
-
-        display: flex;
         align-items: center;
 
-        gap: 6px;
 
-        color: #334155;
+        margin-bottom: 8px;
 
-        font-size: 9px;
-        font-weight: 800;
 
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
     }
 
 
-    // =======================================
-    // MOBILE STATUS DOT
-    // =======================================
 
-    .mobile-status-indicator {
-        width: 7px;
-        height: 7px;
-
-        flex: 0 0 7px;
-
-        border-radius: 50%;
-    }
-
-    .mobile-status-indicator.todo {
-        background: #64748b;
-    }
-
-    .mobile-status-indicator.in_progress {
-        background: #2563eb;
-    }
-
-    .mobile-status-indicator.review {
-        background: #f59e0b;
-    }
-
-    .mobile-status-indicator.done {
-        background: #16a34a;
-    }
+    .mobile-column-title {
 
 
-    // =======================================
-    // MOBILE COUNT
-    // =======================================
+        display: flex;
 
-    .mobile-column-count {
-        min-width: 22px;
-        min-height: 20px;
-
-        padding: 0 5px;
-
-        font-size: 8px;
-    }
-
-
-    // =======================================
-    // MOBILE TASK LIST
-    // =======================================
-
-    .mobile-task-list {
-        width: 100%;
-        min-width: 0;
-
-        min-height: 385px;
-
-        display: grid;
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-
-        align-content: start;
 
         gap: 7px;
 
-        padding: 2px;
-
-        border-radius: 7px;
-
-        transition:
-            background 0.15s ease,
-            outline 0.15s ease;
-    }
-
-
-    // =======================================
-    // MOBILE CARDS
-    // =======================================
-
-    .mobile-drag-wrapper {
-        width: 100%;
-        min-width: 0;
-
-        display: block;
-
-        cursor: grab;
-
-        touch-action: none;
-
-        &:active {
-            cursor: grabbing;
-        }
-    }
-
-    .mobile-drag-wrapper app-task-card {
-        display: block;
-
-        width: 100%;
-        min-width: 0;
-    }
-
-    .mobile-drag-wrapper.cdk-drag-preview {
-        width: calc(25vw - 10px);
-
-        max-width: calc(25vw - 10px);
-
-        opacity: 0.97;
-
-        border-radius: 8px;
-
-        box-shadow:
-            0 10px 22px rgba(15, 23, 42, 0.18);
-    }
-
-    .mobile-drag-wrapper.cdk-drag-placeholder {
-        opacity: 0.25;
-    }
-
-    .mobile-drag-wrapper.cdk-drag-animating {
-        transition:
-            transform 0.2s ease;
-    }
-
-
-    // =======================================
-    // ACTIVE DROP AREA
-    // =======================================
-
-    .mobile-task-list.cdk-drop-list-dragging {
-        min-height: 385px;
-
-        padding: 5px;
-
-        border: 1px dashed #93c5fd;
-
-        background: #eff6ff;
-
-        outline: none;
-    }
-
-
-    // =======================================
-    // TODO DROP HIGHLIGHT
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.todo):has(.mobile-task-list.cdk-drop-list-dragging) {
-        border-color: #94a3b8;
-
-        box-shadow:
-            0 0 0 2px rgba(100, 116, 139, 0.1);
-    }
-
-
-    // =======================================
-    // IN PROGRESS DROP HIGHLIGHT
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.in_progress):has(.mobile-task-list.cdk-drop-list-dragging) {
-        border-color: #60a5fa;
-
-        box-shadow:
-            0 0 0 2px rgba(37, 99, 235, 0.12);
-    }
-
-
-    // =======================================
-    // REVIEW DROP HIGHLIGHT
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.review):has(.mobile-task-list.cdk-drop-list-dragging) {
-        border-color: #fbbf24;
-
-        box-shadow:
-            0 0 0 2px rgba(245, 158, 11, 0.12);
-    }
-
-
-    // =======================================
-    // DONE DROP HIGHLIGHT
-    // =======================================
-
-    .mobile-board-column:has(.mobile-status-indicator.done):has(.mobile-task-list.cdk-drop-list-dragging) {
-        border-color: #4ade80;
-
-        box-shadow:
-            0 0 0 2px rgba(22, 163, 74, 0.12);
-    }
-
-
-    // =======================================
-    // EMPTY MOBILE COLUMN
-    // =======================================
-
-    .mobile-empty-column {
-        grid-column: 1 / -1;
-
-        min-height: 170px;
-
-        display: flex;
-        flex-direction: column;
 
         align-items: center;
+
+
+        font-size: 11px;
+
+
+        font-weight: 800;
+
+
+    }
+
+
+
+    .mobile-status-indicator {
+
+
+        width: 8px;
+
+
+        height: 8px;
+
+
+        border-radius: 50%;
+
+
+        background: #94a3b8;
+
+
+    }
+
+
+
+    .mobile-status-indicator.todo {
+
+        background: #64748b;
+
+    }
+
+
+
+    .mobile-status-indicator.in_progress {
+
+        background: #2563eb;
+
+    }
+
+
+
+    .mobile-status-indicator.review {
+
+        background: #f59e0b;
+
+    }
+
+
+
+    .mobile-status-indicator.done {
+
+        background: #16a34a;
+
+    }
+
+
+
+    .mobile-task-list {
+
+
+        min-height: 380px;
+
+
+        display: flex;
+
+
+        flex-direction: column;
+
+
+        gap: 8px;
+
+
+    }
+
+
+
+    .mobile-empty-column {
+
+
+        min-height: 150px;
+
+
+        display: flex;
+
+
+        flex-direction: column;
+
+
+        align-items: center;
+
+
         justify-content: center;
+
 
         gap: 5px;
 
-        border: 1px dashed #cbd5e1;
-        border-radius: 7px;
-
-        background: rgba(255, 255, 255, 0.45);
-
-        text-align: center;
-    }
-
-    .mobile-empty-icon {
-        width: 24px;
-        height: 24px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
 
         border: 1px dashed #cbd5e1;
-        border-radius: 50%;
+
+
+        border-radius: 8px;
+
 
         color: #94a3b8;
 
-        font-size: 16px;
-    }
 
-    .mobile-empty-column strong {
-        color: #64748b;
-
-        font-size: 10px;
-    }
-
-    .mobile-empty-column span {
-        color: #94a3b8;
-
-        font-size: 8px;
     }
 
 
-    // =======================================
-    // MOBILE SCROLL INDICATOR
-    // =======================================
 
     .mobile-scroll-indicator {
+
+
         display: flex;
-        align-items: center;
+
+
         justify-content: center;
 
-        gap: 6px;
 
-        margin-top: 3px;
+        gap: 8px;
+
+
+        margin-top: 6px;
+
 
         color: #94a3b8;
 
-        font-size: 8px;
-    }
-
-    .mobile-scroll-indicator span:first-child,
-    .mobile-scroll-indicator span:last-child {
-        color: #cbd5e1;
-
-        font-size: 12px;
-    }
-
-}
-
-
-// =========================================
-// SMALL PHONES
-// =========================================
-
-@media (max-width: 400px) {
-
-    .task-board {
-        padding:
-            12px 8px 24px;
-    }
-
-    .board-title-row h1 {
-        font-size: 22px;
-    }
-
-    .board-title-row p {
-        font-size: 10.5px;
-    }
-
-    .board-toolbar {
-        gap: 6px;
-
-        padding: 7px;
-    }
-
-    .board-toolbar input {
-        min-height: 38px;
-
-        font-size: 11px;
-    }
-
-    .board-toolbar select {
-        min-height: 35px;
 
         font-size: 10px;
+
+
     }
 
 
-    // ---------------------------------------
-    // SMALL PHONE KANBAN
-    // ---------------------------------------
+}
+/* =========================================
+   FINAL RESPONSIVE POLISH
+   ========================================= */
+
+
+@media(max-width:480px) {
+
+
+    .board-title-row h1 {
+
+        font-size: 22px;
+
+    }
+
+
+
+    .board-navigation a {
+
+        height: 32px;
+
+        font-size: 11px;
+
+        padding: 0 10px;
+
+    }
+
+
+
+    .board-toolbar {
+
+
+        grid-template-columns: 1fr;
+
+
+    }
+
+
+
+    .board-toolbar select {
+
+
+        width: 100%;
+
+        min-width: 0;
+
+    }
+
+
 
     .mobile-kanban-scroll {
-        grid-auto-columns:
-            calc(68% - 4px);
 
-        gap: 7px;
+
+        grid-auto-columns: 88%;
+
     }
+
+
 
     .mobile-board-column {
-        min-height: 420px;
 
-        padding: 7px;
+
+        min-height: 380px;
+
     }
 
-    .mobile-task-list {
-        min-height: 365px;
-
-        gap: 6px;
-    }
-
-    .mobile-column-title {
-        font-size: 8px;
-    }
-
-    .mobile-column-count {
-        min-width: 21px;
-
-        font-size: 8px;
-    }
 
 }
 
 
-// =========================================
-// ACCESSIBILITY
-// =========================================
 
-.task-board,
-.task-board * {
-    box-sizing: border-box;
-}
 
-.task-board input,
-.task-board select,
-.task-board button {
-    max-width: 100%;
-}
+
+/* =========================================
+   ACCESSIBILITY
+   ========================================= */
+
 
 button:focus-visible,
+
+a:focus-visible,
+
 input:focus-visible,
+
 select:focus-visible {
-    outline: 2px solid #2563eb;
+
+
+    outline:
+
+        3px solid rgba(37, 99, 235, .25);
+
 
     outline-offset: 2px;
+
+
 }
-// =========================================
-// MOBILE TASK CARD CONSTRAINTS
-// =========================================
 
-@media (max-width: 700px) {
 
-    .mobile-task-list {
-        width: 100%;
-        min-width: 0;
 
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
 
-        overflow: hidden;
+
+/* =========================================
+   SMOOTH TRANSITIONS
+   ========================================= */
+
+
+.board-column,
+
+.mobile-board-column,
+
+.board-navigation a,
+
+.task-list {
+
+
+    transition:
+
+        border-color .15s ease,
+
+        background .15s ease,
+
+        box-shadow .15s ease;
+
+
+}
+
+
+
+
+
+
+
+/* =========================================
+   DRAG PREVIEW POLISH
+   ========================================= */
+
+
+.cdk-drag-preview {
+
+
+    box-sizing: border-box;
+
+
+    border-radius: 12px;
+
+
+    box-shadow:
+
+        0 18px 45px rgba(15, 23, 42, .18);
+
+
+    overflow: hidden;
+
+
+}
+
+
+
+.cdk-drag-placeholder {
+
+
+    opacity: .25;
+
+
+}
+
+
+
+
+
+.cdk-drop-list-dragging .drag-wrapper:not(.cdk-drag-placeholder) {
+
+
+    transition:
+
+        transform .2s cubic-bezier(.2, .8, .2, 1);
+
+
+}
+
+
+
+
+
+/* =========================================
+   REDUCED MOTION
+   ========================================= */
+
+
+@media(prefers-reduced-motion:reduce) {
+
+
+    * {
+
+
+        animation-duration: 0.01ms !important;
+
+
+        transition-duration: 0.01ms !important;
+
+
     }
 
-    .mobile-drag-wrapper {
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
 
-        overflow: hidden;
-    }
-
-    .mobile-drag-wrapper app-task-card {
-        display: block;
-
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-
-        overflow: hidden;
-    }
-
-    /*
-   * The TaskCardComponent can have its own
-   * internal fixed sizing. Constrain it here
-   * for the mobile Kanban.
-   */
-    .mobile-drag-wrapper {
-        ::ng-deep app-task-card {
-            width: 100%;
-            min-width: 0;
-            max-width: 100%;
-            display: block;
-        }
-
-        ::ng-deep app-task-card>* {
-            max-width: 100%;
-            min-width: 0;
-            box-sizing: border-box;
-        }
-    }
+}
+.board-navigation a {
+    min-width: 80px;
+}
 
 
-    // -----------------------------------------
-    // Prevent text from pushing card width
-    // -----------------------------------------
-
-    ::ng-deep .mobile-drag-wrapper app-task-card * {
-        max-width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
-
-    // -----------------------------------------
-    // Compact badges
-    // -----------------------------------------
-
-    ::ng-deep .mobile-drag-wrapper app-task-card .priority,
-    ::ng-deep .mobile-drag-wrapper app-task-card .status,
-    ::ng-deep .mobile-drag-wrapper app-task-card .assignee {
-        max-width: 100%;
-
-        overflow: hidden;
-
-        text-overflow: ellipsis;
-
-        white-space: nowrap;
-    }
-
-
-    // -----------------------------------------
-    // Prevent long titles
-    // -----------------------------------------
-
-    ::ng-deep .mobile-drag-wrapper app-task-card h1,
-    ::ng-deep .mobile-drag-wrapper app-task-card h2,
-    ::ng-deep .mobile-drag-wrapper app-task-card h3,
-    ::ng-deep .mobile-drag-wrapper app-task-card h4,
-    ::ng-deep .mobile-drag-wrapper app-task-card p,
-    ::ng-deep .mobile-drag-wrapper app-task-card span {
-        max-width: 100%;
-
-        overflow: hidden;
-
-        text-overflow: ellipsis;
-    }
+.board-navigation {
+    margin-top: 24px;
 }

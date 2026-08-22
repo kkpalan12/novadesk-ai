@@ -1,382 +1,380 @@
 <div class="projects-page">
-
-    <!-- =========================================
+  <!-- =========================================
        HEADER
        ========================================= -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="eyebrow"> WORKSPACE </span>
 
-    <header class="page-header">
+      <h1>Projects</h1>
 
-        <div class="header-content">
+      <p>Organize your work, manage delivery, and keep your team aligned.</p>
+    </div>
 
-            <span class="eyebrow">
-                WORKSPACE
-            </span>
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+      [disabled]="showCreateForm() || showEditForm()"
+    >
+      <span class="button-icon">+</span>
+      <span>New Project</span>
+    </button>
+  </header>
 
-            <h1>
-                Projects
-            </h1>
-
-            <p>
-                Create and manage projects in your workspace.
-            </p>
-
-        </div>
-
-        <button type="button" class="primary-button" (click)="openCreateForm()" [disabled]="showCreateForm()">
-            <span>+</span>
-            New Project
-        </button>
-
-    </header>
-
-
-    <!-- =========================================
+  <!-- =========================================
        ERROR
        ========================================= -->
-
-    @if (errorMessage()) {
-
+  @if (errorMessage()) {
     <div class="error-banner">
+      <span class="error-icon">!</span>
+
+      <span>
         {{ errorMessage() }}
+      </span>
     </div>
+  }
 
-    }
-
-
-    <!-- =========================================
+  <!-- =========================================
        CREATE PROJECT
        ========================================= -->
+  @if (showCreateForm()) {
+    <section class="project-form-card">
+      <div class="form-heading">
+        <div class="form-heading-icon">+</div>
 
-    @if (showCreateForm()) {
+        <div>
+          <span class="section-eyebrow"> NEW PROJECT </span>
 
-    <section class="create-card">
+          <h2>Create Project</h2>
 
-        <div class="create-header">
-
-            <div>
-                <span class="section-eyebrow">
-                    NEW PROJECT
-                </span>
-
-                <h2>
-                    Create Project
-                </h2>
-
-                <p>
-                    Add a new project to this workspace.
-                </p>
-            </div>
-
+          <p>Add a new project to this workspace.</p>
         </div>
+      </div>
 
-
-        @if (formError()) {
-
+      @if (formError()) {
         <div class="form-error">
-            {{ formError() }}
+          {{ formError() }}
         </div>
+      }
 
-        }
-
-
+      <div class="form-grid">
         <div class="form-group">
+          <label for="projectName"> Project Name </label>
 
-            <label for="projectName">
-                Project Name
-            </label>
-
-            <input id="projectName" type="text" [(ngModel)]="projectName" placeholder="Enter project name"
-                autocomplete="off" [disabled]="saving()" />
-
+          <input
+            id="projectName"
+            type="text"
+            [(ngModel)]="projectName"
+            placeholder="e.g. NovaDesk Mobile"
+            autocomplete="off"
+            [disabled]="saving()"
+          />
         </div>
 
+        <div class="form-group form-group-full">
+          <label for="projectDescription"> Description </label>
 
-        <div class="form-group">
-
-            <label for="projectDescription">
-                Description
-            </label>
-
-            <textarea id="projectDescription" rows="4" [(ngModel)]="projectDescription"
-                placeholder="Describe this project" [disabled]="saving()"></textarea>
-
+          <textarea
+            id="projectDescription"
+            rows="4"
+            [(ngModel)]="projectDescription"
+            placeholder="Describe what this project is about..."
+            [disabled]="saving()"
+          ></textarea>
         </div>
+      </div>
 
+      <div class="form-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="closeCreateForm()"
+          [disabled]="saving()"
+        >
+          Cancel
+        </button>
 
-        <div class="form-actions">
-
-            <button type="button" class="secondary-button" (click)="closeCreateForm()" [disabled]="saving()">
-                Cancel
-            </button>
-
-            <button type="button" class="primary-button" (click)="createProject()" [disabled]="saving()">
-
-                @if (saving()) {
-                Creating...
-                } @else {
-                Create Project
-                }
-
-            </button>
-
-        </div>
-
+        <button
+          type="button"
+          class="primary-button"
+          (click)="createProject()"
+          [disabled]="saving()"
+        >
+          @if (saving()) {
+            <span class="button-spinner"></span>
+            Creating...
+          } @else {
+            <span>+</span>
+            Create Project
+          }
+        </button>
+      </div>
     </section>
+  }
 
-    }
+  <!-- =========================================
+       EDIT PROJECT
+       ========================================= -->
+  @if (showEditForm()) {
+    <section class="project-form-card">
+      <div class="form-heading">
+        <div class="form-heading-icon edit">✎</div>
 
+        <div>
+          <span class="section-eyebrow"> PROJECT SETTINGS </span>
 
-    <!-- =========================================
+          <h2>Edit Project</h2>
+
+          <p>Update your project information and status.</p>
+        </div>
+      </div>
+
+      @if (formError()) {
+        <div class="form-error">
+          {{ formError() }}
+        </div>
+      }
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="editProjectName"> Project Name </label>
+
+          <input
+            id="editProjectName"
+            type="text"
+            [(ngModel)]="editProjectName"
+            placeholder="Enter project name"
+            autocomplete="off"
+            [disabled]="saving()"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="editProjectStatus"> Status </label>
+
+          <select
+            id="editProjectStatus"
+            [(ngModel)]="editProjectStatus"
+            [disabled]="saving()"
+          >
+            <option value="ACTIVE">Active</option>
+
+            <option value="ARCHIVED">Archived</option>
+          </select>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label for="editProjectDescription"> Description </label>
+
+          <textarea
+            id="editProjectDescription"
+            rows="4"
+            [(ngModel)]="editProjectDescription"
+            placeholder="Describe this project..."
+            [disabled]="saving()"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="closeEditForm()"
+          [disabled]="saving()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="updateProject()"
+          [disabled]="saving()"
+        >
+          @if (saving()) {
+            <span class="button-spinner"></span>
+            Updating...
+          } @else {
+            Save Changes
+          }
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- =========================================
        LOADING
        ========================================= -->
+  @if (loading()) {
+    <section class="loading-state">
+      <div class="loading-grid">
+        @for (item of [1, 2, 3]; track item) {
+          <article class="skeleton-card">
+            <div class="skeleton skeleton-icon"></div>
 
-    @if (loading()) {
+            <div class="skeleton skeleton-title"></div>
 
-    <div class="loading-state">
+            <div class="skeleton skeleton-line"></div>
 
-        <div class="loading-spinner"></div>
+            <div class="skeleton skeleton-line short"></div>
 
-        <p>
-            Loading projects...
-        </p>
+            <div class="skeleton skeleton-footer"></div>
+          </article>
+        }
+      </div>
+    </section>
+  }
 
-    </div>
-
-    }
-
-
-    <!-- =========================================
+  <!-- =========================================
        EMPTY
        ========================================= -->
-
-    @if (
+  @if (
     !loading() &&
     !showCreateForm() &&
+    !showEditForm() &&
     projects().length === 0
-    ) {
-
+  ) {
     <section class="empty-state">
+      <div class="empty-icon">▣</div>
 
-        <div class="empty-icon">
-            ▣
-        </div>
+      <span class="section-eyebrow"> PROJECTS </span>
 
-        <h2>
-            No projects yet
-        </h2>
+      <h2>No projects yet</h2>
 
-        <p>
-            Create your first project to start managing tasks.
-        </p>
+      <p>
+        Create your first project to start managing tasks, activity, and team
+        work in one place.
+      </p>
 
-        <button type="button" class="primary-button" (click)="openCreateForm()">
-            + Create Project
-        </button>
-
+      <button type="button" class="primary-button" (click)="openCreateForm()">
+        <span>+</span>
+        Create Project
+      </button>
     </section>
+  }
 
-    }
-@if (showEditForm()) {
-
-<section class="create-card">
-
-    <div class="create-header">
-        <div>
-            <span class="section-eyebrow">
-                EDIT PROJECT
-            </span>
-
-            <h2>
-                Edit Project
-            </h2>
-
-            <p>
-                Update your project information.
-            </p>
-        </div>
-    </div>
-
-    @if (formError()) {
-    <div class="form-error">
-        {{ formError() }}
-    </div>
-    }
-
-    <div class="form-group">
-
-        <label for="editProjectName">
-            Project Name
-        </label>
-
-        <input id="editProjectName" type="text" [(ngModel)]="editProjectName" placeholder="Enter project name"
-            autocomplete="off" [disabled]="saving()" />
-
-    </div>
-
-    <div class="form-group">
-
-        <label for="editProjectDescription">
-            Description
-        </label>
-
-        <textarea id="editProjectDescription" rows="4" [(ngModel)]="editProjectDescription"
-            placeholder="Describe this project" [disabled]="saving()"></textarea>
-
-    </div>
-
-    <div class="form-group">
-
-        <label for="editProjectStatus">
-            Status
-        </label>
-
-        <select id="editProjectStatus" [(ngModel)]="editProjectStatus" [disabled]="saving()">
-            <option value="ACTIVE">
-                Active
-            </option>
-
-            <option value="ARCHIVED">
-                Archived
-            </option>
-        </select>
-
-    </div>
-
-    <div class="form-actions">
-
-        <button type="button" class="secondary-button" (click)="closeEditForm()" [disabled]="saving()">
-            Cancel
-        </button>
-
-        <button type="button" class="primary-button" (click)="updateProject()" [disabled]="saving()">
-            @if (saving()) {
-            Updating...
-            } @else {
-            Update Project
-            }
-        </button>
-
-    </div>
-
-</section>
-
-}
-
-    <!-- =========================================
+  <!-- =========================================
        PROJECT LIST
        ========================================= -->
-
-    @if (
-    !loading() &&
-    projects().length > 0
-    ) {
-
+  @if (!loading() && projects().length > 0) {
     <section class="projects-section">
+      <!-- SECTION HEADER -->
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow"> PROJECTS </span>
 
-        <div class="section-header">
+          <h2>Your Projects</h2>
 
-            <div>
-                <span class="section-eyebrow">
-                    PROJECTS
-                </span>
+          <p>
+            {{ projects().length }}
+            {{ projects().length === 1 ? "project" : "projects" }}
+            in this workspace.
+          </p>
+        </div>
 
-                <h2>
-                    Your Projects
-                </h2>
+        <div class="project-summary">
+          <span class="summary-dot"></span>
 
-                <p>
-                    {{ projects().length }}
-                    {{
-                    projects().length === 1
-                    ? 'project'
-                    : 'projects'
-                    }}
-                    in this workspace.
-                </p>
+          <span> Workspace projects </span>
+        </div>
+      </div>
 
+      <!-- PROJECT GRID -->
+      <div class="project-grid">
+        @for (project of projects(); track project._id) {
+          <article
+            class="project-card"
+            [class.archived]="project.status === 'ARCHIVED'"
+          >
+            <!-- CARD TOP -->
+            <div class="project-card-top">
+              <div class="project-identity">
+                <div class="project-icon">
+                  {{ project.name.charAt(0).toUpperCase() }}
+                </div>
+
+                <div class="project-heading">
+                  <span class="project-label"> PROJECT </span>
+
+                  <h3>
+                    {{ project.name }}
+                  </h3>
+                </div>
+              </div>
+
+              <span class="project-status">
+                <span class="status-dot"></span>
+
+                {{ project.status === "ARCHIVED" ? "Archived" : "Active" }}
+              </span>
             </div>
 
-        </div>
+            <!-- DESCRIPTION -->
+            <div class="project-content">
+              <p>
+                {{
+                  project.description ||
+                    "No description available for this project."
+                }}
+              </p>
+            </div>
 
+            <!-- PROJECT META -->
+            <div class="project-meta">
+              <div class="meta-item">
+                <span class="meta-icon"> ✓ </span>
 
-        <div class="project-grid">
+                <span> Task management </span>
+              </div>
 
-            @for (
-            project of projects();
-            track project._id
-            ) {
+              <div class="meta-item">
+                <span class="meta-icon"> → </span>
 
-            <article class="project-card">
+                <span> Workspace project </span>
+              </div>
+            </div>
 
-                <!-- Project Icon -->
+            <!-- FOOTER -->
+            <div class="project-footer">
+              <button
+                type="button"
+                class="open-project-button"
+                (click)="openProject(project._id)"
+              >
+                <span>Open Project</span>
+                <span class="open-arrow">→</span>
+              </button>
 
-                <div class="project-card-top">
+              <div class="project-actions">
+                <button
+                  type="button"
+                  class="edit-project-button"
+                  (click)="openEditForm(project)"
+                  aria-label="Edit project"
+                >
+                  Edit
+                </button>
 
-                    <div class="project-icon">
-                        {{ project.name.charAt(0).toUpperCase() }}
-                    </div>
-
-                    <span class="project-arrow">
-                        →
-                    </span>
-
-                </div>
-
-
-                <!-- Project Information -->
-
-                <div class="project-content">
-
-                    <h3>
-                        {{ project.name }}
-                    </h3>
-
-                    <p>
-                        {{
-                        project.description ||
-                        'No description available.'
-                        }}
-                    </p>
-
-                </div>
-
-
-                <!-- Project Action -->
-
-                <div class="project-footer">
-
-                    <div class="project-actions">
-                    
-                        <button type="button" class="open-project-button" (click)="openProject(project._id)">
-                            Open Project
-                            <span>→</span>
-                        </button>
-                    
-                        <button type="button" class="edit-project-button" (click)="openEditForm(project)">
-                            Edit
-                        </button>
-                    
-                        <button type="button" class="delete-project-button" (click)="deleteProject(project)"
-                            [disabled]="deleting() === project._id">
-                            @if (deleting() === project._id) {
-                            Deleting...
-                            } @else {
-                            Delete
-                            }
-                        </button>
-                    
-                    </div>
-
-                </div>
-
-            </article>
-
-            }
-
-        </div>
-
+                <button
+                  type="button"
+                  class="delete-project-button"
+                  (click)="deleteProject(project)"
+                  [disabled]="deleting() === project._id"
+                  aria-label="Delete project"
+                >
+                  @if (deleting() === project._id) {
+                    Deleting...
+                  } @else {
+                    Delete
+                  }
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
     </section>
-
-    }
-
+  }
 </div>

@@ -1,32 +1,58 @@
 <section class="task-board">
-  <!-- ========================================= -->
-  <!-- HEADER -->
-  <!-- ========================================= -->
+  <!-- =========================================
+       HEADER
+       ========================================= -->
 
   <header class="board-page-header">
     <button type="button" class="back-button" (click)="goBackToTasks()">
-      <span>←</span>
-      <span>Back to Tasks</span>
+      <span> ← </span>
+
+      <span> Projects </span>
     </button>
 
     <div class="board-title-row">
       <div>
-        <span class="board-eyebrow"> TASKS </span>
+        <span class="board-eyebrow"> PROJECT WORKSPACE </span>
 
-        <h1>Task Board</h1>
+        <h1>
+          {{ projectName() || "Project Tasks" }}
+        </h1>
 
         <p>Manage tasks visually across workflow stages.</p>
       </div>
     </div>
+
+    <div class="board-navigation">
+      <a
+        [routerLink]="['/tasks/board']"
+        [queryParams]="{
+          project: projectId(),
+          workspace: workspaceId(),
+        }"
+        routerLinkActive="active"
+      >
+        ▦ Board
+      </a>
+
+      <a
+        [routerLink]="['/tasks']"
+        [queryParams]="{
+          project: projectId(),
+          workspace: workspaceId(),
+        }"
+      >
+        ☷ List
+      </a>
+    </div>
   </header>
 
-  <!-- ========================================= -->
-  <!-- WIP WARNING -->
-  <!-- ========================================= -->
+  <!-- =========================================
+       WIP WARNING
+       ========================================= -->
 
   @if (wipWarning()) {
     <div class="wip-warning">
-      <span>⚠️</span>
+      <span> ⚠️ </span>
 
       <span>
         {{ wipWarning() }}
@@ -34,9 +60,9 @@
     </div>
   }
 
-  <!-- ========================================= -->
-  <!-- LOADING -->
-  <!-- ========================================= -->
+  <!-- =========================================
+       LOADING
+       ========================================= -->
 
   @if (loading()) {
     <div class="board-container skeleton-board">
@@ -52,9 +78,9 @@
     </div>
   }
 
-  <!-- ========================================= -->
-  <!-- ERROR -->
-  <!-- ========================================= -->
+  <!-- =========================================
+       ERROR
+       ========================================= -->
 
   @else if (errorMessage()) {
     <div class="error-state">
@@ -62,14 +88,14 @@
     </div>
   }
 
-  <!-- ========================================= -->
-  <!-- CONTENT -->
-  <!-- ========================================= -->
+  <!-- =========================================
+       CONTENT
+       ========================================= -->
 
   @else {
-    <!-- ======================================= -->
-    <!-- FILTER TOOLBAR -->
-    <!-- ======================================= -->
+    <!-- =====================================
+         FILTER TOOLBAR
+         ===================================== -->
 
     <div class="board-toolbar">
       <input
@@ -102,9 +128,9 @@
       </select>
     </div>
 
-    <!-- ======================================= -->
-    <!-- DESKTOP BOARD -->
-    <!-- ======================================= -->
+    <!-- =====================================
+         DESKTOP BOARD
+         ===================================== -->
 
     <div class="board-container desktop-board" cdkDropListGroup>
       @for (column of columns(); track column.status) {
@@ -119,12 +145,7 @@
               {{ column.title }}
             </h3>
 
-            <span
-              class="task-count"
-              [class.limit-reached]="
-                column.limit && column.tasks.length >= column.limit
-              "
-            >
+            <span class="task-count">
               {{ column.tasks.length }}
 
               @if (column.limit) {
@@ -132,7 +153,6 @@
               }
             </span>
           </header>
-
           <div
             class="task-list"
             cdkDropList
@@ -165,9 +185,9 @@
       }
     </div>
 
-    <!-- ======================================= -->
-    <!-- MOBILE HORIZONTAL KANBAN -->
-    <!-- ======================================= -->
+    <!-- =====================================
+         MOBILE BOARD
+         ===================================== -->
 
     <div class="mobile-board" cdkDropListGroup>
       <div class="mobile-board-header">
@@ -184,12 +204,7 @@
 
       <div class="mobile-kanban-scroll">
         @for (column of columns(); track column.status) {
-          <section
-            class="mobile-board-column"
-            [class.limit-column]="column.limit"
-          >
-            <!-- COLUMN HEADER -->
-
+          <section class="mobile-board-column">
             <header class="mobile-column-header">
               <div class="mobile-column-title">
                 <span
@@ -202,21 +217,10 @@
                 </span>
               </div>
 
-              <span
-                class="mobile-column-count"
-                [class.limit-reached]="
-                  column.limit && column.tasks.length >= column.limit
-                "
-              >
+              <span class="mobile-column-count">
                 {{ column.tasks.length }}
-
-                @if (column.limit) {
-                  / {{ column.limit }}
-                }
               </span>
             </header>
-
-            <!-- DROP LIST -->
 
             <div
               class="mobile-task-list"
@@ -251,11 +255,11 @@
       </div>
 
       <div class="mobile-scroll-indicator">
-        <span>←</span>
+        <span> ← </span>
 
         <span> Swipe to see more </span>
 
-        <span>→</span>
+        <span> → </span>
       </div>
     </div>
   }
