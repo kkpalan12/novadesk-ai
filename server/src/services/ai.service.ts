@@ -28,9 +28,12 @@ export interface AiAssistantResponse {
     id: string;
     name: string;
   };
+
+  focusTasks?: FocusTaskContext[];
 }
 
 interface ProjectTaskContext {
+  id: string;
   title: string;
   description: string;
   status: string;
@@ -43,6 +46,7 @@ interface ProjectTaskContext {
 }
 
 interface FocusTaskContext {
+  id: string;
   title: string;
   priority: string;
   status: string;
@@ -175,7 +179,12 @@ export class AiService {
 
           tasks: selectedProject.tasks,
 
-          focusTasks: selectedProject.focusTasks,
+          focusTasks: selectedProject.focusTasks.map((task) => ({
+            title: task.title,
+            priority: task.priority,
+            status: task.status,
+            reason: task.reason,
+          })),
         }
       : null;
 
@@ -203,28 +212,252 @@ ${
 USER REQUEST:
 
 ${message}
+==================================================
+PROJECT HEALTH BEHAVIOR
+==================================================
 
+If the user asks for a project health report,
+project health, project risks, or asks whether
+the project is healthy:
+
+- Use CURRENT PROJECT only.
+- Use the actual project metrics and tasks.
+- Never judge project health from task count alone.
+
+Return:
+
+## Project Health
+
+**Project:** <project name>
+
+**Overall Assessment:** Healthy / Needs Attention /
+At Risk
+
+### Evidence
+
+Mention the actual evidence supporting the
+assessment:
+
+- Completed vs incomplete tasks
+- Critical priority tasks
+- High priority tasks
+- Unassigned tasks
+- Overdue tasks
+- Due-soon tasks
+- Current task status distribution
+
+### Key Risks
+
+List only risks directly supported by the
+available data.
+
+### Recommended Attention
+
+Give 1–3 practical areas that deserve attention.
+
+Rules:
+
+- A large number of tasks alone does NOT mean
+  the project is unhealthy.
+- Critical or high-priority incomplete work may
+  indicate attention is required.
+- Unassigned high/critical tasks may indicate
+  an ownership risk.
+- Overdue tasks are important evidence when
+  actual dueDate information exists.
+- Do not claim something is overdue without an
+  actual dueDate.
+- Do not invent deadlines.
+- Do not invent project status.
+- If there is insufficient evidence, say:
+  "There is not enough available data to
+  determine project health confidently."
+
+==================================================
+
+
+==================================================
+PROJECT BRIEF BEHAVIOR
+==================================================
+
+If the user asks for a project brief, project
+summary, or says "Give me a project brief":
+
+- Use CURRENT PROJECT only.
+- Do not summarize the entire workspace.
+- Use only the project information and task
+  information provided in CURRENT PROJECT.
+
+Return a concise Markdown response containing:
+
+## Project Brief
+
+**Project:** <project name>
+
+**Purpose:** Briefly describe the project using
+only the available project description.
+
+**Status:** Use the actual project status if
+available.
+
+### Progress
+
+- Total tasks
+- Completed tasks
+- In-progress tasks
+- To-do tasks
+- Review tasks
+
+### Priority
+
+- Critical tasks
+- High priority tasks
+
+### Attention Areas
+
+Mention only observable concerns such as:
+
+- High number of incomplete tasks
+- Critical tasks
+- Unassigned tasks
+- Overdue tasks
+- Tasks due soon
+
+Do not invent risks.
+
+### Summary
+
+Give a short overall assessment based only on
+the supplied data.
+
+If information is unavailable, explicitly say
+that it is not currently available.
+
+==================================================
+==================================================
+PROJECT HEALTH BEHAVIOR
+==================================================
+
+If the user asks for a project health report,
+project health, project risks, or asks whether
+the project is healthy:
+
+- Use CURRENT PROJECT only.
+- Use the actual project metrics and tasks.
+- Never judge project health from task count alone.
+
+Return:
+
+## Project Health
+
+**Project:** <project name>
+
+**Overall Assessment:** Healthy / Needs Attention /
+At Risk
+
+### Evidence
+
+Mention the actual evidence supporting the
+assessment:
+
+- Completed vs incomplete tasks
+- Critical priority tasks
+- High priority tasks
+- Unassigned tasks
+- Overdue tasks
+- Due-soon tasks
+- Current task status distribution
+
+### Key Risks
+
+List only risks directly supported by the
+available data.
+
+### Recommended Attention
+
+Give 1–3 practical areas that deserve attention.
+
+Rules:
+
+- A large number of tasks alone does NOT mean
+  the project is unhealthy.
+- Critical or high-priority incomplete work may
+  indicate attention is required.
+- Unassigned high/critical tasks may indicate
+  an ownership risk.
+- Overdue tasks are important evidence when
+  actual dueDate information exists.
+- Do not claim something is overdue without an
+  actual dueDate.
+- Do not invent deadlines.
+- Do not invent project status.
+- If there is insufficient evidence, say:
+  "There is not enough available data to
+  determine project health confidently."
+
+==================================================
 ==================================================
 FOCUS NEXT BEHAVIOR
 ==================================================
 
-If the user asks what to focus on, what to work
-on next, or asks for "Focus Next":
+If the user asks:
 
-- Use CURRENT PROJECT only.
-- Use the supplied focusTasks list.
-- Recommend up to 3 tasks.
-- Use the exact task titles provided.
-- Do not invent task names.
-- Explain the supplied reason briefly.
-- Never recommend DONE tasks.
+- "What should I focus on?"
+- "What should I work on next?"
+- "Which task should I work on?"
+- "Focus Next"
 
-The focusTasks list is already ordered by
-priority and urgency.
+then use CURRENT PROJECT only.
 
-If focusTasks is empty, say that there are
-currently no clear priority tasks to recommend.
+Use the supplied focusTasks list.
 
+IMPORTANT:
+
+- The list is generated from actual project tasks.
+- The list is already ordered by priority and urgency.
+- Recommend at most 3 tasks.
+- Use the exact task titles supplied.
+- Never invent task names.
+- Never recommend a DONE task.
+- Do not recommend a task that is not in the supplied focusTasks list.
+
+Use this format:
+
+## Focus Next
+
+### 1. <exact task title>
+
+**Priority:** <priority>  
+**Status:** <status>
+
+**Why:** <reason based only on the supplied task data>
+
+### 2. <exact task title>
+
+**Priority:** <priority>  
+**Status:** <status>
+
+**Why:** <reason based only on the supplied task data>
+
+### 3. <exact task title>
+
+**Priority:** <priority>  
+**Status:** <status>
+
+**Why:** <reason based only on the supplied task data>
+
+If fewer than 3 tasks are available,
+show only the available tasks.
+
+If focusTasks is empty, respond:
+
+"There are currently no clear priority tasks
+to recommend for this project."
+
+Do not invent urgency, deadlines,
+business impact, or other information.
+
+==================================================
 ==================================================
 IMPORTANT RULES
 ==================================================
@@ -291,6 +524,7 @@ IMPORTANT RULES
 18. Task-specific deep analysis is handled by
     NovaDesk Task AI.
 
+
 ==================================================
 EXAMPLES OF QUESTIONS YOU SHOULD HANDLE
 ==================================================
@@ -341,9 +575,10 @@ EXAMPLES OF QUESTIONS YOU SHOULD HANDLE
 
       result.project = {
         id: selectedProject.id,
-
         name: selectedProject.name,
       };
+
+      result.focusTasks = selectedProject.focusTasks;
     }
 
     return result;
@@ -384,6 +619,8 @@ EXAMPLES OF QUESTIONS YOU SHOULD HANDLE
     });
 
     const tasks: ProjectTaskContext[] = taskResult.tasks.map((task) => ({
+      id: String(task._id),
+
       title: task.title,
 
       description: task.description ?? "",
@@ -398,7 +635,6 @@ EXAMPLES OF QUESTIONS YOU SHOULD HANDLE
         task.assignedTo && typeof task.assignedTo === "object"
           ? {
               firstName: task.assignedTo.firstName,
-
               lastName: task.assignedTo.lastName,
             }
           : undefined,
@@ -456,58 +692,41 @@ EXAMPLES OF QUESTIONS YOU SHOULD HANDLE
     // FOCUS TASKS
     // ==========================================================
 
-    const focusTasks: FocusTaskContext[] = [
-      ...criticalTasksList.map((task) => ({
-        title: task.title,
+    const focusTaskMap = new Map<string, FocusTaskContext>();
 
-        priority: task.priority,
+    const addFocusTask = (task: ProjectTaskContext, reason: string): void => {
+      if (!focusTaskMap.has(task.id)) {
+        focusTaskMap.set(task.id, {
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          status: task.status,
+          reason,
+        });
+      }
+    };
 
-        status: task.status,
+    criticalTasksList.forEach((task) => {
+      addFocusTask(task, "Critical priority incomplete task");
+    });
 
-        reason: "Critical priority incomplete task",
-      })),
+    highPriorityTasksList.forEach((task) => {
+      addFocusTask(task, "High priority incomplete task");
+    });
 
-      ...highPriorityTasksList.map((task) => ({
-        title: task.title,
+    overdueTasksList.forEach((task) => {
+      addFocusTask(task, "Overdue incomplete task");
+    });
 
-        priority: task.priority,
+    dueSoonTasksList.forEach((task) => {
+      addFocusTask(task, "Due within 7 days");
+    });
 
-        status: task.status,
+    unassignedPriorityTasks.forEach((task) => {
+      addFocusTask(task, "Unassigned high/critical priority task");
+    });
 
-        reason: "High priority incomplete task",
-      })),
-
-      ...overdueTasksList.map((task) => ({
-        title: task.title,
-
-        priority: task.priority,
-
-        status: task.status,
-
-        reason: "Overdue incomplete task",
-      })),
-
-      ...dueSoonTasksList.map((task) => ({
-        title: task.title,
-
-        priority: task.priority,
-
-        status: task.status,
-
-        reason: "Due within 7 days",
-      })),
-
-      ...unassignedPriorityTasks.map((task) => ({
-        title: task.title,
-
-        priority: task.priority,
-
-        status: task.status,
-
-        reason: "Unassigned high/critical priority task",
-      })),
-    ].slice(0, 5);
-
+    const focusTasks = Array.from(focusTaskMap.values()).slice(0, 5);
     // ==========================================================
     // METRICS
     // ==========================================================

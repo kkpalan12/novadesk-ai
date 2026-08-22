@@ -1,7 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-
 import { Observable } from 'rxjs';
-
 import { ApiService } from './api.service';
 
 export interface AiChatRequest {
@@ -23,6 +21,14 @@ export interface AiProjectMetrics {
   dueSoonTasks: number;
 }
 
+export interface AiFocusTask {
+  id: string;
+  title: string;
+  priority: string;
+  status: string;
+  reason: string;
+}
+
 export interface AiChatResponse {
   success: boolean;
   message: string;
@@ -36,6 +42,8 @@ export interface AiChatResponse {
       id: string;
       name: string;
     };
+
+    focusTasks?: AiFocusTask[];
   };
 }
 

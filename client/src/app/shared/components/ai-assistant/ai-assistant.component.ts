@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   LucideAngularModule,
@@ -24,11 +25,13 @@ import { marked } from 'marked';
 import {
   AiAssistantService,
   AiProjectMetrics,
+  AiFocusTask,
 } from '../../../core/services/ai-assistant.service';
 
 import { WorkspaceContextService } from '../../../core/services/workspace-context.service';
 
 import { Subject } from 'rxjs';
+
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 interface AiAction {
@@ -46,28 +49,45 @@ interface AiMessage {
 
 @Component({
   selector: 'app-ai-assistant',
+
   standalone: true,
+
   imports: [CommonModule, FormsModule, LucideAngularModule],
+
   templateUrl: './ai-assistant.component.html',
+
   styleUrl: './ai-assistant.component.scss',
 })
 export class AiAssistantComponent implements OnInit, OnDestroy {
+  // =====================================================
+  // SERVICES
+  // =====================================================
+
   private readonly aiService = inject(AiAssistantService);
 
   private readonly workspaceContext = inject(WorkspaceContextService);
 
   private readonly route = inject(ActivatedRoute);
 
+  private readonly router = inject(Router);
+
   private readonly destroy$ = new Subject<void>();
 
-  /*
-   * This is the important state.
-   */
+  // =====================================================
+  // CONTEXT
+  // =====================================================
+
   projectId = '';
 
   workspaceId = '';
 
+  // =====================================================
+  // AI STATE
+  // =====================================================
+
   metrics: AiProjectMetrics | null = null;
+
+  focusTasks: AiFocusTask[] = [];
 
   open = false;
 
@@ -76,6 +96,12 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
   showWelcome = true;
 
   isThinking = false;
+
+  messages: AiMessage[] = [];
+
+  // =====================================================
+  // ICONS
+  // =====================================================
 
   readonly icons = {
     ai: Sparkles,
@@ -89,52 +115,72 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
     user: User,
   };
 
+  // =====================================================
+  // QUICK ACTIONS
+  // =====================================================
+
   readonly actions: AiAction[] = [
     {
       title: 'Summarize Workspace',
+
       description: 'Get workspace overview and insights',
+
       icon: this.icons.workspace,
+
       prompt: 'Summarize my workspace',
     },
 
     {
       title: 'Project Health',
+
       description: 'Understand the current project health',
+
       icon: this.icons.project,
+
       prompt: 'Give me a health report for this project',
     },
 
     {
       title: 'Focus Next',
+
       description: 'Find the most important work to focus on',
+
       icon: this.icons.project,
+
       prompt:
         'Focus Next: What should I work on first in this project? Give me the top 3 actual tasks from this project and explain why each should be prioritized.',
     },
 
     {
       title: 'Project Brief',
+
       description: 'Get a concise AI summary of this project',
+
       icon: this.icons.project,
+
       prompt: 'Give me a project brief for this project',
     },
 
     {
       title: 'Generate Documentation',
+
       description: 'Create technical project documents',
+
       icon: this.icons.docs,
+
       prompt: 'Generate project documentation',
     },
 
     {
       title: 'Developer Assistant',
+
       description: 'Architecture and coding help',
+
       icon: this.icons.developer,
+
       prompt: 'Help me with a development question',
     },
   ];
-
-  messages: AiMessage[] = [];
 
   // =====================================================
   // INIT
@@ -148,6 +194,7 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
             previous.get('project') === current.get('project') &&
             previous.get('workspace') === current.get('workspace'),
         ),
+
         takeUntil(this.destroy$),
       )
       .subscribe((params) => {
@@ -160,14 +207,6 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
           workspaceId: this.workspaceId,
         });
       });
-  }
-
-  // =====================================================
-  // MARKDOWN
-  // =====================================================
-
-  private formatAiResponse(content: string): string {
-    return marked.parse(content) as string;
   }
 
   // =====================================================
@@ -205,9 +244,10 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
       return;
     }
 
-    /*
-     * Workspace fallback from global context.
-     */
+    // ===================================================
+    // WORKSPACE
+    // ===================================================
+
     const activeWorkspaceId = this.workspaceContext.activeWorkspace()?._id;
 
     const finalWorkspaceId = this.workspaceId || activeWorkspaceId || '';
@@ -215,35 +255,51 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
     if (!finalWorkspaceId) {
       this.messages.push({
         role: 'assistant',
+
         content: 'Please select a workspace before using NovaDesk AI.',
+
         time: this.getCurrentTime(),
       });
 
       return;
     }
 
-    /*
-     * Project-specific requests require
-     * a project ID.
-     */
-    const isProjectRequest = text.toLowerCase().includes('this project');
+    // ===================================================
+    // PROJECT REQUEST DETECTION
+    // ===================================================
+
+    const lowerText = text.toLowerCase();
+
+    const isProjectRequest =
+      lowerText.includes('this project') ||
+      lowerText.includes('focus next') ||
+      lowerText.includes('project health') ||
+      lowerText.includes('project brief');
 
     if (isProjectRequest && !this.projectId) {
       this.messages.push({
         role: 'assistant',
+
         content:
           'I could not determine the current project. Please open a project first.',
+
         time: this.getCurrentTime(),
       });
 
       return;
     }
+
+    // ===================================================
+    // USER MESSAGE
+    // ===================================================
 
     this.showWelcome = false;
 
     this.messages.push({
       role: 'user',
+
       content: text,
+
       time: this.getCurrentTime(),
     });
 
@@ -251,58 +307,124 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
 
     this.isThinking = true;
 
-    /*
-     * Build request.
-     */
+    // ===================================================
+    // REQUEST
+    // ===================================================
+
     const request: {
       message: string;
       workspaceId: string;
       projectId?: string;
     } = {
       message: text,
+
       workspaceId: finalWorkspaceId,
     };
 
-    /*
-     * Only send projectId when
-     * we actually have one.
-     */
     if (this.projectId) {
       request.projectId = this.projectId;
     }
 
     console.log('NovaDesk AI REQUEST:', request);
 
-    this.aiService.chat(request).subscribe({
-      next: (response) => {
-        const formattedMessage = this.formatAiResponse(response.data.message);
+    // ===================================================
+    // API
+    // ===================================================
 
-        this.messages.push({
-          role: 'assistant',
-          content: formattedMessage,
-          time: this.getCurrentTime(),
-        });
+    this.aiService
+      .chat(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const formattedMessage = this.formatAiResponse(response.data.message);
 
-        this.metrics = response.data.metrics ?? null;
+          // ---------------------------------------------
+          // AI MESSAGE
+          // ---------------------------------------------
 
-        this.isThinking = false;
-      },
+          this.messages.push({
+            role: 'assistant',
 
-      error: (error) => {
-        console.error('NovaDesk AI error:', error);
+            content: formattedMessage,
 
-        this.messages.push({
-          role: 'assistant',
-          content:
-            'I’m unable to process your request right now. Please try again.',
-          time: this.getCurrentTime(),
-        });
+            time: this.getCurrentTime(),
+          });
 
-        this.metrics = null;
+          // ---------------------------------------------
+          // METRICS
+          // ---------------------------------------------
 
-        this.isThinking = false;
-      },
-    });
+          this.metrics = response.data.metrics ?? null;
+
+          // ---------------------------------------------
+          // FOCUS TASKS
+          // ---------------------------------------------
+
+          this.focusTasks = response.data.focusTasks ?? [];
+
+          console.log('NovaDesk AI metrics:', this.metrics);
+
+          console.log('NovaDesk AI focus tasks:', this.focusTasks);
+
+          this.isThinking = false;
+        },
+
+        error: (error) => {
+          console.error('NovaDesk AI error:', error);
+
+          this.messages.push({
+            role: 'assistant',
+
+            content:
+              'I’m unable to process your request right now. Please try again.',
+
+            time: this.getCurrentTime(),
+          });
+
+          this.metrics = null;
+
+          this.focusTasks = [];
+
+          this.isThinking = false;
+        },
+      });
+  }
+
+  // =====================================================
+  // OPEN FOCUS TASK
+  // =====================================================
+  openFocusTask(taskId: string): void {
+    if (!taskId) {
+      return;
+    }
+
+    void this.router
+      .navigate(['/tasks', taskId], {
+        queryParams: {
+          project: this.projectId,
+          workspace: this.workspaceId,
+        },
+      })
+      .then((navigated) => {
+        if (navigated) {
+          this.closePanel();
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to open AI focus task:', error);
+      });
+  }
+
+  // =====================================================
+  // MARKDOWN
+  // =====================================================
+
+  private formatAiResponse(content: string): string {
+    return marked.parse(content) as string;
+  }
+
+  async renderMarkdown(content: string): Promise<string> {
+    return await marked.parse(content);
   }
 
   // =====================================================
@@ -330,14 +452,8 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
     this.isThinking = false;
 
     this.metrics = null;
-  }
 
-  // =====================================================
-  // MARKDOWN
-  // =====================================================
-
-  async renderMarkdown(content: string): Promise<string> {
-    return await marked.parse(content);
+    this.focusTasks = [];
   }
 
   // =====================================================

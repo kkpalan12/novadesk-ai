@@ -1,13 +1,13 @@
 @if (open) {
   <div class="ai-overlay" (click)="closePanel()">
     <aside class="ai-panel" (click)="$event.stopPropagation()">
-      <!-- =========================
+      <!-- =====================================================
            HEADER
-      ========================== -->
+      ====================================================== -->
       <header class="ai-header">
         <div class="ai-title">
           <div class="ai-logo">
-            <lucide-icon [img]="icons.ai" [size]="20"></lucide-icon>
+            <lucide-icon [img]="icons.ai" [size]="20"> </lucide-icon>
           </div>
 
           <div>
@@ -37,22 +37,22 @@
             (click)="closePanel()"
             aria-label="Close AI Assistant"
           >
-            <lucide-icon [img]="icons.close" [size]="18"></lucide-icon>
+            <lucide-icon [img]="icons.close" [size]="18"> </lucide-icon>
           </button>
         </div>
       </header>
 
-      <!-- =========================
-           CHAT AREA
-      ========================== -->
+      <!-- =====================================================
+           CONTENT
+      ====================================================== -->
       <section class="ai-content">
-        <!-- =========================
+        <!-- ===================================================
              WELCOME
-        ========================== -->
+        ==================================================== -->
         @if (showWelcome) {
           <div class="ai-welcome">
             <div class="welcome-icon">
-              <lucide-icon [img]="icons.ai" [size]="28"></lucide-icon>
+              <lucide-icon [img]="icons.ai" [size]="28"> </lucide-icon>
             </div>
 
             <h2>How can I help?</h2>
@@ -63,9 +63,9 @@
             </p>
           </div>
 
-          <!-- =========================
+          <!-- =================================================
                QUICK ACTIONS
-          ========================== -->
+          ================================================== -->
           <div class="ai-actions">
             @for (action of actions; track action.title) {
               <button
@@ -74,7 +74,7 @@
                 (click)="selectAction(action)"
               >
                 <div class="action-icon">
-                  <lucide-icon [img]="action.icon" [size]="19"></lucide-icon>
+                  <lucide-icon [img]="action.icon" [size]="19"> </lucide-icon>
                 </div>
 
                 <div class="action-content">
@@ -91,9 +91,9 @@
           </div>
         }
 
-        <!-- =========================
-             AI INSIGHTS
-        ========================== -->
+        <!-- ===================================================
+             PROJECT AI INSIGHTS
+        ==================================================== -->
         @if (metrics && !showWelcome) {
           <section class="ai-insights">
             <div class="insights-header">
@@ -102,10 +102,12 @@
 
                 <h3>AI Insights</h3>
               </div>
+
+              <lucide-icon [img]="icons.project" [size]="18"> </lucide-icon>
             </div>
 
             <div class="insights-grid">
-              <!-- Total -->
+              <!-- TOTAL -->
               <div class="insight-card">
                 <span class="insight-label"> Tasks </span>
 
@@ -114,16 +116,7 @@
                 </strong>
               </div>
 
-              <!-- In Progress -->
-              <div class="insight-card">
-                <span class="insight-label"> In Progress </span>
-
-                <strong>
-                  {{ metrics.inProgressTasks }}
-                </strong>
-              </div>
-
-              <!-- Completed -->
+              <!-- COMPLETED -->
               <div class="insight-card">
                 <span class="insight-label"> Completed </span>
 
@@ -132,7 +125,34 @@
                 </strong>
               </div>
 
-              <!-- High Priority -->
+              <!-- IN PROGRESS -->
+              <div class="insight-card">
+                <span class="insight-label"> In Progress </span>
+
+                <strong>
+                  {{ metrics.inProgressTasks }}
+                </strong>
+              </div>
+
+              <!-- TODO -->
+              <div class="insight-card">
+                <span class="insight-label"> To Do </span>
+
+                <strong>
+                  {{ metrics.todoTasks }}
+                </strong>
+              </div>
+
+              <!-- REVIEW -->
+              <div class="insight-card">
+                <span class="insight-label"> Review </span>
+
+                <strong>
+                  {{ metrics.reviewTasks }}
+                </strong>
+              </div>
+
+              <!-- HIGH -->
               <div class="insight-card">
                 <span class="insight-label"> High Priority </span>
 
@@ -141,7 +161,16 @@
                 </strong>
               </div>
 
-              <!-- Unassigned -->
+              <!-- CRITICAL -->
+              <div class="insight-card">
+                <span class="insight-label"> Critical </span>
+
+                <strong>
+                  {{ metrics.criticalTasks }}
+                </strong>
+              </div>
+
+              <!-- UNASSIGNED -->
               <div class="insight-card">
                 <span class="insight-label"> Unassigned </span>
 
@@ -150,7 +179,7 @@
                 </strong>
               </div>
 
-              <!-- Overdue -->
+              <!-- OVERDUE -->
               <div class="insight-card">
                 <span class="insight-label"> Overdue </span>
 
@@ -159,7 +188,7 @@
                 </strong>
               </div>
 
-              <!-- Due Soon -->
+              <!-- DUE SOON -->
               <div class="insight-card">
                 <span class="insight-label"> Due Soon </span>
 
@@ -167,22 +196,75 @@
                   {{ metrics.dueSoonTasks }}
                 </strong>
               </div>
-
-              <!-- Review -->
-              <div class="insight-card">
-                <span class="insight-label"> Review </span>
-
-                <strong>
-                  {{ metrics.reviewTasks }}
-                </strong>
-              </div>
             </div>
           </section>
         }
 
-        <!-- =========================
-             CHAT MESSAGES
-        ========================== -->
+        <!-- ===================================================
+             FOCUS NEXT
+        ==================================================== -->
+        @if (focusTasks.length > 0 && !showWelcome) {
+          <section class="focus-next-section">
+            <div class="focus-next-header">
+              <div>
+                <span class="focus-next-label">AI RECOMMENDATION</span>
+                <h3>Focus Next</h3>
+                <p>Recommended tasks based on priority and urgency.</p>
+              </div>
+
+              <lucide-icon [img]="icons.project" [size]="18"></lucide-icon>
+            </div>
+
+            <div class="focus-task-list">
+              @for (task of focusTasks; track task.id) {
+                <article class="focus-task-card">
+                  <div class="focus-task-number">
+                    {{ $index + 1 }}
+                  </div>
+
+                  <div class="focus-task-content">
+                    <div class="focus-task-title-row">
+                      <strong>
+                        {{ task.title }}
+                      </strong>
+
+                      <span
+                        class="focus-priority"
+                        [class.priority-critical]="task.priority === 'CRITICAL'"
+                        [class.priority-high]="task.priority === 'HIGH'"
+                        [class.priority-medium]="task.priority === 'MEDIUM'"
+                        [class.priority-low]="task.priority === 'LOW'"
+                      >
+                        {{ task.priority }}
+                      </span>
+                    </div>
+
+                    <div class="focus-task-meta">
+                      <span>
+                        {{ task.status }}
+                      </span>
+                    </div>
+
+                    <p class="focus-task-reason">
+                      {{ task.reason }}
+                    </p>
+
+                    <button
+                      type="button"
+                      class="focus-task-open"
+                      (click)="openFocusTask(task.id)"
+                    >
+                      Open Task
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+        <!-- ===================================================
+             CONVERSATION
+        ==================================================== -->
         @if (!showWelcome) {
           <div class="conversation">
             @for (item of messages; track $index) {
@@ -191,12 +273,14 @@
                 [class.user-message]="item.role === 'user'"
                 [class.ai-message]="item.role === 'assistant'"
               >
+                <!-- AI AVATAR -->
                 @if (item.role === "assistant") {
                   <div class="message-avatar ai-avatar">
-                    <lucide-icon [img]="icons.bot" [size]="16"></lucide-icon>
+                    <lucide-icon [img]="icons.bot" [size]="16"> </lucide-icon>
                   </div>
                 }
 
+                <!-- MESSAGE -->
                 <div class="message-wrapper">
                   <div class="message-bubble" [innerHTML]="item.content"></div>
 
@@ -205,21 +289,22 @@
                   </span>
                 </div>
 
+                <!-- USER AVATAR -->
                 @if (item.role === "user") {
                   <div class="message-avatar user-avatar">
-                    <lucide-icon [img]="icons.user" [size]="15"></lucide-icon>
+                    <lucide-icon [img]="icons.user" [size]="15"> </lucide-icon>
                   </div>
                 }
               </div>
             }
 
-            <!-- =========================
+            <!-- =================================================
                  THINKING
-            ========================== -->
+            ================================================== -->
             @if (isThinking) {
               <div class="message-row ai-message">
                 <div class="message-avatar ai-avatar">
-                  <lucide-icon [img]="icons.bot" [size]="16"></lucide-icon>
+                  <lucide-icon [img]="icons.bot" [size]="16"> </lucide-icon>
                 </div>
 
                 <div class="thinking-bubble">
@@ -229,51 +314,13 @@
                 </div>
               </div>
             }
-            @if (metrics) {
-              <div class="ai-metrics">
-                <div class="metric-card">
-                  <span class="metric-label">Total</span>
-                  <strong>{{ metrics.totalTasks }}</strong>
-                </div>
-
-                <div class="metric-card">
-                  <span class="metric-label">Completed</span>
-                  <strong>{{ metrics.completedTasks }}</strong>
-                </div>
-
-                <div class="metric-card">
-                  <span class="metric-label">In Progress</span>
-                  <strong>{{ metrics.inProgressTasks }}</strong>
-                </div>
-
-                <div class="metric-card">
-                  <span class="metric-label">High Priority</span>
-                  <strong>{{ metrics.highPriorityTasks }}</strong>
-                </div>
-
-                <div class="metric-card">
-                  <span class="metric-label">Unassigned</span>
-                  <strong>{{ metrics.unassignedTasks }}</strong>
-                </div>
-
-                <div class="metric-card">
-                  <span class="metric-label">Overdue</span>
-                  <strong>{{ metrics.overdueTasks }}</strong>
-                </div>
-
-                <div class="metric-card">
-                  <span class="metric-label">Due Soon</span>
-                  <strong>{{ metrics.dueSoonTasks }}</strong>
-                </div>
-              </div>
-            }
           </div>
         }
       </section>
 
-      <!-- =========================
+      <!-- =====================================================
            INPUT
-      ========================== -->
+      ====================================================== -->
       <footer class="ai-footer">
         <div class="input-wrapper">
           <input
@@ -292,7 +339,7 @@
             [disabled]="!message.trim() || isThinking"
             aria-label="Send message"
           >
-            <lucide-icon [img]="icons.send" [size]="18"></lucide-icon>
+            <lucide-icon [img]="icons.send" [size]="18"> </lucide-icon>
           </button>
         </div>
 

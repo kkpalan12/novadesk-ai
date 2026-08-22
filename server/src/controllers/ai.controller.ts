@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-
 import { z } from "zod";
 
 import { AiService } from "../services/ai.service";
@@ -18,7 +17,11 @@ const aiChatSchema = z.object({
 export class AiController {
   private readonly aiService = new AiService();
 
-  chat = asyncHandler(async (req: Request, res: Response) => {
+  chat = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    // ==========================================================
+    // VALIDATE REQUEST
+    // ==========================================================
+
     const validation = aiChatSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -27,6 +30,10 @@ export class AiController {
 
     const { message, workspaceId, projectId } = validation.data;
 
+    // ==========================================================
+    // LOG CONTEXT
+    // ==========================================================
+
     console.log("NovaDesk AI Controller:", {
       message,
       workspaceId,
@@ -34,17 +41,57 @@ export class AiController {
       userId: req.user?.userId,
     });
 
+    // ==========================================================
+    // USER VALIDATION
+    // ==========================================================
+
+    if (!req.user?.userId) {
+      throw new BadRequestError("Authenticated user is required");
+    }
+
+    // ==========================================================
+    // AI SERVICE
+    // ==========================================================
+
     const result = await this.aiService.chat(
       message,
       workspaceId,
-      req.user!.userId,
+      req.user.userId,
       projectId,
     );
 
+    // ==========================================================
+    // EXPLICIT API RESPONSE
+    // ==========================================================
+
+    const data = {
+      message: result.message,
+
+      ...(result.metrics
+        ? {
+            metrics: result.metrics,
+          }
+        : {}),
+
+      ...(result.project
+        ? {
+            project: result.project,
+          }
+        : {}),
+
+      ...(result.focusTasks
+        ? {
+            focusTasks: result.focusTasks,
+          }
+        : {}),
+    };
+
+    // ==========================================================
+    // RESPONSE
+    // ==========================================================
+
     res
       .status(200)
-      .json(
-        new ApiResponse(true, "AI response generated successfully", result),
-      );
+      .json(new ApiResponse(true, "AI response generated successfully", data));
   });
 }
